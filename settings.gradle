@@ -1,2 +1,6 @@
 rootProject.name = 'tools'
 
+include 'proto-lookup-plugin'
+
+project(':proto-lookup-plugin').projectDir = "$rootDir/proto-lookup-plugin" as File
+
