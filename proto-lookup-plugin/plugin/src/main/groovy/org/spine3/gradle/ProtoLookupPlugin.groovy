@@ -20,8 +20,10 @@
 
 package org.spine3.gradle
 
+import groovy.util.logging.Slf4j
 import org.gradle.api.*
 
+@Slf4j
 class ProtoLookupPlugin implements Plugin<Project> {
 
     static final String PROPERTIES_PATH_SUFFIX = "resources/protos/properties";
@@ -31,19 +33,29 @@ class ProtoLookupPlugin implements Plugin<Project> {
     @Override
     void apply(Project target) {
 
+        String targetPath = target.projectDir.absolutePath;
+
+        log.debug "${ProtoLookupPlugin.class.getSimpleName()}: start"
+        log.debug "${ProtoLookupPlugin.class.getSimpleName()}: Project path: ${targetPath}"
+
         String javaSuffix = ".java"
         String orBuilderSuffix = "OrBuilder" + javaSuffix
 
-        for (String rootDirPath : ["generated/main", "generated/test"]) {
+        for (String rootDirPath : ["${targetPath}/generated/main", "${targetPath}/generated/test"]) {
+
+            log.debug "${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}"
+
             final String srcFolder = rootDirPath + "/java";
 
             File rootDir = new File(srcFolder)
             if (!rootDir.exists()) {
+                log.debug "${ProtoLookupPlugin.class.getSimpleName()}: no ${rootDirPath}"
                 return
             }
 
-            File propsFileFolder = new File("generated/main/" + PROPERTIES_PATH_SUFFIX)
+            File propsFileFolder = new File("${targetPath}/generated/main/" + PROPERTIES_PATH_SUFFIX)
             if (!propsFileFolder.exists()) {
+                log.debug "${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: props folder does not exist"
                 propsFileFolder.mkdirs();
             }
             Properties props = new Properties() {
@@ -55,9 +67,12 @@ class ProtoLookupPlugin implements Plugin<Project> {
             File propsFile = null;
             try {
                 propsFile = new File(getProtoPropertiesFilePath(rootDirPath))
+                log.debug "${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: successfully found props"
             } catch (FileNotFoundException ignored) {
             }
             if (propsFile.exists()) {
+                log.debug "${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: reading properties file"
+
                 props.load(propsFile.newDataInputStream())
                 // as Properties API does not support saving default table values, we have to rewrite them all
                 // Probably we should use Apache property API
@@ -67,15 +82,20 @@ class ProtoLookupPlugin implements Plugin<Project> {
                     props.setProperty(propName, props.getProperty(propName));
                 }
             } else {
+                log.debug "${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: creating properties file"
+
                 propsFile.parentFile.mkdirs();
                 propsFile.createNewFile();
             }
             rootDir.listFiles().each {
+                log.debug "${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: reading javas"
+
                 String prefixName = it.name
                 target.fileTree(it).each {
                     if (it.name.endsWith(javaSuffix) && !it.name.endsWith(orBuilderSuffix)) {
-                        String protoPath = it.path.substring((target.projectDir.absolutePath
-                                + srcFolder + prefixName).length() + 3)
+                        log.debug "${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: found java ${it.name}"
+
+                        String protoPath = it.path.substring((srcFolder + prefixName).length() + 2)
                         protoPath = protoPath.substring(0, protoPath.length() - javaSuffix.length())
                         protoPath = replaceFileSeparatorWithDot(protoPath)
                         String className = replaceFileSeparatorWithDot(prefixName) + "." + protoPath
@@ -93,11 +113,13 @@ class ProtoLookupPlugin implements Plugin<Project> {
             BufferedWriter writer = propsFile.newWriter();
             props.store(writer, null)
             writer.close()
+            log.debug "${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: written properties"
+
         }
     }
 
     static String getProtoPropertiesFilePath(String rootDirPath) {
-        return CURRENT_PATH + "/" + rootDirPath + "/" + PROPERTIES_PATH_SUFFIX + "/" +
+        return rootDirPath + "/" + PROPERTIES_PATH_SUFFIX + "/" +
                 "proto.properties";
     }
 
