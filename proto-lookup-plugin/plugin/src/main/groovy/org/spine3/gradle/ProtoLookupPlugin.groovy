@@ -27,6 +27,7 @@ import org.gradle.api.*
 class ProtoLookupPlugin implements Plugin<Project> {
 
     static final String PROPERTIES_PATH_SUFFIX = "resources/protos/properties";
+    static final String PROPERTIES_PATH_FILE_NAME = "proto_to_java_class.properties";
 
     @Override
     void apply(Project target) {
@@ -51,7 +52,7 @@ class ProtoLookupPlugin implements Plugin<Project> {
 
     static String getProtoPropertiesFilePath(String rootDirPath) {
         return rootDirPath + "/" + PROPERTIES_PATH_SUFFIX + "/" +
-                "proto.properties";
+                PROPERTIES_PATH_FILE_NAME;
     }
 
     static String replaceFileSeparatorWithDot(String filePath) {
