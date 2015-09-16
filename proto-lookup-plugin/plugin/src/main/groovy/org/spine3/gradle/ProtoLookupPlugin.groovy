@@ -28,11 +28,37 @@ class ProtoLookupPlugin implements Plugin<Project> {
 
     static final String PROPERTIES_PATH_SUFFIX = "resources/protos/properties";
 
-    static final String CURRENT_PATH = new File(".").getCanonicalPath();
-
     @Override
     void apply(Project target) {
 
+        final Set<Task> compileJavaTaskSet = target.getTasksByName("compileJava", false);
+        final Set<Task> processResourcesTaskSet = target.getTasksByName("processResources", false);
+
+        def compileJavaTask = null;
+
+        if (compileJavaTaskSet.size() > 0) {
+            compileJavaTask = compileJavaTaskSet.getAt(0);
+        }
+
+        final Task aTask = target.task("scanProtos", dependsOn: compileJavaTask) << {
+            scanProtos(target);
+        };
+
+        if (processResourcesTaskSet.size() > 0) {
+            processResourcesTaskSet.getAt(0).dependsOn(aTask)
+        }
+    }
+
+    static String getProtoPropertiesFilePath(String rootDirPath) {
+        return rootDirPath + "/" + PROPERTIES_PATH_SUFFIX + "/" +
+                "proto.properties";
+    }
+
+    static String replaceFileSeparatorWithDot(String filePath) {
+        return filePath.replace((char) File.separatorChar, (char) '.');
+    }
+
+    static void scanProtos(Project target) {
         String targetPath = target.projectDir.absolutePath;
 
         log.debug "${ProtoLookupPlugin.class.getSimpleName()}: start"
@@ -114,16 +140,6 @@ class ProtoLookupPlugin implements Plugin<Project> {
             props.store(writer, null)
             writer.close()
             log.debug "${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: written properties"
-
         }
-    }
-
-    static String getProtoPropertiesFilePath(String rootDirPath) {
-        return rootDirPath + "/" + PROPERTIES_PATH_SUFFIX + "/" +
-                "proto.properties";
-    }
-
-    static String replaceFileSeparatorWithDot(String filePath) {
-        return filePath.replace((char) File.separatorChar, (char) '.');
     }
 }
