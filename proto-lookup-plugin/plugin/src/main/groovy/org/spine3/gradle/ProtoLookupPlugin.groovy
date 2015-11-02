@@ -26,7 +26,7 @@ import org.gradle.api.*
 @Slf4j
 class ProtoLookupPlugin implements Plugin<Project> {
 
-    static final String PROPERTIES_PATH_SUFFIX = "resources/protos/properties";
+    static final String PROPERTIES_PATH_SUFFIX = "resources";
     static final String PROPERTIES_PATH_FILE_NAME = "proto_to_java_class.properties";
 
     @Override
