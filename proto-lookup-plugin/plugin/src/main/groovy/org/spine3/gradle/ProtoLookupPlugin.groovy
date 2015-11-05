@@ -29,7 +29,6 @@ import org.gradle.api.Task
 class ProtoLookupPlugin implements Plugin<Project> {
 
     static final String PROPERTIES_PATH_SUFFIX = "resources";
-    // private static final String PROPERTIES_PATH_SUFFIX = "resources/protos/properties";
     private static final String PROPERTIES_PATH_FILE_NAME = "proto_to_java_class.properties";
 
     private static final String JAVA_SUFFIX = ".java";
