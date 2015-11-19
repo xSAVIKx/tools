@@ -27,17 +27,6 @@ subprojects {
     apply plugin: 'maven-publish'
 
     publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                groupId "${group}"
-                artifactId "${project.name}"
-                version "${project.version}"
-
-                from components.java
-            }
-        }
-    }
-    publishing {
         repositories {
             maven {
                 credentials {

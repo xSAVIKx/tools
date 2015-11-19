@@ -1,0 +1,59 @@
+description = ''
+
+apply plugin: 'cpp'
+
+model {
+    buildTypes {
+        debug
+        release
+    }
+
+    platforms {
+        x86 {
+            architecture "x86"
+        }
+        x64 {
+            architecture "x86_64"
+        }
+    }
+
+    components {
+        protobuf(NativeLibrarySpec) {
+            sources {
+                cpp {
+                    exportedHeaders {
+                        srcDirs "src/protobuf/src"
+                        include "*/.h", "**/*.h"
+                    }
+                }
+            }
+        }
+        main(NativeExecutableSpec) {
+            sources {
+                cpp {
+                    source {
+                        srcDirs "src"
+                        include "*/.cpp", "**/*.cpp"
+                    }
+                    exportedHeaders {
+                        srcDirs "src"
+                        include "*/.h", "**/*.h"
+                    }
+                }
+            }
+            binaries.all {
+                lib library: "protobuf"
+            }
+        }
+    }
+}
+
+binaries.all {
+    cppCompiler.args "-std=c++11"
+    linker.args "-Wl,-Bstatic", "-lprotoc", "-lprotobuf", "-static-libgcc", "-static-libstdc++",
+                      "-Wl,-Bdynamic", "-lpthread", "-s"
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.8'
+}

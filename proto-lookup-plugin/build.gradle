@@ -21,3 +21,15 @@ sourceSets {
         groovy.srcDirs = ["plugin/src/main/groovy"]
     }
 }
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId "${group}"
+            artifactId "${project.name}"
+            version "${project.version}"
+
+            from components.java
+        }
+    }
+}
