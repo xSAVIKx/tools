@@ -74,7 +74,7 @@ namespace service_printer {
     void PrintHandlersMap(Printer *p, map<string, string> args, const ServiceDescriptor *service) {
         p->Print(
                 args,
-                "private final Map<String, RpcCallHandler> handlers = new HashMap<>();\n"
+                "private static final Map<String, RpcCallHandler> handlers = new HashMap<>();\n"
                         "\n"
         );
     }
@@ -101,23 +101,6 @@ namespace service_printer {
         p->Print("}\n");
     }
 
-    void PrintRequiredHandlersArray(Printer *p, const ServiceDescriptor *service) {
-        p->Print("private static final String[] requiredMethodHandlers = {\n");
-        p->Indent();
-        int method_count = service->method_count();
-        for (int i = 0; i < method_count; ++i) {
-            const MethodDescriptor *methodDescriptor = service->method(i);
-            string handlerMethod = methodDescriptor->name();
-            p->Print("\"$handlerMethod$\"", "handlerMethod", handlerMethod);
-            if (i < method_count - 1) {
-                p->Print(",");
-            }
-            p->Print("\n");
-        }
-        p->Outdent();
-        p->Print("};\n\n");
-    }
-
     void PrintHandlerFiles(const ServiceDescriptor *service,
                            bool generate_nano,
                            map<string, string> args,
@@ -142,7 +125,7 @@ namespace service_printer {
         for (int i = 0; i < method_count; ++i) {
             const MethodDescriptor *methodDescriptor = service->method(i);
             string handlerClassName = handler_printer::HandlerClassName(methodDescriptor);
-            p->Print("public void register$handler$", "handler", methodDescriptor->name() + "Handler");
+            p->Print("public static void register$handler$", "handler", methodDescriptor->name() + "Handler");
             p->Print("($handler$ handler) {\n", "handler", handlerClassName);
             p->Indent();
             p->Print("handlers.put(\"$method$\", handler);\n", "method", methodDescriptor->name());
@@ -169,7 +152,6 @@ namespace service_printer {
         PrintImports(&p, args["package_name"], class_name, generate_nano);
 
         PrintClassName(&p, args);
-        PrintRequiredHandlersArray(&p, service);
         PrintHandlersMap(&p, args, service);
         PrintGetHandler(&p);
         PrintRegisterers(&p, class_name, service);
