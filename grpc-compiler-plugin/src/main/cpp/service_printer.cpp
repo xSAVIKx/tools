@@ -56,6 +56,11 @@ namespace service_printer {
                 "import $package_name$.handlers.*;"
                         "\n\n", "package_name", package_name
         );
+
+        //todo:2015-11-13:mikhail.mikhaylov: Review this later.
+        if (generate_nano) {
+            p->Print("import java.io.IOException;\n\n");
+        }
     }
 
     void PrintClassName(Printer *p, map<string, string> args) {
@@ -71,7 +76,6 @@ namespace service_printer {
                 args,
                 "private final Map<String, RpcCallHandler> handlers = new HashMap<>();\n"
                         "\n"
-                        "private $class_name$() {}\n\n"
         );
     }
 
@@ -81,7 +85,13 @@ namespace service_printer {
                         "protected RpcCallHandler getRpcCallHandler(String method) {\n"
         );
         p->Indent();
-        p->Print("return handlers.get(method);\n");
+        p->Print("final RpcCallHandler rpcCallHandler = handlers.get(method);\n"
+            "if (rpcCallHandler == null) {\n");
+        p->Indent();
+        p->Print("throw new IllegalStateException(\"No handler registered for method: \" + method);\n");
+        p->Outdent();
+        p->Print("}\n");
+        p->Print("return rpcCallHandler;\n");
         p->Outdent();
         p->Print("}\n\n");
     }
@@ -127,30 +137,12 @@ namespace service_printer {
         }
     }
 
-    void PrintBuilder(Printer *p, string class_name, const ServiceDescriptor *service) {
-        p->Print("public class Builder {\n\n");
-        p->Indent();
-        p->Print("private $class_name$ service = new $class_name$();\n\n", "class_name", class_name);
-        p->Print("public $class_name$ build() {\n", "class_name", class_name);
-        p->Indent();
-        p->Print("for (String methodName : requiredMethodHandlers) {\n");
-        p->Indent();
-        p->Print("if (!handlers.containsKey(methodName)) {\n");
-        p->Indent();
-        p->Print("throw new IllegalStateException(\"Not all required fields were initialized.\");\n");
-        p->Outdent();
-        p->Print("}\n");
-        p->Outdent();
-        p->Print("}\n");
-        p->Print("return service;\n");
-        p->Outdent();
-        p->Print("}\n\n");
-
+    void PrintRegisterers(Printer *p, string class_name, const ServiceDescriptor *service) {
         int method_count = service->method_count();
         for (int i = 0; i < method_count; ++i) {
             const MethodDescriptor *methodDescriptor = service->method(i);
             string handlerClassName = handler_printer::HandlerClassName(methodDescriptor);
-            p->Print("public void set$handler$", "handler", methodDescriptor->name() + "Handler");
+            p->Print("public void register$handler$", "handler", methodDescriptor->name() + "Handler");
             p->Print("($handler$ handler) {\n", "handler", handlerClassName);
             p->Indent();
             p->Print("handlers.put(\"$method$\", handler);\n", "method", methodDescriptor->name());
@@ -158,8 +150,6 @@ namespace service_printer {
             p->Print("}\n\n");
         }
 
-        p->Outdent();
-        p->Print("}\n");
     }
 
     void GenerateService(const ServiceDescriptor *service,
@@ -182,7 +172,7 @@ namespace service_printer {
         PrintRequiredHandlersArray(&p, service);
         PrintHandlersMap(&p, args, service);
         PrintGetHandler(&p);
-        PrintBuilder(&p, class_name, service);
+        PrintRegisterers(&p, class_name, service);
         PrintClassEnd(&p);
 
         PrintHandlerFiles(service, generate_nano, args, context);
