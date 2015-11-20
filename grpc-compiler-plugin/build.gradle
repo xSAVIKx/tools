@@ -51,9 +51,26 @@ model {
 binaries.all {
     cppCompiler.args "-std=c++11"
     linker.args "-Wl,-Bstatic", "-lprotoc", "-lprotobuf", "-static-libgcc", "-static-libstdc++",
-                      "-Wl,-Bdynamic", "-lpthread", "-s"
+            "-Wl,-Bdynamic", "-lpthread", "-s"
 }
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.8'
+}
+
+publishing {
+    publications {
+        exe(MavenPublication) {
+            groupId "org.spine3.tools"
+            artifactId "grpc-proto-plugin"
+            version "1.0-TEST"
+
+            artifact file("build/binaries/mainExecutable/release/main.exe")
+
+            pom.setPackaging("exe")
+//            pom.withXml {
+//                asNode().appendNode('description', 'A demonstration of Maven POM customization')
+//            }
+        }
+    }
 }
