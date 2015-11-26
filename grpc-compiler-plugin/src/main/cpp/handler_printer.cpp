@@ -31,7 +31,7 @@ namespace handler_printer {
                 new google::protobuf::compiler::java::ClassNameResolver();
 
         p->Print(
-                "import org.spine.grpc.rest.RpcCallHandler;\n"
+                "import org.spine3.grpc.rest.RpcCallHandler;\n"
                         "\n"
         );
 

@@ -43,8 +43,8 @@ namespace service_printer {
 
     void PrintImports(Printer *p, string package_name, string class_name, bool generate_nano) {
         p->Print(
-                "import org.spine.grpc.rest.AbstractRpcService;\n"
-                        "import org.spine.grpc.rest.RpcCallHandler;\n"
+                "import org.spine3.grpc.rest.AbstractRpcService;\n"
+                        "import org.spine3.grpc.rest.RpcCallHandler;\n"
                         "\n"
                         "import java.util.HashMap;\n"
                         "import java.util.Map;\n"
