@@ -61,6 +61,20 @@ namespace handler_printer {
         p->Indent();
     }
 
+    void PrintClassImplementation(Printer *p, map<string, string> args) {
+        p->Print(
+                args,
+                "public Class<$handler_argument_name$> getParameterClass() {\n"
+        );
+        p->Indent();
+        p->Print(
+                args,
+                "return $handler_argument_name$.class;\n"
+        )
+        p->Outdent();
+        p->Print("}\n")
+    }
+
     void PrintClassEnd(Printer *p) {
         p->Outdent();
         p->Print("}\n");
