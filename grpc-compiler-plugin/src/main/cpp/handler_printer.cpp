@@ -70,9 +70,9 @@ namespace handler_printer {
         p->Print(
                 args,
                 "return $handler_argument_name$.class;\n"
-        )
+        );
         p->Outdent();
-        p->Print("}\n")
+        p->Print("}\n");
     }
 
     void PrintClassEnd(Printer *p) {
