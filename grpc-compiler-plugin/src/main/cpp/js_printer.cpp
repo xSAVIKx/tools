@@ -92,7 +92,7 @@ namespace js_printer {
                            string webapp_path, string proto_file_name,
                            google::protobuf::compiler::GeneratorContext *context) {
         const string message_name = descriptor->name();
-        const string file_name = webapp_path + "scripts/" + message_name + ".js";
+        const string file_name = "../../../" + webapp_path + "build/scripts/" + message_name + ".js";
 
         std::unique_ptr<google::protobuf::io::ZeroCopyOutputStream> output(
                 context->Open(file_name));
@@ -103,7 +103,7 @@ namespace js_printer {
 
         p.Print("define(['protobuf'], function (ProtoBuf) {\n\n");
         p.Indent();
-        p.Print("var $message_name$ = ProtoBuf.loadProtoFile(\"/res/", "message_name", message_name);
+        p.Print("var $message_name$ = ProtoBuf.loadProtoFile(\"/build/res/", "message_name", message_name);
         p.Print("$proto_file$\").build(", "proto_file", proto_file_name);
         p.Print("\"$proto_full_name$\");\n\n", "proto_full_name", proto_full_name);
         p.Print("return $message_name$;\n", "message_name", message_name);
@@ -114,7 +114,7 @@ namespace js_printer {
     void GenerateJsService(const google::protobuf::ServiceDescriptor *service, string webapp_path,
                            google::protobuf::compiler::GeneratorContext *context) {
         const string &service_name = service_printer::ServiceClassName(service);
-        string service_filename = webapp_path + "scripts/" + service_name + ".js";
+        string service_filename = "../../../" + webapp_path + "build/scripts/" + service_name + ".js";
 
         std::unique_ptr<google::protobuf::io::ZeroCopyOutputStream> output(
                 context->Open(service_filename));
@@ -145,7 +145,7 @@ namespace js_printer {
 
     void GenerateConstantsSample(string webapp_path, set<string> service_names,
                                  google::protobuf::compiler::GeneratorContext *context) {
-        const string file_name = webapp_path + "scripts/Constants.js.sample";
+        const string file_name = "../../../" + webapp_path + "build/scripts/Constants.js.sample";
 
         std::unique_ptr<google::protobuf::io::ZeroCopyOutputStream> output(
                 context->Open(file_name));
@@ -164,8 +164,10 @@ namespace js_printer {
 
     void CopyProtoFile(const google::protobuf::FileDescriptor *descriptor, string webapp_path, string file_name,
                        google::protobuf::compiler::GeneratorContext *context) {
-        string destination = webapp_path + "res/" + file_name;
-        string descriptor_path = descriptor->name();
+        string proto_path_prefix = "src/main/proto/";
+
+        string destination = "../../../" + webapp_path + "build/res/" + file_name;
+        string descriptor_path = proto_path_prefix + descriptor->name();
 
         std::unique_ptr<google::protobuf::io::ZeroCopyOutputStream> output(
                 context->Open(destination));
