@@ -10,9 +10,19 @@ using namespace std;
 
 namespace js_printer {
     // Generates JS part for service
-    void GenerateJs(const google::protobuf::ServiceDescriptor *service,
-                    string js_path,
-                    google::protobuf::compiler::GeneratorContext *context);
+    void GenerateJsService(const google::protobuf::ServiceDescriptor *service,
+                           string webapp_path,
+                           google::protobuf::compiler::GeneratorContext *context);
+
+    void GenerateJsMessage(const google::protobuf::Descriptor *descriptor,
+                           string webapp_path, string proto_file_name,
+                           google::protobuf::compiler::GeneratorContext *context);
+
+    void GenerateConstantsSample(string webapp_path, set<string> service_names,
+                                 google::protobuf::compiler::GeneratorContext *context);
+
+    void CopyProtoFile(const google::protobuf::FileDescriptor *descriptor, string webapp_path, string file_name,
+                       google::protobuf::compiler::GeneratorContext *context);
 }
 
 
