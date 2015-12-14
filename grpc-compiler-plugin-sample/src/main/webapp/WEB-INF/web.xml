@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2000-2014 TeamDev Ltd. All rights reserved.
+  ~ TeamDev PROPRIETARY and CONFIDENTIAL.
+  ~ Use is subject to license terms.
+  -->
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         id="WebApp_ID" version="2.5"
+         metadata-complete="true">
+    <!-- Default page to serve -->
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+
+    <servlet>
+        <servlet-name>GrpcServlet</servlet-name>
+        <servlet-class>org.spine3.grpc.rest.sample.ConfiguredGreeterGrpc</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>GrpcServlet</servlet-name>
+        <url-pattern>/greeter</url-pattern>
+    </servlet-mapping>
+
+    <session-config>
+        <session-timeout>44640</session-timeout>
+    </session-config>
+
+</web-app>

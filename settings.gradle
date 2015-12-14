@@ -2,7 +2,9 @@ rootProject.name = 'tools'
 
 include 'proto-lookup-plugin'
 include 'grpc-compiler-plugin'
+include 'grpc-compiler-plugin-sample'
 
 project(':proto-lookup-plugin').projectDir = "$rootDir/proto-lookup-plugin" as File
 project(':grpc-compiler-plugin').projectDir = "$rootDir/grpc-compiler-plugin" as File
+project(':grpc-compiler-plugin-sample').projectDir = "$rootDir/grpc-compiler-plugin-sample" as File
 

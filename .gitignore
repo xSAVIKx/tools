@@ -13,3 +13,5 @@ hs_err_pid*
 
 *.iml
 credentials.properties
+
+/grpc-compiler-plugin-sample/generated
