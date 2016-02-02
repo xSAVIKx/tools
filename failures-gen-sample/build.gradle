@@ -1,0 +1,54 @@
+group 'org.spine3.tools'
+version '1.0'
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.google.protobuf:protobuf-java:3.0.0-beta-2'
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.7.0'
+        classpath "org.spine3.tools:proto-lookup-plugin:1.0"
+        classpath "org.spine3.tools:failures-gen:1.0"
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'com.google.protobuf'
+apply plugin: 'idea'
+
+apply plugin: 'org.spine3.tools.protolookup'
+apply plugin: 'org.spine3.tools.failuresgen'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.spine3:server:0.2'
+    compile 'com.google.protobuf:protobuf-java:3.0.0-beta-2'
+}
+
+protobuf {
+    generatedFilesBaseDir = "$projectDir/generated";
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.0.0-beta-2'
+    }
+}
+
+idea.module {
+    generatedSourceDirs += file("$projectDir/generated/main/java");
+    generatedSourceDirs += file("$projectDir/generated/main/spine");
+}
+
+sourceSets {
+    main {
+        proto.srcDirs = ["$projectDir/src/main/proto"]
+        java.srcDirs = ["$projectDir/generated/main/java",
+                        "$projectDir/generated/main/spine",
+                        "$projectDir/src/main/java"]
+        resources.srcDirs = ["$projectDir/generated/main/resources"]
+    }
+}
