@@ -1,11 +1,12 @@
 package org.spine3.gradle
 
 import com.google.protobuf.Descriptors.FieldDescriptor.JavaType;
-import com.google.protobuf.Descriptors;
+import com.google.protobuf.Descriptors
+import groovy.util.logging.Slf4j
+import org.gradle.api.Nullable
 
-/* package */
-
-class FailureWriter {
+@Slf4j
+/* package */ class FailureWriter {
 
     private final Descriptors.Descriptor failureDescriptor;
     private final File outputFile;
@@ -30,19 +31,31 @@ class FailureWriter {
         outputFile.getParentFile().mkdirs();
         outputFile.createNewFile();
 
-        FileOutputStream fos = new FileOutputStream(outputFile);
-        OutputStreamWriter osw = new OutputStreamWriter(fos);
+        FileOutputStream fos = null;
+        OutputStreamWriter osw = null;
 
-        writePackage(osw);
-        writeImports(osw);
-        writeClassName(osw);
-        writeConstructor(osw);
-        writeGetFailure(osw);
-        writeEnding(osw);
+        try {
+            fos = new FileOutputStream(outputFile);
+            osw = new OutputStreamWriter(fos);
 
-        osw.flush();
-        osw.close();
-        fos.close();
+            writePackage(osw);
+            writeImports(osw);
+            writeClassName(osw);
+            writeConstructor(osw);
+            writeGetFailure(osw);
+            writeEnding(osw);
+
+        } catch (IOException e) {
+            log.error("Could not write to filesystem: " + e.getMessage());
+        } finally {
+            if (osw != null) {
+                osw.flush();
+                osw.close();
+            }
+            if (fos != null) {
+                fos.close();
+            }
+        }
     }
 
     private void writePackage(OutputStreamWriter writer) {
@@ -55,23 +68,27 @@ class FailureWriter {
         fields = new LinkedHashMap<>();
 
         for (Descriptors.FieldDescriptor field : failureDescriptor.getFields()) {
-            if (field.javaType == JavaType.MESSAGE) {
-                def dependencyFileName = field.messageType.file.fullName;
-                def javaPackage = dependencyPackages.get(dependencyFileName);
-                def fieldType = field.messageType.name;
-                dependencies.add("$javaPackage.$fieldType");
-                fields.put(field.name, fieldType)
-            } else if (field.javaType == JavaType.ENUM) {
-                def dependencyFileName = field.enumType.file.fullName;
-                def javaPackage = dependencyPackages.get(dependencyFileName);
-                def fieldType = field.enumType.name;
-                dependencies.add("$javaPackage.$fieldType");
-                fields.put(field.name, fieldType)
-            } else if (field.javaType == JavaType.BYTE_STRING) {
-                dependencies.add("com.google.protobuf.ByteString");
-                fields.put(field.name, "ByteString");
-            } else {
-                fields.put(field.name, getCommonProtoTypeName(field.getJavaType()));
+            switch (field.javaType) {
+                case JavaType.MESSAGE:
+                    def dependencyFileName = field.messageType.file.fullName;
+                    def javaPackage = dependencyPackages.get(dependencyFileName);
+                    def fieldType = field.messageType.name;
+                    dependencies.add("$javaPackage.$fieldType");
+                    fields.put(field.name, fieldType)
+                    break;
+                case JavaType.ENUM:
+                    def dependencyFileName = field.enumType.file.fullName;
+                    def javaPackage = dependencyPackages.get(dependencyFileName);
+                    def fieldType = field.enumType.name;
+                    dependencies.add("$javaPackage.$fieldType");
+                    fields.put(field.name, fieldType);
+                    break;
+                case JavaType.BYTE_STRING:
+                    dependencies.add("com.google.protobuf.ByteString");
+                    fields.put(field.name, "ByteString");
+                    break;
+                default:
+                    fields.put(field.name, getCommonProtoTypeName(field.getJavaType()));
             }
         }
 
@@ -126,6 +143,7 @@ class FailureWriter {
         writer.write("}\n");
     }
 
+    @Nullable
     private static String getCommonProtoTypeName(JavaType type) {
         switch (type) {
             case JavaType.STRING:

@@ -64,23 +64,23 @@ class FailuresGenPlugin implements Plugin<Project> {
         }
         List<String> lines = failuresInputJava.readLines();
 
-        String fPackage = null;
-        String fSampleFailure = null;
+        String javaPackage = null;
+        String anyFoundFailure = null;
 
         for (String line : lines) {
             def trimmedLine = line.trim();
             def trimmedLineLength = trimmedLine.length();
 
-            if (fPackage == null && trimmedLine.startsWith(PACKAGE_PREFIX)) {
-                fPackage = trimmedLine.substring(PACKAGE_PREFIX.length(), trimmedLineLength - 1);
-            } else if (fSampleFailure == null && trimmedLine.startsWith(FAILURE_PREFIX)) {
-                fSampleFailure = trimmedLine.substring(trimmedLine.lastIndexOf('.') + 1, trimmedLineLength - 1);
-            } else if (fPackage != null && fSampleFailure != null) {
+            if (javaPackage == null && trimmedLine.startsWith(PACKAGE_PREFIX)) {
+                javaPackage = trimmedLine.substring(PACKAGE_PREFIX.length(), trimmedLineLength - 1);
+            } else if (anyFoundFailure == null && trimmedLine.startsWith(FAILURE_PREFIX)) {
+                anyFoundFailure = trimmedLine.substring(trimmedLine.lastIndexOf('.') + 1, trimmedLineLength - 1);
+            } else if (javaPackage != null && anyFoundFailure != null) {
                 break;
             }
         }
 
-        return new FailuresFileMetadata(fPackage, fSampleFailure);
+        return new FailuresFileMetadata(javaPackage, anyFoundFailure);
     }
 
     private static boolean validateFailures(Descriptors.FileDescriptor descriptor) {
@@ -122,7 +122,7 @@ class FailuresGenPlugin implements Plugin<Project> {
 
         Class failuresClass = classLoader.loadClass(className);
 
-        return failuresClass
+        return failuresClass;
     }
 
     private static File seekForFile(Project target, String rootPath, String fileName) {
