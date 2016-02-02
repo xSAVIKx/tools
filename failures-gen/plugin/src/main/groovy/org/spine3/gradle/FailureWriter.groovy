@@ -31,29 +31,18 @@ import org.gradle.api.Nullable
         outputFile.getParentFile().mkdirs();
         outputFile.createNewFile();
 
-        FileOutputStream fos = null;
-        OutputStreamWriter osw = null;
+        new FileOutputStream(outputFile).withStream {
+            new OutputStreamWriter(it).withWriter {
+                def writer = it as OutputStreamWriter;
 
-        try {
-            fos = new FileOutputStream(outputFile);
-            osw = new OutputStreamWriter(fos);
+                writePackage(writer);
+                writeImports(writer);
+                writeClassName(writer);
+                writeConstructor(writer);
+                writeGetFailure(writer);
+                writeEnding(writer);
 
-            writePackage(osw);
-            writeImports(osw);
-            writeClassName(osw);
-            writeConstructor(osw);
-            writeGetFailure(osw);
-            writeEnding(osw);
-
-        } catch (IOException e) {
-            log.error("Could not write to filesystem: " + e.getMessage());
-        } finally {
-            if (osw != null) {
-                osw.flush();
-                osw.close();
-            }
-            if (fos != null) {
-                fos.close();
+                writer.flush();
             }
         }
     }
