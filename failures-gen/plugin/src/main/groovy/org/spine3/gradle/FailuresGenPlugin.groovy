@@ -2,7 +2,6 @@ package org.spine3.gradle
 
 import com.google.protobuf.Descriptors
 import com.google.protobuf.Message
-import com.google.protobuf.MessageOrBuilder
 import groovy.util.logging.Slf4j;
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -15,7 +14,6 @@ import java.lang.reflect.Method;
 class FailuresGenPlugin implements Plugin<Project> {
 
     private static final String PACKAGE_PREFIX = "package ";
-    private static final String SEMICOLON = ";";
     private static final String METHOD_GET_DESCRIPTOR = "getDescriptor";
     private static final String FAILURE_PREFIX = "* Protobuf type {@code ";
 
@@ -38,8 +36,11 @@ class FailuresGenPlugin implements Plugin<Project> {
 
             Descriptors.FileDescriptor fileDescriptor = descriptor.file
 
-            validateFailures(fileDescriptor)
-            generateFailures(fileDescriptor, failuresFileMetadata.failuresPackage)
+            if (validateFailures(fileDescriptor)) {
+                generateFailures(fileDescriptor, failuresFileMetadata.failuresPackage)
+            } else {
+                log.error("Invalid failures file")
+            }
         };
 
         generateFailures.dependsOn("compileJava", "generateProto");
@@ -82,10 +83,10 @@ class FailuresGenPlugin implements Plugin<Project> {
         return new FailuresFileMetadata(fPackage, fSampleFailure);
     }
 
-    private void validateFailures(Descriptors.FileDescriptor descriptor) {
-        // TODO:2016-02-01:mikhail.mikhaylov: Implement
-        // multiple files false
-        // outer file is named failures
+    private static boolean validateFailures(Descriptors.FileDescriptor descriptor) {
+        return !(descriptor.options.javaMultipleFiles || (descriptor.options.javaOuterClassname != null
+                && !descriptor.options.javaOuterClassname.isEmpty()
+                && !descriptor.options.javaOuterClassname.equals("Failures")));
     }
 
     private void generateFailures(Descriptors.FileDescriptor descriptor, String javaPackage) {
