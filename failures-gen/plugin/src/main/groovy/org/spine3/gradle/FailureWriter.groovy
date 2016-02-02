@@ -78,7 +78,7 @@ class FailureWriter {
         dependencies.add("org.spine3.server.FailureThrowable");
 
         for (String dependency : dependencies) {
-            writer.write("import $dependency;\n")
+            writer.write("import $dependency;\n");
         }
 
         writer.write("\n");
@@ -96,7 +96,7 @@ class FailureWriter {
     private void writeGetFailure(OutputStreamWriter writer) {
         writer.write("\n\t@Override\n");
         writer.write("\tpublic Failures.$className getFailure() {\n");
-        writer.write("\t\treturn (Failures.$className) super.getFailure();\n\t}\n")
+        writer.write("\t\treturn (Failures.$className) super.getFailure();\n\t}\n");
     }
 
     private void writeConstructor(OutputStreamWriter writer) {
