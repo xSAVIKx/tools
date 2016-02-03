@@ -65,7 +65,7 @@ class FailuresGenPlugin implements Plugin<Project> {
         List<String> lines = failuresInputJava.readLines();
 
         String javaPackage = null;
-        String anyFoundFailure = null;
+        String firstFoundFailure = null;
 
         for (String line : lines) {
             def trimmedLine = line.trim();
@@ -73,14 +73,14 @@ class FailuresGenPlugin implements Plugin<Project> {
 
             if (javaPackage == null && trimmedLine.startsWith(PACKAGE_PREFIX)) {
                 javaPackage = trimmedLine.substring(PACKAGE_PREFIX.length(), trimmedLineLength - 1);
-            } else if (anyFoundFailure == null && trimmedLine.startsWith(FAILURE_PREFIX)) {
-                anyFoundFailure = trimmedLine.substring(trimmedLine.lastIndexOf('.') + 1, trimmedLineLength - 1);
-            } else if (javaPackage != null && anyFoundFailure != null) {
+            } else if (firstFoundFailure == null && trimmedLine.startsWith(FAILURE_PREFIX)) {
+                firstFoundFailure = trimmedLine.substring(trimmedLine.lastIndexOf('.') + 1, trimmedLineLength - 1);
+            } else if (javaPackage != null && firstFoundFailure != null) {
                 break;
             }
         }
 
-        return new FailuresFileMetadata(javaPackage, anyFoundFailure);
+        return new FailuresFileMetadata(javaPackage, firstFoundFailure);
     }
 
     private static boolean validateFailures(Descriptors.FileDescriptor descriptor) {
