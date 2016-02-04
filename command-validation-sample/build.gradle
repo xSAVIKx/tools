@@ -8,8 +8,8 @@ buildscript {
     }
     dependencies {
         classpath 'com.google.protobuf:protobuf-java:3.0.0-beta-2'
-        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.7.0'
-        classpath "org.spine3.tools:protobuf-plugin:1.0"
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.7.4'
+        classpath 'org.spine3.tools:protobuf-plugin:1.1'
     }
 }
 
@@ -20,7 +20,7 @@ apply plugin: 'idea'
 apply plugin: 'org.spine3.tools.protobuf-plugin'
 
 repositories {
-    mavenLocal()
+    mavenCentral()
     maven {
         url = 'http://maven.teamdev.com/repository/spine'
     }

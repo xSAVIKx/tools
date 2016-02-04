@@ -6,6 +6,7 @@ import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.spine3.gradle.utils.FileUtil
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -51,14 +52,14 @@ class FailuresGenPlugin implements Plugin<Project> {
         javaClassesPath = "$projectPath/build/classes/main";
         String failuresClassName = "Failures.class";
 
-        return seekForFile(target, javaClassesPath, failuresClassName);
+        return FileUtil.findFile(target, javaClassesPath, failuresClassName);
     }
 
     private FailuresFileMetadata readFailuresPackage(Project target) {
         String javaInputPath = "$projectPath/generated/main/java";
         String failuresJavaName = "Failures.java";
 
-        File failuresInputJava = seekForFile(target, javaInputPath, failuresJavaName);
+        File failuresInputJava = FileUtil.findFile(target, javaInputPath, failuresJavaName);
         if (failuresInputJava == null || !failuresInputJava.exists()) {
             log.error("No failures found.");
         }
@@ -123,19 +124,6 @@ class FailuresGenPlugin implements Plugin<Project> {
         Class failuresClass = classLoader.loadClass(className);
 
         return failuresClass;
-    }
-
-    private static File seekForFile(Project target, String rootPath, String fileName) {
-        File result = null;
-
-        File root = new File(rootPath);
-        target.fileTree(root).each {
-            if (it.name.equals(fileName)) {
-                result = it;
-            }
-        }
-
-        return result;
     }
 
     private static Descriptors.GenericDescriptor getClassDescriptor(Class clazz) {

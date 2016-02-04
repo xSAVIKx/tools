@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package spine.sample.commands.imports;
+
+option java_package="org.spine3.sample.commands.imports";
+option java_outer_classname = "SampleImportsProto";
+option java_multiple_files = true;
+
+message StringIdMessage {
+    string value = 1;
+}

@@ -5,3 +5,5 @@ include 'failures-gen-sample'
 
 project(':protobuf-plugin').projectDir = "$rootDir/protobuf-plugin" as File
 project(':failures-gen-sample').projectDir = "$rootDir/failures-gen-sample" as File
+include 'command-validation-sample'
+

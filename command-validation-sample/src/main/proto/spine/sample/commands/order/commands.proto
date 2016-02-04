@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package spine.sample.commands.order;
+
+option java_package="org.spine3.sample.commands.order";
+option java_outer_classname = "OrderCommandsProto";
+option java_multiple_files = true;
+
+import "spine/sample/commands/imports/for_import.proto";
+
+message RejectOrder {
+
+    spine.sample.commands.imports.StringIdMessage string_id = 1;
+}
+
+message ConfirmOrder {
+
+    spine.sample.commands.imports.StringIdMessage string_id = 1;
+}
