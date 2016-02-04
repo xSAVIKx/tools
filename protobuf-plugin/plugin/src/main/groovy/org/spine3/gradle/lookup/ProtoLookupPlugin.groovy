@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.lookup
+package org.spine3.gradle.lookup;
 
 import groovy.util.logging.Slf4j
 import org.gradle.api.Project
@@ -26,17 +26,30 @@ import org.gradle.api.Task
 import org.spine3.gradle.SubPlugin
 import org.spine3.gradle.shared.SharedPreferences
 
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
 @Slf4j
 class ProtoLookupPlugin implements SubPlugin {
 
     static final String PROPERTIES_PATH_SUFFIX = "resources";
     private static final String PROPERTIES_PATH_FILE_NAME = "proto_to_java_class.properties";
 
-    private static final String JAVA_SUFFIX = ".java";
-    private static final String OR_BUILDER_SUFFIX = "OrBuilder" + JAVA_SUFFIX;
+    private static final String PROTO_SUFFIX = ".proto";
+
+    private static final String MESSAGE_PREFIX = "message ";
+    private static final String JAVA_PACKAGE_PREFIX = "option java_package";
+    private static final String PROTO_PACKAGE_PREFIX = "package ";
+    private static final String OPENING_BRACKET = "{";
+    private static final String CLOSING_BRACKET = "}";
+
+    private static final String NAME_REGEX = "([a-zA-Z0-9]*) *\\{";
+    private static final Pattern MESSAGE_PATTERN = Pattern.compile(MESSAGE_PREFIX + NAME_REGEX);
+    private static final Pattern JAVA_PACKAGE_PATTERN = Pattern.compile(JAVA_PACKAGE_PREFIX + " *= *\\\"(.*)\\\";*");
+    private static final Pattern PROTO_PACKAGE_PATTERN = Pattern.compile(PROTO_PACKAGE_PREFIX + "([a-zA-Z0-9.]*);*");
 
     @Override
-    public void apply(Project project, SharedPreferences prefs) {
+    public void apply(Project project, SharedPreferences sharedPreferences) {
 
         final Task scanProtosTask = project.task("scanProtos") << {
             scanProtos(project);
@@ -50,29 +63,31 @@ class ProtoLookupPlugin implements SubPlugin {
 
     private static void scanProtos(Project project) {
 
-        String projectPath = project.projectDir.absolutePath;
+        final String projectPath = project.projectDir.absolutePath;
 
         log.debug("${ProtoLookupPlugin.class.getSimpleName()}: start");
         log.debug("${ProtoLookupPlugin.class.getSimpleName()}: Project path: ${projectPath}");
 
-        for (String rootDirPath : ["${projectPath}/generated/main", "${projectPath}/generated/test"]) {
+        for (String rootDirPathSuffix : ["main", "test"]) {
+
+            final String rootDirPath = "${projectPath}/generated/" + rootDirPathSuffix;
 
             log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}");
 
             final String srcFolder = rootDirPath + "/java";
 
-            File rootDir = new File(srcFolder);
+            final File rootDir = new File(srcFolder);
             if (!rootDir.exists()) {
                 log.debug("${ProtoLookupPlugin.class.getSimpleName()}: no ${rootDirPath}");
                 continue;
             }
 
-            File propsFileFolder = new File(rootDirPath + "/" + PROPERTIES_PATH_SUFFIX);
+            final File propsFileFolder = new File(rootDirPath + "/" + PROPERTIES_PATH_SUFFIX);
             if (!propsFileFolder.exists()) {
                 log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: props folder does not exist");
                 propsFileFolder.mkdirs();
             }
-            Properties props = new Properties() {
+            final Properties props = new Properties() {
                 @Override
                 public synchronized Enumeration<Object> keys() {
                     return Collections.enumeration(new TreeSet<Object>(super.keySet()));
@@ -91,9 +106,9 @@ class ProtoLookupPlugin implements SubPlugin {
                 props.load(propsFile.newDataInputStream());
                 // as Properties API does not support saving default table values, we have to rewrite them all
                 // Probably we should use Apache property API
-                Set<String> names = props.stringPropertyNames();
+                final Set<String> names = props.stringPropertyNames();
                 for (Iterator<String> i = names.iterator(); i.hasNext();) {
-                    String propName = i.next();
+                    final String propName = i.next();
                     props.setProperty(propName, props.getProperty(propName));
                 }
             } else {
@@ -103,42 +118,68 @@ class ProtoLookupPlugin implements SubPlugin {
                 propsFile.createNewFile();
             }
 
-            rootDir.listFiles().each {
+            final String srcDirPath = "${projectPath}/src/" + rootDirPathSuffix;
+            final String protoFilesPath = srcDirPath + "/proto";
+            readProtos(props, protoFilesPath, project);
 
-                log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: reading javas");
-
-                String prefixName = it.name;
-
-                project.fileTree(it).each {
-
-                    if (it.name.endsWith(JAVA_SUFFIX) && !it.name.endsWith(OR_BUILDER_SUFFIX)) {
-
-                        log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: found java ${it.name}");
-
-                        String protoPath = it.path.substring((srcFolder + prefixName).length() + 2);
-                        protoPath = protoPath.substring(0, protoPath.length() - JAVA_SUFFIX.length());
-                        protoPath = replaceFileSeparatorWithDot(protoPath);
-                        String className = replaceFileSeparatorWithDot(prefixName) + "." + protoPath;
-
-                        // 'Spine3' is the abbreviation for Spine Event Engine.
-                        // We have 'org.spine3' package name for Java because other 'spine' in 'org' or 'io'
-                        // were occupied.
-                        // We have 'spine' package for Protobuf (without '3') because it reads better.
-                        String protoType = protoPath.replace("spine3", "spine");
-
-                        props.setProperty(protoType, className);
-                    }
-                }
-            }
-
-            BufferedWriter writer = propsFile.newWriter();
+            final BufferedWriter writer = propsFile.newWriter();
             props.store(writer, null);
             writer.close();
             log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: written properties");
         }
     }
 
-    private static String replaceFileSeparatorWithDot(String filePath) {
-        return filePath.replace((char) File.separatorChar, (char) '.');
+    private static void readProtos(Properties properties, String rootProtoPath, Project project) {
+        final File root = new File(rootProtoPath);
+        project.fileTree(root).each {
+            if (it.name.endsWith(PROTO_SUFFIX)) {
+                readProtoFile(properties, it.canonicalFile);
+            }
+        }
+    }
+
+    private static void readProtoFile(Properties properties, File file) {
+        final List<String> lines = file.readLines();
+        String javaPackage = "";
+        String protoPackage = "";
+        final List<String> classes = new ArrayList<>();
+        int nestedClassDepth = 0; // for inner classes
+        for (String line : lines) {
+            def trimmedLine = line.trim();
+            if (trimmedLine.startsWith(MESSAGE_PREFIX)) {
+                addClass(findLineData(trimmedLine, MESSAGE_PATTERN), classes, nestedClassDepth);
+            } else if (javaPackage.isEmpty() && trimmedLine.startsWith(JAVA_PACKAGE_PREFIX)) {
+                javaPackage = findLineData(trimmedLine, JAVA_PACKAGE_PATTERN) + ".";
+            } else if (protoPackage.isEmpty() && trimmedLine.startsWith(PROTO_PACKAGE_PREFIX)) {
+                protoPackage = findLineData(trimmedLine, PROTO_PACKAGE_PATTERN) + ".";
+            }
+            // This won't work for bad-formatted proto files. Consider moving to descriptors.
+            if (trimmedLine.contains(OPENING_BRACKET)) {
+                nestedClassDepth++;
+            } else if (trimmedLine.contains(CLOSING_BRACKET)) {
+                nestedClassDepth--;
+            }
+        }
+
+        for (String className : classes) {
+            properties.setProperty(protoPackage + className, javaPackage + className);
+        }
+    }
+
+    private static void addClass(String className, List<String> classes, int nestedClassDepth) {
+        String fullClassName = className;
+        for (int i = 0; i < nestedClassDepth; i++) {
+            fullClassName = "${classes.get(classes.size() - i - 1)}.$fullClassName";
+        }
+        classes.add(fullClassName);
+    }
+
+    private static String findLineData(String line, Pattern pattern) {
+
+        final Matcher matcher = pattern.matcher(line);
+        if (matcher.matches()) {
+            return matcher.group(1);
+        }
+        throw new IllegalArgumentException("Could not parse data: " + line);
     }
 }
