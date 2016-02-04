@@ -21,16 +21,15 @@
 package org.spine3.gradle.lookup;
 
 import groovy.util.logging.Slf4j
-import org.gradle.api.Project
-import org.gradle.api.Task
-import org.spine3.gradle.SubPlugin
-import org.spine3.gradle.shared.SharedPreferences
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 
-import java.util.regex.Matcher
-import java.util.regex.Pattern
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
-class ProtoLookupPlugin implements SubPlugin {
+class ProtoLookupPlugin implements Plugin<Project> {
 
     static final String PROPERTIES_PATH_SUFFIX = "resources";
     private static final String PROPERTIES_PATH_FILE_NAME = "proto_to_java_class.properties";
@@ -49,7 +48,7 @@ class ProtoLookupPlugin implements SubPlugin {
     private static final Pattern PROTO_PACKAGE_PATTERN = Pattern.compile(PROTO_PACKAGE_PREFIX + "([a-zA-Z0-9.]*);*");
 
     @Override
-    public void apply(Project project, SharedPreferences sharedPreferences) {
+    public void apply(Project project) {
 
         final Task scanProtosTask = project.task("scanProtos") << {
             scanProtos(project);
