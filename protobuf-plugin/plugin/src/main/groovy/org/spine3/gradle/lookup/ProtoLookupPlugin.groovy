@@ -18,15 +18,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle
+package org.spine3.gradle.lookup
 
 import groovy.util.logging.Slf4j
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.spine3.gradle.SubPlugin
+import org.spine3.gradle.shared.SharedPreferences
 
 @Slf4j
-class ProtoLookupPlugin implements Plugin<Project> {
+class ProtoLookupPlugin implements SubPlugin {
 
     static final String PROPERTIES_PATH_SUFFIX = "resources";
     private static final String PROPERTIES_PATH_FILE_NAME = "proto_to_java_class.properties";
@@ -35,7 +36,7 @@ class ProtoLookupPlugin implements Plugin<Project> {
     private static final String OR_BUILDER_SUFFIX = "OrBuilder" + JAVA_SUFFIX;
 
     @Override
-    public void apply(Project project) {
+    public void apply(Project project, SharedPreferences prefs) {
 
         final Task scanProtosTask = project.task("scanProtos") << {
             scanProtos(project);

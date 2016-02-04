@@ -1,7 +1,7 @@
-package org.spine3.gradle
+package org.spine3.gradle.failures
 
-import com.google.protobuf.Descriptors.FieldDescriptor.JavaType;
 import com.google.protobuf.Descriptors
+import com.google.protobuf.Descriptors.FieldDescriptor.JavaType
 import groovy.util.logging.Slf4j
 import org.gradle.api.Nullable
 

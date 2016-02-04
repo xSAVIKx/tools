@@ -1,17 +1,18 @@
-package org.spine3.gradle
+package org.spine3.gradle.failures
 
 import com.google.protobuf.Descriptors
 import com.google.protobuf.Message
-import groovy.util.logging.Slf4j;
-import org.gradle.api.Plugin
+import groovy.util.logging.Slf4j
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.spine3.gradle.SubPlugin
+import org.spine3.gradle.shared.SharedPreferences
 
 import java.lang.reflect.InvocationTargetException
-import java.lang.reflect.Method;
+import java.lang.reflect.Method
 
 @Slf4j
-class FailuresGenPlugin implements Plugin<Project> {
+class FailuresGenPlugin implements SubPlugin {
 
     private static final String PACKAGE_PREFIX = "package ";
     private static final String METHOD_GET_DESCRIPTOR = "getDescriptor";
@@ -21,7 +22,7 @@ class FailuresGenPlugin implements Plugin<Project> {
     private String javaClassesPath;
 
     @Override
-    void apply(Project target) {
+    void apply(Project target, SharedPreferences prefs) {
         projectPath = target.projectDir.absolutePath;
 
         final Task generateFailures = target.task("generateFailures") << {

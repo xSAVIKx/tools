@@ -14,7 +14,8 @@ hs_err_pid*
 # Include Gradle Wrapper into distribution
 !/gradle/wrapper/gradle-wrapper.jar
 
-*.iml
 credentials.properties
 
 */generated/*
+
+.idea
