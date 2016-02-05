@@ -8,6 +8,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.spine3.gradle.utils.FileUtil
 import org.spine3.gradle.utils.Paths
+import org.spine3.gradle.utils.ProtoUtil
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -34,7 +35,7 @@ class FailuresGenPlugin implements Plugin<Project> {
             FailuresFileMetadata failuresFileMetadata = readFailuresPackage(target);
             Class failuresClass = loadFailuresIntoClassPath(javaClassesPath, failuresFileMetadata);
 
-            Descriptors.GenericDescriptor descriptor = getClassDescriptor(failuresClass);
+            Descriptors.GenericDescriptor descriptor = ProtoUtil.getClassDescriptor(failuresClass);
 
             Descriptors.FileDescriptor fileDescriptor = descriptor.file;
 
@@ -125,21 +126,6 @@ class FailuresGenPlugin implements Plugin<Project> {
         Class failuresClass = classLoader.loadClass(className);
 
         return failuresClass;
-    }
-
-    private static Descriptors.GenericDescriptor getClassDescriptor(Class clazz) {
-        if (!Message.class.isAssignableFrom(clazz)) {
-            log.error("Class " + clazz + " is not an instance of Protobuf Message");
-            return null;
-        }
-        try {
-            final Method method = clazz.getMethod(METHOD_GET_DESCRIPTOR);
-            final Descriptors.GenericDescriptor result = (Descriptors.GenericDescriptor) method.invoke(null);
-            return result;
-        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException ignored) {
-            log.error("Could not get descriptor for type " + clazz.getName());
-            return null;
-        }
     }
 
     private static void writeFailureIntoFile(Descriptors.Descriptor failure, File file, String javaPackage,

@@ -3,9 +3,10 @@ def CREDENTIALS_LOCATION = "credentials.properties"
 apply plugin: 'java'
 apply plugin: 'maven'
 
+version = '1.0'
+
 allprojects {
     group = 'org.spine3.tools'
-    version = '1.0'
 }
 
 project.ext {
