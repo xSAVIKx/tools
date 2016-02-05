@@ -11,6 +11,8 @@ class FileUtil {
     /**
      * Searches for a file with given name under the given path.
      *
+     * When this method is called, we assume, that there should be only one existing file, so first found is ok.
+     *
      * @param target Project which contains file
      * @param rootPath root search path
      * @param fileName file's simple name without path
@@ -18,15 +20,20 @@ class FileUtil {
      */
     @Nullable
     public static File findFile(Project target, String rootPath, String fileName) {
-        File result = null;
+        def foundFiles = findAllFiles(target, rootPath, fileName)
+        return foundFiles.size() > 0 ? foundFiles.get(0) : null;
+    }
 
-        File root = new File(rootPath);
+    public static List<File> findAllFiles(Project target, String rootPath, String fileName) {
+        final List<File> searchResult = new ArrayList<>();
+
+        final File root = new File(rootPath);
         target.fileTree(root).each {
             if (it.name.equals(fileName)) {
-                result = it;
+                searchResult.add(it);
             }
         }
 
-        return result;
+        return searchResult;
     }
 }

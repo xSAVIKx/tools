@@ -7,6 +7,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.spine3.gradle.utils.FileUtil
+import org.spine3.gradle.utils.Paths
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -38,7 +39,7 @@ class FailuresGenPlugin implements Plugin<Project> {
             Descriptors.FileDescriptor fileDescriptor = descriptor.file;
 
             if (validateFailures(fileDescriptor)) {
-                generateFailures(fileDescriptor, failuresFileMetadata.failuresPackage);
+                generateFailures(fileDescriptor, failuresFileMetadata.failuresJavaPackage);
             } else {
                 log.error("Invalid failures file");
             }
@@ -49,7 +50,7 @@ class FailuresGenPlugin implements Plugin<Project> {
     }
 
     private File seekForFailuresClassFile(Project target) {
-        javaClassesPath = "$projectPath/build/classes/main";
+        javaClassesPath = "$projectPath${Paths.CLASSES_DIR_RELATIVE_PATH}";
         String failuresClassName = "Failures.class";
 
         return FileUtil.findFile(target, javaClassesPath, failuresClassName);
@@ -119,7 +120,7 @@ class FailuresGenPlugin implements Plugin<Project> {
 
         URLClassLoader classLoader = new URLClassLoader(args, this.classLoader);
 
-        String className = metadata.failuresPackage + ".Failures\$" + metadata.sampleFailureName;
+        String className = metadata.failuresJavaPackage + ".Failures\$" + metadata.firstFoundFailure;
 
         Class failuresClass = classLoader.loadClass(className);
 
@@ -147,12 +148,12 @@ class FailuresGenPlugin implements Plugin<Project> {
     }
 
     private class FailuresFileMetadata {
-        public final String failuresPackage;
-        public final String sampleFailureName;
+        public final String failuresJavaPackage;
+        public final String firstFoundFailure;
 
-        public FailuresFileMetadata(String failuresPackage, String sampleFailureName) {
-            this.failuresPackage = failuresPackage;
-            this.sampleFailureName = sampleFailureName;
+        public FailuresFileMetadata(String failuresJavaPackage, String firstFoundFailure) {
+            this.failuresJavaPackage = failuresJavaPackage;
+            this.firstFoundFailure = firstFoundFailure;
         }
     }
 }
