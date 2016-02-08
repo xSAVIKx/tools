@@ -82,7 +82,7 @@ class CommandValidatorWriter {
 
     private void writeFieldValidation(OutputStreamWriter writer, FieldDescriptor field) {
 
-        Class clazz = classLoader.loadClass("org.spine3.sample.commands.order.OrderCommandsProto");
+        Class clazz = classLoader.loadClass("org.spine3.base.OptionsProto");
 
         if (clazz == null) {
             log.error("Could not load options.");

@@ -7,11 +7,8 @@ option java_outer_classname = "OrderCommandsProto";
 option java_multiple_files = true;
 
 import "spine/sample/commands/imports/for_import.proto";
-import "google/protobuf/descriptor.proto";
 
-extend google.protobuf.FieldOptions {
-    bool required = 51001;
-}
+import "spine/base/options.proto";
 
 message RejectOrder {
 
