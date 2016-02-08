@@ -69,11 +69,11 @@ class CommandValidationPlugin implements Plugin<Project> {
         }
 
         for (Descriptors.FileDescriptor file : commandsDescriptors.values()) {
-            processCommandsFile(target, file);
+            processCommandsFile(file);
         }
     }
 
-    private void processCommandsFile(Project target, Descriptors.FileDescriptor file) {
+    private void processCommandsFile(Descriptors.FileDescriptor file) {
         // decide how to name file
         // -- maybe Validator and the same package?
         // for each command read fields
@@ -93,13 +93,23 @@ class CommandValidationPlugin implements Plugin<Project> {
         }
 
         aggregateName = "${aggregateName.charAt(0).toUpperCase()}${aggregateName.substring(1).toLowerCase()}";
+        final String className = "${aggregateName}Validator";
 
         final String validatorFilePath = "$projectPath${Paths.SPINE_GENERATED_JAVA_RELATIVE_PATH}" +
-                "/${javaPackage.replace(".", "/")}/${aggregateName}Validator.java";
+                "/${javaPackage.replace(".", "/")}/${className}.java";
 
         final File validatorFile = new File(validatorFilePath);
         validatorFile.parentFile.mkdirs();
         validatorFile.createNewFile();
 
+        final File javaClassesRoot = new File("$projectPath${Paths.CLASSES_DIR_RELATIVE_PATH}");
+
+        URL fileUrl = javaClassesRoot.toURI().toURL();
+
+        URL[] args = [fileUrl] as URL[];
+
+        URLClassLoader classLoader = new URLClassLoader(args, this.class.classLoader);
+
+        new CommandValidatorWriter(validatorFile, file, javaPackage, className, classLoader).writeValidator();
     }
 }
