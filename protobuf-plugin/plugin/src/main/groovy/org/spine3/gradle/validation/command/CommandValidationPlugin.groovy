@@ -25,14 +25,14 @@ class CommandValidationPlugin implements Plugin<Project> {
         projectPath = target.projectDir.absolutePath;
 
         final Task generateCommandValidators = target.task("generateCommandValidators") {
-            generateCommandValidators(target, extendClassPath(projectPath));
+            generateCommandValidators(target, getLoaderWithGeneratedClasses(projectPath));
         }
 
         generateCommandValidators.dependsOn("compileJava", "generateProto");
         target.getTasks().getByPath("processResources").dependsOn(generateCommandValidators);
     }
 
-    private static ClassLoader extendClassPath(String projectPath) {
+    private static ClassLoader getLoaderWithGeneratedClasses(String projectPath) {
         final String javaClassesRoot = "$projectPath${Paths.CLASSES_DIR_RELATIVE_PATH}";
 
         URL fileUrl = new File(javaClassesRoot).toURI().toURL();
@@ -81,22 +81,30 @@ class CommandValidationPlugin implements Plugin<Project> {
 
         final String javaPackage = file.options.javaPackage;
 
-        String aggregateName = null;
+        String aggregateName;
 
         final String outerClassName = file.options.javaOuterClassname;
         if (outerClassName.endsWith(COMMANDS_OUTER_JAVA_NAME_SUFFIX)) {
             aggregateName = outerClassName.substring(0, outerClassName.size() -
                     COMMANDS_OUTER_JAVA_NAME_SUFFIX.size());
         } else {
-            // TODO:2016-02-05:mikhail.mikhaylov: Handle empty java package case.
-            aggregateName = javaPackage.substring(javaPackage.lastIndexOf('.') + 1);
+            if (javaPackage != null && !javaPackage.isEmpty()) {
+                aggregateName = javaPackage.substring(javaPackage.lastIndexOf('.') + 1);
+            } else {
+                aggregateName = generateRandomAggregateName();
+            }
         }
 
         aggregateName = "${aggregateName.charAt(0).toUpperCase()}${aggregateName.substring(1).toLowerCase()}";
         final String className = "${aggregateName}Validator";
 
+        String javaPackagePath = '';
+        if (javaPackage != null && !javaPackage.isEmpty()) {
+            javaPackagePath = "/${javaPackage.replace(".", "/")}";
+        }
+
         final String validatorFilePath = "$projectPath${Paths.SPINE_GENERATED_JAVA_RELATIVE_PATH}" +
-                "/${javaPackage.replace(".", "/")}/${className}.java";
+                "${javaPackagePath}/${className}.java";
 
         final File validatorFile = new File(validatorFilePath);
         validatorFile.parentFile.mkdirs();
@@ -111,5 +119,11 @@ class CommandValidationPlugin implements Plugin<Project> {
         URLClassLoader classLoader = new URLClassLoader(args, this.class.classLoader);
 
         new CommandValidatorWriter(validatorFile, file, javaPackage, className, classLoader).writeValidator();
+    }
+
+    private static String generateRandomAggregateName() {
+        String randomUuid = UUID.randomUUID().toString();
+        randomUuid = randomUuid.replace('-', '');
+        return "Aggregate${randomUuid}";
     }
 }
