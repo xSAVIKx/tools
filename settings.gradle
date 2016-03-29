@@ -4,7 +4,10 @@ include 'proto-lookup-plugin'
 include 'failures-gen'
 include 'failures-gen-sample'
 
+include 'reflections-plugin'
+
 project(':proto-lookup-plugin').projectDir = "$rootDir/proto-lookup-plugin" as File
 project(':failures-gen').projectDir = "$rootDir/failures-gen" as File
 project(':failures-gen-sample').projectDir = "$rootDir/failures-gen-sample" as File
 
+project(':reflections-plugin').projectDir = "$rootDir/reflections-plugin" as File
