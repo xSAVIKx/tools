@@ -5,7 +5,7 @@ apply plugin: 'maven'
 
 allprojects {
     group = 'org.spine3.tools'
-    version = '1.0'
+    version = '1.1'
 }
 
 project.ext {
@@ -18,13 +18,28 @@ Properties properties = new Properties()
 File credentialsFile = file(CREDENTIALS_LOCATION)
 if (credentialsFile.exists()) {
     properties.load(credentialsFile.newDataInputStream())
-
     repositoryUserName = properties.getProperty("user.name")
     repositoryUserPassword = properties.getProperty("user.password")
 }
 
 subprojects {
+    apply plugin: 'maven'
+    apply plugin: 'groovy'
+    apply plugin: 'idea'
     apply plugin: 'maven-publish'
+
+    dependencies {
+        compile gradleApi()
+        compile localGroovy()
+        compile group: 'org.slf4j', name:'slf4j-api', version: '1.6.4'
+    }
+
+    sourceSets {
+        main {
+            resources.srcDirs += files("plugin/src/main/resources")
+            groovy.srcDirs = ["plugin/src/main/groovy"]
+        }
+    }
 
     publishing {
         publications {
@@ -48,14 +63,14 @@ subprojects {
             }
         }
     }
+
+    repositories {
+        mavenCentral()
+    }
 }
 
 repositories {
     mavenCentral()
-}
-
-dependencies {
-
 }
 
 task readPublishingCredentials << {
