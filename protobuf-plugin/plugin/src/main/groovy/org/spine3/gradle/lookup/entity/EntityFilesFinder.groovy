@@ -18,13 +18,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.lookup.entity
+package org.spine3.gradle.lookup.entity;
 
-import groovy.util.logging.Slf4j
-import org.gradle.api.Project
-import org.gradle.api.file.FileTree
+import groovy.util.logging.Slf4j;
+import org.gradle.api.Project;
+import org.gradle.api.file.FileTree;
 
-import static ProtoParser.ProtoFileMetadata
+import static ProtoParser.ProtoFileMetadata;
 
 /**
  * Finds {@code .proto} files located in packages belonging to an entity (containing entity state, commands, etc)

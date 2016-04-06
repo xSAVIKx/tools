@@ -18,9 +18,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.lookup.entity
+package org.spine3.gradle.lookup.entity;
 
-import static java.util.Map.Entry
+import static java.util.Map.Entry;
+
 /**
  * A utility class for writing to {@code .properties} file.
  *

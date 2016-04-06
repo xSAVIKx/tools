@@ -1,4 +1,4 @@
-package org.spine3.gradle
+package org.spine3.gradle;
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project

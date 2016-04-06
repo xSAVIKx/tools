@@ -1,4 +1,4 @@
-package org.spine3.gradle.lookup.entity
+package org.spine3.gradle.lookup.entity;
 
 /**
  * A utility class for parsing {@code .proto} files.
