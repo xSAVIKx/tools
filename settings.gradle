@@ -2,6 +2,8 @@ rootProject.name = 'tools'
 
 include 'protobuf-plugin'
 include 'failures-gen-sample'
+include 'entity-lookup-sample'
 
 project(':protobuf-plugin').projectDir = "$rootDir/protobuf-plugin" as File
 project(':failures-gen-sample').projectDir = "$rootDir/failures-gen-sample" as File
+project(':entity-lookup-sample').projectDir = "$rootDir/entity-lookup-sample" as File
