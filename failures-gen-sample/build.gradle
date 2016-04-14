@@ -12,8 +12,7 @@ buildscript {
     dependencies {
         classpath 'com.google.protobuf:protobuf-java:3.0.0-beta-2'
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.7.0'
-        classpath "org.spine3.tools:proto-lookup-plugin:1.0"
-        classpath "org.spine3.tools:failures-gen:1.0"
+        classpath "org.spine3.tools:protobuf-plugin:1.0"
     }
 }
 
@@ -21,8 +20,7 @@ apply plugin: 'java'
 apply plugin: 'com.google.protobuf'
 apply plugin: 'idea'
 
-apply plugin: 'org.spine3.tools.protolookup'
-apply plugin: 'org.spine3.tools.failuresgen'
+apply plugin: 'org.spine3.tools.protobuf-plugin'
 
 repositories {
     mavenLocal()

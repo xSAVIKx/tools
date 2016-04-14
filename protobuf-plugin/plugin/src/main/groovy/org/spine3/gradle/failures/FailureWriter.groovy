@@ -1,7 +1,8 @@
-package org.spine3.gradle
+package org.spine3.gradle.failures
 
-import com.google.protobuf.Descriptors.FieldDescriptor.JavaType;
 import com.google.protobuf.Descriptors
+import com.google.protobuf.Descriptors.FieldDescriptor
+import com.google.protobuf.Descriptors.FieldDescriptor.JavaType
 import groovy.util.logging.Slf4j
 import org.gradle.api.Nullable
 
@@ -17,9 +18,7 @@ import org.gradle.api.Nullable
     private String className;
     private Map<String, String> fields;
 
-    /* package */
-
-    FailureWriter(Descriptors.Descriptor failureDescriptor, File outputFile, String javaPackage,
+    /* package */ FailureWriter(Descriptors.Descriptor failureDescriptor, File outputFile, String javaPackage,
                   Map<String, String> dependencyPackages) {
         this.failureDescriptor = failureDescriptor;
         this.outputFile = outputFile;
@@ -56,18 +55,20 @@ import org.gradle.api.Nullable
         Set<String> dependencies = new HashSet<>();
         fields = new LinkedHashMap<>();
 
-        for (Descriptors.FieldDescriptor field : failureDescriptor.getFields()) {
+        for (FieldDescriptor field : failureDescriptor.getFields()) {
             switch (field.javaType) {
                 case JavaType.MESSAGE:
                     def dependencyFileName = field.messageType.file.fullName;
-                    def javaPackage = dependencyPackages.get(dependencyFileName);
+
+                    def javaPackage = getPackage(field, dependencyFileName);
+                    // javaPackage == null -> inner class dependency
                     def fieldType = field.messageType.name;
                     dependencies.add("$javaPackage.$fieldType");
                     fields.put(field.name, fieldType)
                     break;
                 case JavaType.ENUM:
                     def dependencyFileName = field.enumType.file.fullName;
-                    def javaPackage = dependencyPackages.get(dependencyFileName);
+                    def javaPackage = getPackage(field, dependencyFileName);
                     def fieldType = field.enumType.name;
                     dependencies.add("$javaPackage.$fieldType");
                     fields.put(field.name, fieldType);
@@ -149,5 +150,53 @@ import org.gradle.api.Nullable
 
             default: return null;
         }
+    }
+
+    private String getPackage(FieldDescriptor field, String dependencyFileName) {
+        def javaPackage = dependencyPackages.get(dependencyFileName);
+        if (javaPackage == null) {
+            javaPackage = field.file.options.javaPackage;
+        }
+        javaPackage = "$javaPackage${getPackageSuffix(field)}";
+        return javaPackage;
+    }
+
+    private static String getPackageSuffix(FieldDescriptor innerMessageField) {
+        String packageSuffix = "";
+
+        Descriptors.Descriptor containingType;
+
+        switch (innerMessageField.javaType) {
+            case JavaType.MESSAGE:
+                containingType = innerMessageField.messageType.containingType
+                break;
+            case JavaType.ENUM:
+                containingType = innerMessageField.enumType.containingType;
+        }
+
+        while (containingType != null) {
+            packageSuffix = ".${containingType.name}$packageSuffix";
+
+            Descriptors.FileDescriptor file = containingType.file;
+            if (containingType.getContainingType() == null && !file.options.javaMultipleFiles) {
+
+                String outerName = getProtoFileOuterName(file);
+                packageSuffix = ".$outerName$packageSuffix";
+            }
+
+            containingType = containingType.getContainingType();
+        }
+        return packageSuffix;
+    }
+
+    private static String getProtoFileOuterName(Descriptors.FileDescriptor file) {
+        String outerName = file.options.javaOuterClassname;
+        if (outerName == null || outerName.isEmpty()) {
+            String fileName = file.name;
+            fileName = fileName.substring(fileName.lastIndexOf('/') + 1, fileName.lastIndexOf('.'));
+            fileName = "${fileName.charAt(0).toUpperCase()}${fileName.substring(1).toLowerCase()}";
+            outerName = fileName;
+        }
+        return outerName;
     }
 }

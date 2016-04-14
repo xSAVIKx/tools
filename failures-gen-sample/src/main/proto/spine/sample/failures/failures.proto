@@ -37,4 +37,9 @@ message Failure2 {
 
 message Failure3 {
     string id = 1;
+    Failure3Inner innerMessage = 2;
+
+    message Failure3Inner {
+        string id = 1;
+    }
 }
