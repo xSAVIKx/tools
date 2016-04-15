@@ -114,7 +114,7 @@ import org.gradle.api.Nullable
         for (int i = 0; i < fieldsEntries.size(); i++) {
             Map.Entry<String, String> field = fieldsEntries.getAt(i);
 
-            writer.write("${field.value} ${field.key}")
+            writer.write("${field.value} ${getJavaFieldName(field.key, false)}")
 
             if (i != fieldsEntries.size() - 1) {
                 writer.write(", ");
@@ -124,7 +124,7 @@ import org.gradle.api.Nullable
         writer.write("\t\tsuper(Failures.${className}.newBuilder()");
         for (def field : fieldsEntries) {
             def upperCaseName = getJavaFieldName(field.key, true);
-            writer.write(".set${upperCaseName}(${field.key})");
+            writer.write(".set${upperCaseName}(${getJavaFieldName(field.key, false)})");
         }
         writer.write(".build());\n");
         writer.write("\t}\n");
