@@ -983,14 +983,14 @@ public final class Failures {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional string id = 1;</code>
+     * <code>optional string id_string = 1;</code>
      */
-    java.lang.String getId();
+    java.lang.String getIdString();
     /**
-     * <code>optional string id = 1;</code>
+     * <code>optional string id_string = 1;</code>
      */
     com.google.protobuf.ByteString
-        getIdBytes();
+        getIdStringBytes();
 
     /**
      * <code>optional .spine.sample.failures.Failure3.Failure3Inner innerMessage = 2;</code>
@@ -1017,7 +1017,7 @@ public final class Failures {
       super(builder);
     }
     private Failure3() {
-      id_ = "";
+      idString_ = "";
     }
 
     @java.lang.Override
@@ -1047,7 +1047,7 @@ public final class Failures {
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
-              id_ = s;
+              idString_ = s;
               break;
             }
             case 18: {
@@ -1566,34 +1566,34 @@ public final class Failures {
 
     }
 
-    public static final int ID_FIELD_NUMBER = 1;
-    private volatile java.lang.Object id_;
+    public static final int ID_STRING_FIELD_NUMBER = 1;
+    private volatile java.lang.Object idString_;
     /**
-     * <code>optional string id = 1;</code>
+     * <code>optional string id_string = 1;</code>
      */
-    public java.lang.String getId() {
-      java.lang.Object ref = id_;
+    public java.lang.String getIdString() {
+      java.lang.Object ref = idString_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        id_ = s;
+        idString_ = s;
         return s;
       }
     }
     /**
-     * <code>optional string id = 1;</code>
+     * <code>optional string id_string = 1;</code>
      */
     public com.google.protobuf.ByteString
-        getIdBytes() {
-      java.lang.Object ref = id_;
+        getIdStringBytes() {
+      java.lang.Object ref = idString_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        id_ = b;
+        idString_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -1633,8 +1633,8 @@ public final class Failures {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!getIdBytes().isEmpty()) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
+      if (!getIdStringBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, idString_);
       }
       if (innerMessage_ != null) {
         output.writeMessage(2, getInnerMessage());
@@ -1646,8 +1646,8 @@ public final class Failures {
       if (size != -1) return size;
 
       size = 0;
-      if (!getIdBytes().isEmpty()) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
+      if (!getIdStringBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, idString_);
       }
       if (innerMessage_ != null) {
         size += com.google.protobuf.CodedOutputStream
@@ -1669,8 +1669,8 @@ public final class Failures {
       org.spine3.sample.failures.Failures.Failure3 other = (org.spine3.sample.failures.Failures.Failure3) obj;
 
       boolean result = true;
-      result = result && getId()
-          .equals(other.getId());
+      result = result && getIdString()
+          .equals(other.getIdString());
       result = result && (hasInnerMessage() == other.hasInnerMessage());
       if (hasInnerMessage()) {
         result = result && getInnerMessage()
@@ -1686,8 +1686,8 @@ public final class Failures {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptorForType().hashCode();
-      hash = (37 * hash) + ID_FIELD_NUMBER;
-      hash = (53 * hash) + getId().hashCode();
+      hash = (37 * hash) + ID_STRING_FIELD_NUMBER;
+      hash = (53 * hash) + getIdString().hashCode();
       if (hasInnerMessage()) {
         hash = (37 * hash) + INNERMESSAGE_FIELD_NUMBER;
         hash = (53 * hash) + getInnerMessage().hashCode();
@@ -1803,7 +1803,7 @@ public final class Failures {
       }
       public Builder clear() {
         super.clear();
-        id_ = "";
+        idString_ = "";
 
         if (innerMessageBuilder_ == null) {
           innerMessage_ = null;
@@ -1833,7 +1833,7 @@ public final class Failures {
 
       public org.spine3.sample.failures.Failures.Failure3 buildPartial() {
         org.spine3.sample.failures.Failures.Failure3 result = new org.spine3.sample.failures.Failures.Failure3(this);
-        result.id_ = id_;
+        result.idString_ = idString_;
         if (innerMessageBuilder_ == null) {
           result.innerMessage_ = innerMessage_;
         } else {
@@ -1854,8 +1854,8 @@ public final class Failures {
 
       public Builder mergeFrom(org.spine3.sample.failures.Failures.Failure3 other) {
         if (other == org.spine3.sample.failures.Failures.Failure3.getDefaultInstance()) return this;
-        if (!other.getId().isEmpty()) {
-          id_ = other.id_;
+        if (!other.getIdString().isEmpty()) {
+          idString_ = other.idString_;
           onChanged();
         }
         if (other.hasInnerMessage()) {
@@ -1887,71 +1887,71 @@ public final class Failures {
         return this;
       }
 
-      private java.lang.Object id_ = "";
+      private java.lang.Object idString_ = "";
       /**
-       * <code>optional string id = 1;</code>
+       * <code>optional string id_string = 1;</code>
        */
-      public java.lang.String getId() {
-        java.lang.Object ref = id_;
+      public java.lang.String getIdString() {
+        java.lang.Object ref = idString_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          id_ = s;
+          idString_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>optional string id = 1;</code>
+       * <code>optional string id_string = 1;</code>
        */
       public com.google.protobuf.ByteString
-          getIdBytes() {
-        java.lang.Object ref = id_;
+          getIdStringBytes() {
+        java.lang.Object ref = idString_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          id_ = b;
+          idString_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>optional string id = 1;</code>
+       * <code>optional string id_string = 1;</code>
        */
-      public Builder setId(
+      public Builder setIdString(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   
-        id_ = value;
+        idString_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string id = 1;</code>
+       * <code>optional string id_string = 1;</code>
        */
-      public Builder clearId() {
+      public Builder clearIdString() {
         
-        id_ = getDefaultInstance().getId();
+        idString_ = getDefaultInstance().getIdString();
         onChanged();
         return this;
       }
       /**
-       * <code>optional string id = 1;</code>
+       * <code>optional string id_string = 1;</code>
        */
-      public Builder setIdBytes(
+      public Builder setIdStringBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
         
-        id_ = value;
+        idString_ = value;
         onChanged();
         return this;
       }
@@ -2164,12 +2164,12 @@ public final class Failures {
       "ures/deps/deps.proto\"?\n\010Failure1\0223\n\002id\030\001" +
       " \001(\0132\'.spine.sample.failures.deps.Failur" +
       "e1Dep\"C\n\010Failure2\0227\n\002id\030\001 \001(\0162+.spine.sa" +
-      "mple.failures.deps.Failure2DepEnum\"x\n\010Fa" +
-      "ilure3\022\n\n\002id\030\001 \001(\t\022C\n\014innerMessage\030\002 \001(\013" +
-      "2-.spine.sample.failures.Failure3.Failur" +
-      "e3Inner\032\033\n\rFailure3Inner\022\n\n\002id\030\001 \001(\tB!\n\032" +
-      "org.spine3.sample.failuresP\000\240\001\001P\000b\006proto",
-      "3"
+      "mple.failures.deps.Failure2DepEnum\"\177\n\010Fa" +
+      "ilure3\022\021\n\tid_string\030\001 \001(\t\022C\n\014innerMessag" +
+      "e\030\002 \001(\0132-.spine.sample.failures.Failure3" +
+      ".Failure3Inner\032\033\n\rFailure3Inner\022\n\n\002id\030\001 " +
+      "\001(\tB!\n\032org.spine3.sample.failuresP\000\240\001\001P\000",
+      "b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -2201,7 +2201,7 @@ public final class Failures {
     internal_static_spine_sample_failures_Failure3_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_spine_sample_failures_Failure3_descriptor,
-        new java.lang.String[] { "Id", "InnerMessage", });
+        new java.lang.String[] { "IdString", "InnerMessage", });
     internal_static_spine_sample_failures_Failure3_Failure3Inner_descriptor =
       internal_static_spine_sample_failures_Failure3_descriptor.getNestedTypes().get(0);
     internal_static_spine_sample_failures_Failure3_Failure3Inner_fieldAccessorTable = new

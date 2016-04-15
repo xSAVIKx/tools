@@ -16,7 +16,7 @@ class ProtobufPlugin implements Plugin<Project> {
         final EntityLookupPlugin entityLookup = new EntityLookupPlugin();
 
         protoLookup.apply(target);
-        failuresGen.apply(target);
         entityLookup.apply(target);
+        failuresGen.apply(target);
     }
 }

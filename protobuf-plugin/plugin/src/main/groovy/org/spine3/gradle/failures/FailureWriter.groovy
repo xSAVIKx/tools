@@ -18,7 +18,9 @@ import org.gradle.api.Nullable
     private String className;
     private Map<String, String> fields;
 
-    /* package */ FailureWriter(Descriptors.Descriptor failureDescriptor, File outputFile, String javaPackage,
+    /* package */
+
+    FailureWriter(Descriptors.Descriptor failureDescriptor, File outputFile, String javaPackage,
                   Map<String, String> dependencyPackages) {
         this.failureDescriptor = failureDescriptor;
         this.outputFile = outputFile;
@@ -121,7 +123,7 @@ import org.gradle.api.Nullable
         writer.write(") {\n");
         writer.write("\t\tsuper(Failures.${className}.newBuilder()");
         for (def field : fieldsEntries) {
-            def upperCaseName = "${field.key.charAt(0).toUpperCase()}${field.key.substring(1)}";
+            def upperCaseName = getJavaFieldName(field.key, true);
             writer.write(".set${upperCaseName}(${field.key})");
         }
         writer.write(".build());\n");
@@ -150,6 +152,20 @@ import org.gradle.api.Nullable
 
             default: return null;
         }
+    }
+
+    private static String getJavaFieldName(String protoFieldName, boolean capitalizeFirstLetter) {
+        // seat_assignment_id -> SeatAssignmentId
+        def words = protoFieldName.split('_');
+        String resultName = words[0];
+        for (int i = 1; i < words.length; i++) {
+            def word = words[i]
+            resultName = "${resultName}${word.charAt(0).toUpperCase()}${word.substring(1)}";
+        }
+        if (capitalizeFirstLetter) {
+            resultName = "${resultName.charAt(0).toUpperCase()}${resultName.substring(1)}";
+        }
+        return resultName;
     }
 
     private String getPackage(FieldDescriptor field, String dependencyFileName) {

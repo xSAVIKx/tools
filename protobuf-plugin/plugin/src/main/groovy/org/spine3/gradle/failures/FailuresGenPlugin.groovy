@@ -110,6 +110,15 @@ class FailuresGenPlugin implements Plugin<Project> {
 
     private static Class loadFailuresIntoClassPath(String javaClassesPath, FailuresFileMetadata metadata) {
 
+        String failuresClassName = metadata.failuresPackage + ".Failures";
+        String className = "${failuresClassName}\$" + metadata.sampleFailureName;
+
+        Class failuresClass = loadClassIntoClassPath(javaClassesPath, className);
+
+        return failuresClass;
+    }
+
+    private static Class loadClassIntoClassPath(String javaClassesPath, String className) {
         File javaClassesRoot = new File(javaClassesPath);
 
         URL fileUrl = javaClassesRoot.toURI().toURL();
@@ -117,8 +126,6 @@ class FailuresGenPlugin implements Plugin<Project> {
         URL[] args = [fileUrl] as URL[];
 
         URLClassLoader classLoader = new URLClassLoader(args, this.classLoader);
-
-        String className = metadata.failuresPackage + ".Failures\$" + metadata.sampleFailureName;
 
         Class failuresClass = classLoader.loadClass(className);
 
