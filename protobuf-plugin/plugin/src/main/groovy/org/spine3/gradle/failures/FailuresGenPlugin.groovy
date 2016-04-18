@@ -38,14 +38,20 @@ class FailuresGenPlugin implements Plugin<Project> {
         final List<DescriptorProtos.FileDescriptorProto> failureDescriptors = new ArrayList<>();
         final String filePath = "${target.projectDir.absolutePath}/build/descriptors/main.desc";
 
-        final DescriptorProtos.FileDescriptorSet descriptorSet = DescriptorProtos.FileDescriptorSet
-                .parseFrom(new FileInputStream(filePath));
+        if (!new File(filePath).exists()) {
+            throw new RuntimeException("Please enable descriptor set generation. See an appropriate section at https://github.com/google/protobuf-gradle-plugin/blob/master/README.md#customize-code-generation-tasks")
+        }
 
-        descriptorSet.fileList.each { DescriptorProtos.FileDescriptorProto descriptor ->
-            if (descriptor.getName().endsWith("/failures.proto")) {
-                failureDescriptors.add(descriptor);
+        new FileInputStream(filePath).withStream {
+            final DescriptorProtos.FileDescriptorSet descriptorSet = DescriptorProtos.FileDescriptorSet
+                    .parseFrom(it);
+
+            descriptorSet.fileList.each { DescriptorProtos.FileDescriptorProto descriptor ->
+                if (descriptor.getName().endsWith("/failures.proto")) {
+                    failureDescriptors.add(descriptor);
+                }
+                cacheFieldTypes(descriptor);
             }
-            cacheFieldTypes(descriptor);
         }
 
         return failureDescriptors;
