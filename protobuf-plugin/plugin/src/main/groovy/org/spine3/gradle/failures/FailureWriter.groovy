@@ -1,29 +1,47 @@
 package org.spine3.gradle.failures
 
-import com.google.protobuf.Descriptors
-import com.google.protobuf.Descriptors.FieldDescriptor
-import com.google.protobuf.Descriptors.FieldDescriptor.JavaType
+import com.google.protobuf.DescriptorProtos
 import groovy.util.logging.Slf4j
-import org.gradle.api.Nullable
 
 @Slf4j
 /* package */ class FailureWriter {
 
-    private final Descriptors.Descriptor failureDescriptor;
+    private final DescriptorProtos.DescriptorProto failureDescriptor;
     private final File outputFile;
     private final String javaPackage;
 
-    private Map<String, String> dependencyPackages;
-
     private String className;
-    private Map<String, String> fields;
 
-    /* package */ FailureWriter(Descriptors.Descriptor failureDescriptor, File outputFile, String javaPackage,
-                  Map<String, String> dependencyPackages) {
+    private Map<String, String> messageTypeMap;
+
+    // https://developers.google.com/protocol-buffers/docs/proto3#scalar
+    private static final def commonProtoTypes = [
+            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_DOUBLE.name())  : "double",
+            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_FLOAT.name())   : "float",
+            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT64.name())   : "long",
+            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_UINT64.name())  : "long",
+            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT32.name())   : "int",
+            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_FIXED64.name()) : "long",
+            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_FIXED32.name()) : "int",
+            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_BOOL.name())    : "boolean",
+            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING.name())  : "String",
+            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_GROUP.name())   : null, // GROUPS ARE NOT SUPPORTED
+            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_BYTES.name())   : "com.google.protobuf.ByteString",
+            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_UINT32.name())  : "int",
+            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_SFIXED32.name()): "int",
+            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_SFIXED64.name()): "long",
+            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_SINT32.name())  : "int",
+            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_SINT64.name())  : "long",
+    ]
+
+    FailureWriter(DescriptorProtos.DescriptorProto failureDescriptor,
+                  File outputFile,
+                  String javaPackage,
+                  Map<String, String> messageTypeMap) {
         this.failureDescriptor = failureDescriptor;
         this.outputFile = outputFile;
         this.javaPackage = javaPackage;
-        this.dependencyPackages = dependencyPackages;
+        this.messageTypeMap = messageTypeMap;
     }
 
     public void write() {
@@ -35,6 +53,7 @@ import org.gradle.api.Nullable
                 def writer = it as OutputStreamWriter;
 
                 writePackage(writer);
+                readFieldValues();
                 writeImports(writer);
                 writeClassName(writer);
                 writeConstructor(writer);
@@ -50,44 +69,8 @@ import org.gradle.api.Nullable
         writer.write("package $javaPackage;\n\n");
     }
 
-    private void writeImports(OutputStreamWriter writer) {
-
-        Set<String> dependencies = new HashSet<>();
-        fields = new LinkedHashMap<>();
-
-        for (FieldDescriptor field : failureDescriptor.getFields()) {
-            switch (field.javaType) {
-                case JavaType.MESSAGE:
-                    def dependencyFileName = field.messageType.file.fullName;
-
-                    def javaPackage = getPackage(field, dependencyFileName);
-                    // javaPackage == null -> inner class dependency
-                    def fieldType = field.messageType.name;
-                    dependencies.add("$javaPackage.$fieldType");
-                    fields.put(field.name, fieldType)
-                    break;
-                case JavaType.ENUM:
-                    def dependencyFileName = field.enumType.file.fullName;
-                    def javaPackage = getPackage(field, dependencyFileName);
-                    def fieldType = field.enumType.name;
-                    dependencies.add("$javaPackage.$fieldType");
-                    fields.put(field.name, fieldType);
-                    break;
-                case JavaType.BYTE_STRING:
-                    dependencies.add("com.google.protobuf.ByteString");
-                    fields.put(field.name, "ByteString");
-                    break;
-                default:
-                    fields.put(field.name, getCommonProtoTypeName(field.getJavaType()));
-            }
-        }
-
-        dependencies.add("org.spine3.server.FailureThrowable");
-
-        for (String dependency : dependencies) {
-            writer.write("import $dependency;\n");
-        }
-
+    private static void writeImports(OutputStreamWriter writer) {
+        writer.write("import org.spine3.server.FailureThrowable;\n");
         writer.write("\n");
     }
 
@@ -108,11 +91,11 @@ import org.gradle.api.Nullable
 
     private void writeConstructor(OutputStreamWriter writer) {
         writer.write("\tpublic $className(");
-        Set<Map.Entry<String, String>> fieldsEntries = fields.entrySet();
+        Set<Map.Entry<String, String>> fieldsEntries = readFieldValues().entrySet();
         for (int i = 0; i < fieldsEntries.size(); i++) {
             Map.Entry<String, String> field = fieldsEntries.getAt(i);
 
-            writer.write("${field.value} ${field.key}")
+            writer.write("${field.value} ${getJavaFieldName(field.key, false)}")
 
             if (i != fieldsEntries.size() - 1) {
                 writer.write(", ");
@@ -121,8 +104,8 @@ import org.gradle.api.Nullable
         writer.write(") {\n");
         writer.write("\t\tsuper(Failures.${className}.newBuilder()");
         for (def field : fieldsEntries) {
-            def upperCaseName = "${field.key.charAt(0).toUpperCase()}${field.key.substring(1)}";
-            writer.write(".set${upperCaseName}(${field.key})");
+            def upperCaseName = getJavaFieldName(field.key, true);
+            writer.write(".set${upperCaseName}(${getJavaFieldName(field.key, false)})");
         }
         writer.write(".build());\n");
         writer.write("\t}\n");
@@ -133,70 +116,42 @@ import org.gradle.api.Nullable
         writer.write("}\n");
     }
 
-    @Nullable
-    private static String getCommonProtoTypeName(JavaType type) {
-        switch (type) {
-            case JavaType.STRING:
-                return "String";
-                break;
-
-            case JavaType.INT:
-            case JavaType.LONG:
-            case JavaType.FLOAT:
-            case JavaType.DOUBLE:
-            case JavaType.BOOLEAN:
-                return type.name().toLowerCase();
-                break;
-
-            default: return null;
+    private static String getJavaFieldName(String protoFieldName, boolean capitalizeFirstLetter) {
+        // seat_assignment_id -> SeatAssignmentId
+        def words = protoFieldName.split('_');
+        String resultName = words[0];
+        for (int i = 1; i < words.length; i++) {
+            def word = words[i]
+            resultName = "${resultName}${word.charAt(0).toUpperCase()}${word.substring(1)}";
         }
+        if (capitalizeFirstLetter) {
+            resultName = "${resultName.charAt(0).toUpperCase()}${resultName.substring(1)}";
+        }
+        return resultName;
     }
 
-    private String getPackage(FieldDescriptor field, String dependencyFileName) {
-        def javaPackage = dependencyPackages.get(dependencyFileName);
-        if (javaPackage == null) {
-            javaPackage = field.file.options.javaPackage;
-        }
-        javaPackage = "$javaPackage${getPackageSuffix(field)}";
-        return javaPackage;
-    }
+    private Map<String, String> readFieldValues() {
+        def fields = new LinkedHashMap<>();
 
-    private static String getPackageSuffix(FieldDescriptor innerMessageField) {
-        String packageSuffix = "";
+        failureDescriptor.fieldList.each { DescriptorProtos.FieldDescriptorProto field ->
+            def name = field.name;
+            String value;
 
-        Descriptors.Descriptor containingType;
-
-        switch (innerMessageField.javaType) {
-            case JavaType.MESSAGE:
-                containingType = innerMessageField.messageType.containingType
-                break;
-            case JavaType.ENUM:
-                containingType = innerMessageField.enumType.containingType;
-        }
-
-        while (containingType != null) {
-            packageSuffix = ".${containingType.name}$packageSuffix";
-
-            Descriptors.FileDescriptor file = containingType.file;
-            if (containingType.getContainingType() == null && !file.options.javaMultipleFiles) {
-
-                String outerName = getProtoFileOuterName(file);
-                packageSuffix = ".$outerName$packageSuffix";
+            if (field.type == DescriptorProtos.FieldDescriptorProto.Type.TYPE_MESSAGE ||
+                    field.type == DescriptorProtos.FieldDescriptorProto.Type.TYPE_ENUM) {
+                def fieldTypeName = field.typeName;
+                // Somewhy it has a dot in the beginning
+                if (fieldTypeName.startsWith(".")) {
+                    fieldTypeName = "${fieldTypeName.substring(1)}";
+                }
+                value = messageTypeMap.get(fieldTypeName);
+            } else {
+                value = commonProtoTypes.get(field.type.name());
             }
 
-            containingType = containingType.getContainingType();
+            fields.put(name, value);
         }
-        return packageSuffix;
-    }
 
-    private static String getProtoFileOuterName(Descriptors.FileDescriptor file) {
-        String outerName = file.options.javaOuterClassname;
-        if (outerName == null || outerName.isEmpty()) {
-            String fileName = file.name;
-            fileName = fileName.substring(fileName.lastIndexOf('/') + 1, fileName.lastIndexOf('.'));
-            fileName = "${fileName.charAt(0).toUpperCase()}${fileName.substring(1).toLowerCase()}";
-            outerName = fileName;
-        }
-        return outerName;
+        return fields;
     }
 }

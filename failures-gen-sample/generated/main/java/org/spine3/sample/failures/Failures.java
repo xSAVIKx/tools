@@ -983,14 +983,14 @@ public final class Failures {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional string id = 1;</code>
+     * <code>optional string id_string = 1;</code>
      */
-    java.lang.String getId();
+    java.lang.String getIdString();
     /**
-     * <code>optional string id = 1;</code>
+     * <code>optional string id_string = 1;</code>
      */
     com.google.protobuf.ByteString
-        getIdBytes();
+        getIdStringBytes();
 
     /**
      * <code>optional .spine.sample.failures.Failure3.Failure3Inner innerMessage = 2;</code>
@@ -1017,7 +1017,7 @@ public final class Failures {
       super(builder);
     }
     private Failure3() {
-      id_ = "";
+      idString_ = "";
     }
 
     @java.lang.Override
@@ -1047,7 +1047,7 @@ public final class Failures {
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
-              id_ = s;
+              idString_ = s;
               break;
             }
             case 18: {
@@ -1566,34 +1566,34 @@ public final class Failures {
 
     }
 
-    public static final int ID_FIELD_NUMBER = 1;
-    private volatile java.lang.Object id_;
+    public static final int ID_STRING_FIELD_NUMBER = 1;
+    private volatile java.lang.Object idString_;
     /**
-     * <code>optional string id = 1;</code>
+     * <code>optional string id_string = 1;</code>
      */
-    public java.lang.String getId() {
-      java.lang.Object ref = id_;
+    public java.lang.String getIdString() {
+      java.lang.Object ref = idString_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        id_ = s;
+        idString_ = s;
         return s;
       }
     }
     /**
-     * <code>optional string id = 1;</code>
+     * <code>optional string id_string = 1;</code>
      */
     public com.google.protobuf.ByteString
-        getIdBytes() {
-      java.lang.Object ref = id_;
+        getIdStringBytes() {
+      java.lang.Object ref = idString_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        id_ = b;
+        idString_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -1633,8 +1633,8 @@ public final class Failures {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!getIdBytes().isEmpty()) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
+      if (!getIdStringBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, idString_);
       }
       if (innerMessage_ != null) {
         output.writeMessage(2, getInnerMessage());
@@ -1646,8 +1646,8 @@ public final class Failures {
       if (size != -1) return size;
 
       size = 0;
-      if (!getIdBytes().isEmpty()) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
+      if (!getIdStringBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, idString_);
       }
       if (innerMessage_ != null) {
         size += com.google.protobuf.CodedOutputStream
@@ -1669,8 +1669,8 @@ public final class Failures {
       org.spine3.sample.failures.Failures.Failure3 other = (org.spine3.sample.failures.Failures.Failure3) obj;
 
       boolean result = true;
-      result = result && getId()
-          .equals(other.getId());
+      result = result && getIdString()
+          .equals(other.getIdString());
       result = result && (hasInnerMessage() == other.hasInnerMessage());
       if (hasInnerMessage()) {
         result = result && getInnerMessage()
@@ -1686,8 +1686,8 @@ public final class Failures {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptorForType().hashCode();
-      hash = (37 * hash) + ID_FIELD_NUMBER;
-      hash = (53 * hash) + getId().hashCode();
+      hash = (37 * hash) + ID_STRING_FIELD_NUMBER;
+      hash = (53 * hash) + getIdString().hashCode();
       if (hasInnerMessage()) {
         hash = (37 * hash) + INNERMESSAGE_FIELD_NUMBER;
         hash = (53 * hash) + getInnerMessage().hashCode();
@@ -1803,7 +1803,7 @@ public final class Failures {
       }
       public Builder clear() {
         super.clear();
-        id_ = "";
+        idString_ = "";
 
         if (innerMessageBuilder_ == null) {
           innerMessage_ = null;
@@ -1833,7 +1833,7 @@ public final class Failures {
 
       public org.spine3.sample.failures.Failures.Failure3 buildPartial() {
         org.spine3.sample.failures.Failures.Failure3 result = new org.spine3.sample.failures.Failures.Failure3(this);
-        result.id_ = id_;
+        result.idString_ = idString_;
         if (innerMessageBuilder_ == null) {
           result.innerMessage_ = innerMessage_;
         } else {
@@ -1854,8 +1854,8 @@ public final class Failures {
 
       public Builder mergeFrom(org.spine3.sample.failures.Failures.Failure3 other) {
         if (other == org.spine3.sample.failures.Failures.Failure3.getDefaultInstance()) return this;
-        if (!other.getId().isEmpty()) {
-          id_ = other.id_;
+        if (!other.getIdString().isEmpty()) {
+          idString_ = other.idString_;
           onChanged();
         }
         if (other.hasInnerMessage()) {
@@ -1887,71 +1887,71 @@ public final class Failures {
         return this;
       }
 
-      private java.lang.Object id_ = "";
+      private java.lang.Object idString_ = "";
       /**
-       * <code>optional string id = 1;</code>
+       * <code>optional string id_string = 1;</code>
        */
-      public java.lang.String getId() {
-        java.lang.Object ref = id_;
+      public java.lang.String getIdString() {
+        java.lang.Object ref = idString_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          id_ = s;
+          idString_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>optional string id = 1;</code>
+       * <code>optional string id_string = 1;</code>
        */
       public com.google.protobuf.ByteString
-          getIdBytes() {
-        java.lang.Object ref = id_;
+          getIdStringBytes() {
+        java.lang.Object ref = idString_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          id_ = b;
+          idString_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>optional string id = 1;</code>
+       * <code>optional string id_string = 1;</code>
        */
-      public Builder setId(
+      public Builder setIdString(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   
-        id_ = value;
+        idString_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string id = 1;</code>
+       * <code>optional string id_string = 1;</code>
        */
-      public Builder clearId() {
+      public Builder clearIdString() {
         
-        id_ = getDefaultInstance().getId();
+        idString_ = getDefaultInstance().getIdString();
         onChanged();
         return this;
       }
       /**
-       * <code>optional string id = 1;</code>
+       * <code>optional string id_string = 1;</code>
        */
-      public Builder setIdBytes(
+      public Builder setIdStringBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
         
-        id_ = value;
+        idString_ = value;
         onChanged();
         return this;
       }
@@ -2130,6 +2130,1591 @@ public final class Failures {
 
   }
 
+  public interface Failure4OrBuilder extends
+      // @@protoc_insertion_point(interface_extends:spine.sample.failures.Failure4)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional string id = 1;</code>
+     */
+    java.lang.String getId();
+    /**
+     * <code>optional string id = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
+
+    /**
+     * <code>optional .google.protobuf.Any any_id = 2;</code>
+     */
+    boolean hasAnyId();
+    /**
+     * <code>optional .google.protobuf.Any any_id = 2;</code>
+     */
+    com.google.protobuf.Any getAnyId();
+    /**
+     * <code>optional .google.protobuf.Any any_id = 2;</code>
+     */
+    com.google.protobuf.AnyOrBuilder getAnyIdOrBuilder();
+
+    /**
+     * <code>optional bool boolean_id = 3;</code>
+     */
+    boolean getBooleanId();
+
+    /**
+     * <code>optional .spine.sample.failures.Failure4.Failure4Inner inner_id = 4;</code>
+     */
+    boolean hasInnerId();
+    /**
+     * <code>optional .spine.sample.failures.Failure4.Failure4Inner inner_id = 4;</code>
+     */
+    org.spine3.sample.failures.Failures.Failure4.Failure4Inner getInnerId();
+    /**
+     * <code>optional .spine.sample.failures.Failure4.Failure4Inner inner_id = 4;</code>
+     */
+    org.spine3.sample.failures.Failures.Failure4.Failure4InnerOrBuilder getInnerIdOrBuilder();
+
+    /**
+     * <code>optional .spine.sample.failures.Failure4.Failure4InnerEnum inner_enum_id = 5;</code>
+     */
+    int getInnerEnumIdValue();
+    /**
+     * <code>optional .spine.sample.failures.Failure4.Failure4InnerEnum inner_enum_id = 5;</code>
+     */
+    org.spine3.sample.failures.Failures.Failure4.Failure4InnerEnum getInnerEnumId();
+  }
+  /**
+   * Protobuf type {@code spine.sample.failures.Failure4}
+   */
+  public  static final class Failure4 extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:spine.sample.failures.Failure4)
+      Failure4OrBuilder {
+    // Use Failure4.newBuilder() to construct.
+    private Failure4(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private Failure4() {
+      id_ = "";
+      booleanId_ = false;
+      innerEnumId_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return com.google.protobuf.UnknownFieldSet.getDefaultInstance();
+    }
+    private Failure4(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
+      this();
+      int mutable_bitField0_ = 0;
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!input.skipField(tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              java.lang.String s = input.readStringRequireUtf8();
+
+              id_ = s;
+              break;
+            }
+            case 18: {
+              com.google.protobuf.Any.Builder subBuilder = null;
+              if (anyId_ != null) {
+                subBuilder = anyId_.toBuilder();
+              }
+              anyId_ = input.readMessage(com.google.protobuf.Any.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(anyId_);
+                anyId_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+            case 24: {
+
+              booleanId_ = input.readBool();
+              break;
+            }
+            case 34: {
+              org.spine3.sample.failures.Failures.Failure4.Failure4Inner.Builder subBuilder = null;
+              if (innerId_ != null) {
+                subBuilder = innerId_.toBuilder();
+              }
+              innerId_ = input.readMessage(org.spine3.sample.failures.Failures.Failure4.Failure4Inner.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(innerId_);
+                innerId_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+            case 40: {
+              int rawValue = input.readEnum();
+
+              innerEnumId_ = rawValue;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw new RuntimeException(e.setUnfinishedMessage(this));
+      } catch (java.io.IOException e) {
+        throw new RuntimeException(
+            new com.google.protobuf.InvalidProtocolBufferException(
+                e.getMessage()).setUnfinishedMessage(this));
+      } finally {
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.spine3.sample.failures.Failures.internal_static_spine_sample_failures_Failure4_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.spine3.sample.failures.Failures.internal_static_spine_sample_failures_Failure4_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.spine3.sample.failures.Failures.Failure4.class, org.spine3.sample.failures.Failures.Failure4.Builder.class);
+    }
+
+    /**
+     * Protobuf enum {@code spine.sample.failures.Failure4.Failure4InnerEnum}
+     */
+    public enum Failure4InnerEnum
+        implements com.google.protobuf.ProtocolMessageEnum {
+      /**
+       * <code>OK = 0;</code>
+       */
+      OK(0, 0),
+      UNRECOGNIZED(-1, -1),
+      ;
+
+      /**
+       * <code>OK = 0;</code>
+       */
+      public static final int OK_VALUE = 0;
+
+
+      public final int getNumber() {
+        if (index == -1) {
+          throw new java.lang.IllegalArgumentException(
+              "Can't get the number of an unknown enum value.");
+        }
+        return value;
+      }
+
+      public static Failure4InnerEnum valueOf(int value) {
+        switch (value) {
+          case 0: return OK;
+          default: return null;
+        }
+      }
+
+      public static com.google.protobuf.Internal.EnumLiteMap<Failure4InnerEnum>
+          internalGetValueMap() {
+        return internalValueMap;
+      }
+      private static final com.google.protobuf.Internal.EnumLiteMap<
+          Failure4InnerEnum> internalValueMap =
+            new com.google.protobuf.Internal.EnumLiteMap<Failure4InnerEnum>() {
+              public Failure4InnerEnum findValueByNumber(int number) {
+                return Failure4InnerEnum.valueOf(number);
+              }
+            };
+
+      public final com.google.protobuf.Descriptors.EnumValueDescriptor
+          getValueDescriptor() {
+        return getDescriptor().getValues().get(index);
+      }
+      public final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptorForType() {
+        return getDescriptor();
+      }
+      public static final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptor() {
+        return org.spine3.sample.failures.Failures.Failure4.getDescriptor().getEnumTypes().get(0);
+      }
+
+      private static final Failure4InnerEnum[] VALUES = values();
+
+      public static Failure4InnerEnum valueOf(
+          com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        if (desc.getType() != getDescriptor()) {
+          throw new java.lang.IllegalArgumentException(
+            "EnumValueDescriptor is not for this type.");
+        }
+        if (desc.getIndex() == -1) {
+          return UNRECOGNIZED;
+        }
+        return VALUES[desc.getIndex()];
+      }
+
+      private final int index;
+      private final int value;
+
+      private Failure4InnerEnum(int index, int value) {
+        this.index = index;
+        this.value = value;
+      }
+
+      // @@protoc_insertion_point(enum_scope:spine.sample.failures.Failure4.Failure4InnerEnum)
+    }
+
+    public interface Failure4InnerOrBuilder extends
+        // @@protoc_insertion_point(interface_extends:spine.sample.failures.Failure4.Failure4Inner)
+        com.google.protobuf.MessageOrBuilder {
+
+      /**
+       * <code>optional string id = 1;</code>
+       */
+      java.lang.String getId();
+      /**
+       * <code>optional string id = 1;</code>
+       */
+      com.google.protobuf.ByteString
+          getIdBytes();
+    }
+    /**
+     * Protobuf type {@code spine.sample.failures.Failure4.Failure4Inner}
+     */
+    public  static final class Failure4Inner extends
+        com.google.protobuf.GeneratedMessage implements
+        // @@protoc_insertion_point(message_implements:spine.sample.failures.Failure4.Failure4Inner)
+        Failure4InnerOrBuilder {
+      // Use Failure4Inner.newBuilder() to construct.
+      private Failure4Inner(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+        super(builder);
+      }
+      private Failure4Inner() {
+        id_ = "";
+      }
+
+      @java.lang.Override
+      public final com.google.protobuf.UnknownFieldSet
+      getUnknownFields() {
+        return com.google.protobuf.UnknownFieldSet.getDefaultInstance();
+      }
+      private Failure4Inner(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
+        this();
+        int mutable_bitField0_ = 0;
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              default: {
+                if (!input.skipField(tag)) {
+                  done = true;
+                }
+                break;
+              }
+              case 10: {
+                java.lang.String s = input.readStringRequireUtf8();
+
+                id_ = s;
+                break;
+              }
+            }
+          }
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw new RuntimeException(e.setUnfinishedMessage(this));
+        } catch (java.io.IOException e) {
+          throw new RuntimeException(
+              new com.google.protobuf.InvalidProtocolBufferException(
+                  e.getMessage()).setUnfinishedMessage(this));
+        } finally {
+          makeExtensionsImmutable();
+        }
+      }
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.spine3.sample.failures.Failures.internal_static_spine_sample_failures_Failure4_Failure4Inner_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.spine3.sample.failures.Failures.internal_static_spine_sample_failures_Failure4_Failure4Inner_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.spine3.sample.failures.Failures.Failure4.Failure4Inner.class, org.spine3.sample.failures.Failures.Failure4.Failure4Inner.Builder.class);
+      }
+
+      public static final int ID_FIELD_NUMBER = 1;
+      private volatile java.lang.Object id_;
+      /**
+       * <code>optional string id = 1;</code>
+       */
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (ref instanceof java.lang.String) {
+          return (java.lang.String) ref;
+        } else {
+          com.google.protobuf.ByteString bs = 
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        }
+      }
+      /**
+       * <code>optional string id = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof java.lang.String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+
+      private byte memoizedIsInitialized = -1;
+      public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
+      }
+
+      public void writeTo(com.google.protobuf.CodedOutputStream output)
+                          throws java.io.IOException {
+        if (!getIdBytes().isEmpty()) {
+          com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
+        }
+      }
+
+      public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (!getIdBytes().isEmpty()) {
+          size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
+        }
+        memoizedSize = size;
+        return size;
+      }
+
+      private static final long serialVersionUID = 0L;
+      @java.lang.Override
+      public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+         return true;
+        }
+        if (!(obj instanceof org.spine3.sample.failures.Failures.Failure4.Failure4Inner)) {
+          return super.equals(obj);
+        }
+        org.spine3.sample.failures.Failures.Failure4.Failure4Inner other = (org.spine3.sample.failures.Failures.Failure4.Failure4Inner) obj;
+
+        boolean result = true;
+        result = result && getId()
+            .equals(other.getId());
+        return result;
+      }
+
+      @java.lang.Override
+      public int hashCode() {
+        if (memoizedHashCode != 0) {
+          return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptorForType().hashCode();
+        hash = (37 * hash) + ID_FIELD_NUMBER;
+        hash = (53 * hash) + getId().hashCode();
+        hash = (29 * hash) + unknownFields.hashCode();
+        memoizedHashCode = hash;
+        return hash;
+      }
+
+      public static org.spine3.sample.failures.Failures.Failure4.Failure4Inner parseFrom(
+          com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static org.spine3.sample.failures.Failures.Failure4.Failure4Inner parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static org.spine3.sample.failures.Failures.Failure4.Failure4Inner parseFrom(byte[] data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static org.spine3.sample.failures.Failures.Failure4.Failure4Inner parseFrom(
+          byte[] data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static org.spine3.sample.failures.Failures.Failure4.Failure4Inner parseFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return PARSER.parseFrom(input);
+      }
+      public static org.spine3.sample.failures.Failures.Failure4.Failure4Inner parseFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return PARSER.parseFrom(input, extensionRegistry);
+      }
+      public static org.spine3.sample.failures.Failures.Failure4.Failure4Inner parseDelimitedFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return PARSER.parseDelimitedFrom(input);
+      }
+      public static org.spine3.sample.failures.Failures.Failure4.Failure4Inner parseDelimitedFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return PARSER.parseDelimitedFrom(input, extensionRegistry);
+      }
+      public static org.spine3.sample.failures.Failures.Failure4.Failure4Inner parseFrom(
+          com.google.protobuf.CodedInputStream input)
+          throws java.io.IOException {
+        return PARSER.parseFrom(input);
+      }
+      public static org.spine3.sample.failures.Failures.Failure4.Failure4Inner parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return PARSER.parseFrom(input, extensionRegistry);
+      }
+
+      public Builder newBuilderForType() { return newBuilder(); }
+      public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+      }
+      public static Builder newBuilder(org.spine3.sample.failures.Failures.Failure4.Failure4Inner prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      }
+      public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+            ? new Builder() : new Builder().mergeFrom(this);
+      }
+
+      @java.lang.Override
+      protected Builder newBuilderForType(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+      }
+      /**
+       * Protobuf type {@code spine.sample.failures.Failure4.Failure4Inner}
+       */
+      public static final class Builder extends
+          com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+          // @@protoc_insertion_point(builder_implements:spine.sample.failures.Failure4.Failure4Inner)
+          org.spine3.sample.failures.Failures.Failure4.Failure4InnerOrBuilder {
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return org.spine3.sample.failures.Failures.internal_static_spine_sample_failures_Failure4_Failure4Inner_descriptor;
+        }
+
+        protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return org.spine3.sample.failures.Failures.internal_static_spine_sample_failures_Failure4_Failure4Inner_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  org.spine3.sample.failures.Failures.Failure4.Failure4Inner.class, org.spine3.sample.failures.Failures.Failure4.Failure4Inner.Builder.class);
+        }
+
+        // Construct using org.spine3.sample.failures.Failures.Failure4.Failure4Inner.newBuilder()
+        private Builder() {
+          maybeForceBuilderInitialization();
+        }
+
+        private Builder(
+            com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          super(parent);
+          maybeForceBuilderInitialization();
+        }
+        private void maybeForceBuilderInitialization() {
+          if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          }
+        }
+        public Builder clear() {
+          super.clear();
+          id_ = "";
+
+          return this;
+        }
+
+        public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+          return org.spine3.sample.failures.Failures.internal_static_spine_sample_failures_Failure4_Failure4Inner_descriptor;
+        }
+
+        public org.spine3.sample.failures.Failures.Failure4.Failure4Inner getDefaultInstanceForType() {
+          return org.spine3.sample.failures.Failures.Failure4.Failure4Inner.getDefaultInstance();
+        }
+
+        public org.spine3.sample.failures.Failures.Failure4.Failure4Inner build() {
+          org.spine3.sample.failures.Failures.Failure4.Failure4Inner result = buildPartial();
+          if (!result.isInitialized()) {
+            throw newUninitializedMessageException(result);
+          }
+          return result;
+        }
+
+        public org.spine3.sample.failures.Failures.Failure4.Failure4Inner buildPartial() {
+          org.spine3.sample.failures.Failures.Failure4.Failure4Inner result = new org.spine3.sample.failures.Failures.Failure4.Failure4Inner(this);
+          result.id_ = id_;
+          onBuilt();
+          return result;
+        }
+
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+          if (other instanceof org.spine3.sample.failures.Failures.Failure4.Failure4Inner) {
+            return mergeFrom((org.spine3.sample.failures.Failures.Failure4.Failure4Inner)other);
+          } else {
+            super.mergeFrom(other);
+            return this;
+          }
+        }
+
+        public Builder mergeFrom(org.spine3.sample.failures.Failures.Failure4.Failure4Inner other) {
+          if (other == org.spine3.sample.failures.Failures.Failure4.Failure4Inner.getDefaultInstance()) return this;
+          if (!other.getId().isEmpty()) {
+            id_ = other.id_;
+            onChanged();
+          }
+          onChanged();
+          return this;
+        }
+
+        public final boolean isInitialized() {
+          return true;
+        }
+
+        public Builder mergeFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          org.spine3.sample.failures.Failures.Failure4.Failure4Inner parsedMessage = null;
+          try {
+            parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            parsedMessage = (org.spine3.sample.failures.Failures.Failure4.Failure4Inner) e.getUnfinishedMessage();
+            throw e;
+          } finally {
+            if (parsedMessage != null) {
+              mergeFrom(parsedMessage);
+            }
+          }
+          return this;
+        }
+
+        private java.lang.Object id_ = "";
+        /**
+         * <code>optional string id = 1;</code>
+         */
+        public java.lang.String getId() {
+          java.lang.Object ref = id_;
+          if (!(ref instanceof java.lang.String)) {
+            com.google.protobuf.ByteString bs =
+                (com.google.protobuf.ByteString) ref;
+            java.lang.String s = bs.toStringUtf8();
+            id_ = s;
+            return s;
+          } else {
+            return (java.lang.String) ref;
+          }
+        }
+        /**
+         * <code>optional string id = 1;</code>
+         */
+        public com.google.protobuf.ByteString
+            getIdBytes() {
+          java.lang.Object ref = id_;
+          if (ref instanceof String) {
+            com.google.protobuf.ByteString b = 
+                com.google.protobuf.ByteString.copyFromUtf8(
+                    (java.lang.String) ref);
+            id_ = b;
+            return b;
+          } else {
+            return (com.google.protobuf.ByteString) ref;
+          }
+        }
+        /**
+         * <code>optional string id = 1;</code>
+         */
+        public Builder setId(
+            java.lang.String value) {
+          if (value == null) {
+    throw new NullPointerException();
+  }
+  
+          id_ = value;
+          onChanged();
+          return this;
+        }
+        /**
+         * <code>optional string id = 1;</code>
+         */
+        public Builder clearId() {
+          
+          id_ = getDefaultInstance().getId();
+          onChanged();
+          return this;
+        }
+        /**
+         * <code>optional string id = 1;</code>
+         */
+        public Builder setIdBytes(
+            com.google.protobuf.ByteString value) {
+          if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+          
+          id_ = value;
+          onChanged();
+          return this;
+        }
+        public final Builder setUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return this;
+        }
+
+        public final Builder mergeUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return this;
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:spine.sample.failures.Failure4.Failure4Inner)
+      }
+
+      // @@protoc_insertion_point(class_scope:spine.sample.failures.Failure4.Failure4Inner)
+      private static final org.spine3.sample.failures.Failures.Failure4.Failure4Inner DEFAULT_INSTANCE;
+      static {
+        DEFAULT_INSTANCE = new org.spine3.sample.failures.Failures.Failure4.Failure4Inner();
+      }
+
+      public static org.spine3.sample.failures.Failures.Failure4.Failure4Inner getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+      }
+
+      private static final com.google.protobuf.Parser<Failure4Inner>
+          PARSER = new com.google.protobuf.AbstractParser<Failure4Inner>() {
+        public Failure4Inner parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          try {
+            return new Failure4Inner(input, extensionRegistry);
+          } catch (RuntimeException e) {
+            if (e.getCause() instanceof
+                com.google.protobuf.InvalidProtocolBufferException) {
+              throw (com.google.protobuf.InvalidProtocolBufferException)
+                  e.getCause();
+            }
+            throw e;
+          }
+        }
+      };
+
+      public static com.google.protobuf.Parser<Failure4Inner> parser() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Parser<Failure4Inner> getParserForType() {
+        return PARSER;
+      }
+
+      public org.spine3.sample.failures.Failures.Failure4.Failure4Inner getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+      }
+
+    }
+
+    public static final int ID_FIELD_NUMBER = 1;
+    private volatile java.lang.Object id_;
+    /**
+     * <code>optional string id = 1;</code>
+     */
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        id_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>optional string id = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int ANY_ID_FIELD_NUMBER = 2;
+    private com.google.protobuf.Any anyId_;
+    /**
+     * <code>optional .google.protobuf.Any any_id = 2;</code>
+     */
+    public boolean hasAnyId() {
+      return anyId_ != null;
+    }
+    /**
+     * <code>optional .google.protobuf.Any any_id = 2;</code>
+     */
+    public com.google.protobuf.Any getAnyId() {
+      return anyId_ == null ? com.google.protobuf.Any.getDefaultInstance() : anyId_;
+    }
+    /**
+     * <code>optional .google.protobuf.Any any_id = 2;</code>
+     */
+    public com.google.protobuf.AnyOrBuilder getAnyIdOrBuilder() {
+      return getAnyId();
+    }
+
+    public static final int BOOLEAN_ID_FIELD_NUMBER = 3;
+    private boolean booleanId_;
+    /**
+     * <code>optional bool boolean_id = 3;</code>
+     */
+    public boolean getBooleanId() {
+      return booleanId_;
+    }
+
+    public static final int INNER_ID_FIELD_NUMBER = 4;
+    private org.spine3.sample.failures.Failures.Failure4.Failure4Inner innerId_;
+    /**
+     * <code>optional .spine.sample.failures.Failure4.Failure4Inner inner_id = 4;</code>
+     */
+    public boolean hasInnerId() {
+      return innerId_ != null;
+    }
+    /**
+     * <code>optional .spine.sample.failures.Failure4.Failure4Inner inner_id = 4;</code>
+     */
+    public org.spine3.sample.failures.Failures.Failure4.Failure4Inner getInnerId() {
+      return innerId_ == null ? org.spine3.sample.failures.Failures.Failure4.Failure4Inner.getDefaultInstance() : innerId_;
+    }
+    /**
+     * <code>optional .spine.sample.failures.Failure4.Failure4Inner inner_id = 4;</code>
+     */
+    public org.spine3.sample.failures.Failures.Failure4.Failure4InnerOrBuilder getInnerIdOrBuilder() {
+      return getInnerId();
+    }
+
+    public static final int INNER_ENUM_ID_FIELD_NUMBER = 5;
+    private int innerEnumId_;
+    /**
+     * <code>optional .spine.sample.failures.Failure4.Failure4InnerEnum inner_enum_id = 5;</code>
+     */
+    public int getInnerEnumIdValue() {
+      return innerEnumId_;
+    }
+    /**
+     * <code>optional .spine.sample.failures.Failure4.Failure4InnerEnum inner_enum_id = 5;</code>
+     */
+    public org.spine3.sample.failures.Failures.Failure4.Failure4InnerEnum getInnerEnumId() {
+      org.spine3.sample.failures.Failures.Failure4.Failure4InnerEnum result = org.spine3.sample.failures.Failures.Failure4.Failure4InnerEnum.valueOf(innerEnumId_);
+      return result == null ? org.spine3.sample.failures.Failures.Failure4.Failure4InnerEnum.UNRECOGNIZED : result;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!getIdBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
+      }
+      if (anyId_ != null) {
+        output.writeMessage(2, getAnyId());
+      }
+      if (booleanId_ != false) {
+        output.writeBool(3, booleanId_);
+      }
+      if (innerId_ != null) {
+        output.writeMessage(4, getInnerId());
+      }
+      if (innerEnumId_ != org.spine3.sample.failures.Failures.Failure4.Failure4InnerEnum.OK.getNumber()) {
+        output.writeEnum(5, innerEnumId_);
+      }
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!getIdBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
+      }
+      if (anyId_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getAnyId());
+      }
+      if (booleanId_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(3, booleanId_);
+      }
+      if (innerId_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, getInnerId());
+      }
+      if (innerEnumId_ != org.spine3.sample.failures.Failures.Failure4.Failure4InnerEnum.OK.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(5, innerEnumId_);
+      }
+      memoizedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof org.spine3.sample.failures.Failures.Failure4)) {
+        return super.equals(obj);
+      }
+      org.spine3.sample.failures.Failures.Failure4 other = (org.spine3.sample.failures.Failures.Failure4) obj;
+
+      boolean result = true;
+      result = result && getId()
+          .equals(other.getId());
+      result = result && (hasAnyId() == other.hasAnyId());
+      if (hasAnyId()) {
+        result = result && getAnyId()
+            .equals(other.getAnyId());
+      }
+      result = result && (getBooleanId()
+          == other.getBooleanId());
+      result = result && (hasInnerId() == other.hasInnerId());
+      if (hasInnerId()) {
+        result = result && getInnerId()
+            .equals(other.getInnerId());
+      }
+      result = result && innerEnumId_ == other.innerEnumId_;
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptorForType().hashCode();
+      hash = (37 * hash) + ID_FIELD_NUMBER;
+      hash = (53 * hash) + getId().hashCode();
+      if (hasAnyId()) {
+        hash = (37 * hash) + ANY_ID_FIELD_NUMBER;
+        hash = (53 * hash) + getAnyId().hashCode();
+      }
+      hash = (37 * hash) + BOOLEAN_ID_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getBooleanId());
+      if (hasInnerId()) {
+        hash = (37 * hash) + INNER_ID_FIELD_NUMBER;
+        hash = (53 * hash) + getInnerId().hashCode();
+      }
+      hash = (37 * hash) + INNER_ENUM_ID_FIELD_NUMBER;
+      hash = (53 * hash) + innerEnumId_;
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static org.spine3.sample.failures.Failures.Failure4 parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.spine3.sample.failures.Failures.Failure4 parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.spine3.sample.failures.Failures.Failure4 parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.spine3.sample.failures.Failures.Failure4 parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.spine3.sample.failures.Failures.Failure4 parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.spine3.sample.failures.Failures.Failure4 parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static org.spine3.sample.failures.Failures.Failure4 parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static org.spine3.sample.failures.Failures.Failure4 parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static org.spine3.sample.failures.Failures.Failure4 parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.spine3.sample.failures.Failures.Failure4 parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(org.spine3.sample.failures.Failures.Failure4 prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code spine.sample.failures.Failure4}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:spine.sample.failures.Failure4)
+        org.spine3.sample.failures.Failures.Failure4OrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.spine3.sample.failures.Failures.internal_static_spine_sample_failures_Failure4_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.spine3.sample.failures.Failures.internal_static_spine_sample_failures_Failure4_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.spine3.sample.failures.Failures.Failure4.class, org.spine3.sample.failures.Failures.Failure4.Builder.class);
+      }
+
+      // Construct using org.spine3.sample.failures.Failures.Failure4.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        id_ = "";
+
+        if (anyIdBuilder_ == null) {
+          anyId_ = null;
+        } else {
+          anyId_ = null;
+          anyIdBuilder_ = null;
+        }
+        booleanId_ = false;
+
+        if (innerIdBuilder_ == null) {
+          innerId_ = null;
+        } else {
+          innerId_ = null;
+          innerIdBuilder_ = null;
+        }
+        innerEnumId_ = 0;
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.spine3.sample.failures.Failures.internal_static_spine_sample_failures_Failure4_descriptor;
+      }
+
+      public org.spine3.sample.failures.Failures.Failure4 getDefaultInstanceForType() {
+        return org.spine3.sample.failures.Failures.Failure4.getDefaultInstance();
+      }
+
+      public org.spine3.sample.failures.Failures.Failure4 build() {
+        org.spine3.sample.failures.Failures.Failure4 result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public org.spine3.sample.failures.Failures.Failure4 buildPartial() {
+        org.spine3.sample.failures.Failures.Failure4 result = new org.spine3.sample.failures.Failures.Failure4(this);
+        result.id_ = id_;
+        if (anyIdBuilder_ == null) {
+          result.anyId_ = anyId_;
+        } else {
+          result.anyId_ = anyIdBuilder_.build();
+        }
+        result.booleanId_ = booleanId_;
+        if (innerIdBuilder_ == null) {
+          result.innerId_ = innerId_;
+        } else {
+          result.innerId_ = innerIdBuilder_.build();
+        }
+        result.innerEnumId_ = innerEnumId_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.spine3.sample.failures.Failures.Failure4) {
+          return mergeFrom((org.spine3.sample.failures.Failures.Failure4)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.spine3.sample.failures.Failures.Failure4 other) {
+        if (other == org.spine3.sample.failures.Failures.Failure4.getDefaultInstance()) return this;
+        if (!other.getId().isEmpty()) {
+          id_ = other.id_;
+          onChanged();
+        }
+        if (other.hasAnyId()) {
+          mergeAnyId(other.getAnyId());
+        }
+        if (other.getBooleanId() != false) {
+          setBooleanId(other.getBooleanId());
+        }
+        if (other.hasInnerId()) {
+          mergeInnerId(other.getInnerId());
+        }
+        if (other.innerEnumId_ != 0) {
+          setInnerEnumIdValue(other.getInnerEnumIdValue());
+        }
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.spine3.sample.failures.Failures.Failure4 parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.spine3.sample.failures.Failures.Failure4) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private java.lang.Object id_ = "";
+      /**
+       * <code>optional string id = 1;</code>
+       */
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string id = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string id = 1;</code>
+       */
+      public Builder setId(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string id = 1;</code>
+       */
+      public Builder clearId() {
+        
+        id_ = getDefaultInstance().getId();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string id = 1;</code>
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        id_ = value;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.Any anyId_ = null;
+      private com.google.protobuf.SingleFieldBuilder<
+          com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> anyIdBuilder_;
+      /**
+       * <code>optional .google.protobuf.Any any_id = 2;</code>
+       */
+      public boolean hasAnyId() {
+        return anyIdBuilder_ != null || anyId_ != null;
+      }
+      /**
+       * <code>optional .google.protobuf.Any any_id = 2;</code>
+       */
+      public com.google.protobuf.Any getAnyId() {
+        if (anyIdBuilder_ == null) {
+          return anyId_ == null ? com.google.protobuf.Any.getDefaultInstance() : anyId_;
+        } else {
+          return anyIdBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .google.protobuf.Any any_id = 2;</code>
+       */
+      public Builder setAnyId(com.google.protobuf.Any value) {
+        if (anyIdBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          anyId_ = value;
+          onChanged();
+        } else {
+          anyIdBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .google.protobuf.Any any_id = 2;</code>
+       */
+      public Builder setAnyId(
+          com.google.protobuf.Any.Builder builderForValue) {
+        if (anyIdBuilder_ == null) {
+          anyId_ = builderForValue.build();
+          onChanged();
+        } else {
+          anyIdBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .google.protobuf.Any any_id = 2;</code>
+       */
+      public Builder mergeAnyId(com.google.protobuf.Any value) {
+        if (anyIdBuilder_ == null) {
+          if (anyId_ != null) {
+            anyId_ =
+              com.google.protobuf.Any.newBuilder(anyId_).mergeFrom(value).buildPartial();
+          } else {
+            anyId_ = value;
+          }
+          onChanged();
+        } else {
+          anyIdBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .google.protobuf.Any any_id = 2;</code>
+       */
+      public Builder clearAnyId() {
+        if (anyIdBuilder_ == null) {
+          anyId_ = null;
+          onChanged();
+        } else {
+          anyId_ = null;
+          anyIdBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .google.protobuf.Any any_id = 2;</code>
+       */
+      public com.google.protobuf.Any.Builder getAnyIdBuilder() {
+        
+        onChanged();
+        return getAnyIdFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .google.protobuf.Any any_id = 2;</code>
+       */
+      public com.google.protobuf.AnyOrBuilder getAnyIdOrBuilder() {
+        if (anyIdBuilder_ != null) {
+          return anyIdBuilder_.getMessageOrBuilder();
+        } else {
+          return anyId_ == null ?
+              com.google.protobuf.Any.getDefaultInstance() : anyId_;
+        }
+      }
+      /**
+       * <code>optional .google.protobuf.Any any_id = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> 
+          getAnyIdFieldBuilder() {
+        if (anyIdBuilder_ == null) {
+          anyIdBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder>(
+                  getAnyId(),
+                  getParentForChildren(),
+                  isClean());
+          anyId_ = null;
+        }
+        return anyIdBuilder_;
+      }
+
+      private boolean booleanId_ ;
+      /**
+       * <code>optional bool boolean_id = 3;</code>
+       */
+      public boolean getBooleanId() {
+        return booleanId_;
+      }
+      /**
+       * <code>optional bool boolean_id = 3;</code>
+       */
+      public Builder setBooleanId(boolean value) {
+        
+        booleanId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool boolean_id = 3;</code>
+       */
+      public Builder clearBooleanId() {
+        
+        booleanId_ = false;
+        onChanged();
+        return this;
+      }
+
+      private org.spine3.sample.failures.Failures.Failure4.Failure4Inner innerId_ = null;
+      private com.google.protobuf.SingleFieldBuilder<
+          org.spine3.sample.failures.Failures.Failure4.Failure4Inner, org.spine3.sample.failures.Failures.Failure4.Failure4Inner.Builder, org.spine3.sample.failures.Failures.Failure4.Failure4InnerOrBuilder> innerIdBuilder_;
+      /**
+       * <code>optional .spine.sample.failures.Failure4.Failure4Inner inner_id = 4;</code>
+       */
+      public boolean hasInnerId() {
+        return innerIdBuilder_ != null || innerId_ != null;
+      }
+      /**
+       * <code>optional .spine.sample.failures.Failure4.Failure4Inner inner_id = 4;</code>
+       */
+      public org.spine3.sample.failures.Failures.Failure4.Failure4Inner getInnerId() {
+        if (innerIdBuilder_ == null) {
+          return innerId_ == null ? org.spine3.sample.failures.Failures.Failure4.Failure4Inner.getDefaultInstance() : innerId_;
+        } else {
+          return innerIdBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .spine.sample.failures.Failure4.Failure4Inner inner_id = 4;</code>
+       */
+      public Builder setInnerId(org.spine3.sample.failures.Failures.Failure4.Failure4Inner value) {
+        if (innerIdBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          innerId_ = value;
+          onChanged();
+        } else {
+          innerIdBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .spine.sample.failures.Failure4.Failure4Inner inner_id = 4;</code>
+       */
+      public Builder setInnerId(
+          org.spine3.sample.failures.Failures.Failure4.Failure4Inner.Builder builderForValue) {
+        if (innerIdBuilder_ == null) {
+          innerId_ = builderForValue.build();
+          onChanged();
+        } else {
+          innerIdBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .spine.sample.failures.Failure4.Failure4Inner inner_id = 4;</code>
+       */
+      public Builder mergeInnerId(org.spine3.sample.failures.Failures.Failure4.Failure4Inner value) {
+        if (innerIdBuilder_ == null) {
+          if (innerId_ != null) {
+            innerId_ =
+              org.spine3.sample.failures.Failures.Failure4.Failure4Inner.newBuilder(innerId_).mergeFrom(value).buildPartial();
+          } else {
+            innerId_ = value;
+          }
+          onChanged();
+        } else {
+          innerIdBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .spine.sample.failures.Failure4.Failure4Inner inner_id = 4;</code>
+       */
+      public Builder clearInnerId() {
+        if (innerIdBuilder_ == null) {
+          innerId_ = null;
+          onChanged();
+        } else {
+          innerId_ = null;
+          innerIdBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .spine.sample.failures.Failure4.Failure4Inner inner_id = 4;</code>
+       */
+      public org.spine3.sample.failures.Failures.Failure4.Failure4Inner.Builder getInnerIdBuilder() {
+        
+        onChanged();
+        return getInnerIdFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .spine.sample.failures.Failure4.Failure4Inner inner_id = 4;</code>
+       */
+      public org.spine3.sample.failures.Failures.Failure4.Failure4InnerOrBuilder getInnerIdOrBuilder() {
+        if (innerIdBuilder_ != null) {
+          return innerIdBuilder_.getMessageOrBuilder();
+        } else {
+          return innerId_ == null ?
+              org.spine3.sample.failures.Failures.Failure4.Failure4Inner.getDefaultInstance() : innerId_;
+        }
+      }
+      /**
+       * <code>optional .spine.sample.failures.Failure4.Failure4Inner inner_id = 4;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          org.spine3.sample.failures.Failures.Failure4.Failure4Inner, org.spine3.sample.failures.Failures.Failure4.Failure4Inner.Builder, org.spine3.sample.failures.Failures.Failure4.Failure4InnerOrBuilder> 
+          getInnerIdFieldBuilder() {
+        if (innerIdBuilder_ == null) {
+          innerIdBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              org.spine3.sample.failures.Failures.Failure4.Failure4Inner, org.spine3.sample.failures.Failures.Failure4.Failure4Inner.Builder, org.spine3.sample.failures.Failures.Failure4.Failure4InnerOrBuilder>(
+                  getInnerId(),
+                  getParentForChildren(),
+                  isClean());
+          innerId_ = null;
+        }
+        return innerIdBuilder_;
+      }
+
+      private int innerEnumId_ = 0;
+      /**
+       * <code>optional .spine.sample.failures.Failure4.Failure4InnerEnum inner_enum_id = 5;</code>
+       */
+      public int getInnerEnumIdValue() {
+        return innerEnumId_;
+      }
+      /**
+       * <code>optional .spine.sample.failures.Failure4.Failure4InnerEnum inner_enum_id = 5;</code>
+       */
+      public Builder setInnerEnumIdValue(int value) {
+        innerEnumId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .spine.sample.failures.Failure4.Failure4InnerEnum inner_enum_id = 5;</code>
+       */
+      public org.spine3.sample.failures.Failures.Failure4.Failure4InnerEnum getInnerEnumId() {
+        org.spine3.sample.failures.Failures.Failure4.Failure4InnerEnum result = org.spine3.sample.failures.Failures.Failure4.Failure4InnerEnum.valueOf(innerEnumId_);
+        return result == null ? org.spine3.sample.failures.Failures.Failure4.Failure4InnerEnum.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>optional .spine.sample.failures.Failure4.Failure4InnerEnum inner_enum_id = 5;</code>
+       */
+      public Builder setInnerEnumId(org.spine3.sample.failures.Failures.Failure4.Failure4InnerEnum value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        
+        innerEnumId_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .spine.sample.failures.Failure4.Failure4InnerEnum inner_enum_id = 5;</code>
+       */
+      public Builder clearInnerEnumId() {
+        
+        innerEnumId_ = 0;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return this;
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return this;
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:spine.sample.failures.Failure4)
+    }
+
+    // @@protoc_insertion_point(class_scope:spine.sample.failures.Failure4)
+    private static final org.spine3.sample.failures.Failures.Failure4 DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new org.spine3.sample.failures.Failures.Failure4();
+    }
+
+    public static org.spine3.sample.failures.Failures.Failure4 getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<Failure4>
+        PARSER = new com.google.protobuf.AbstractParser<Failure4>() {
+      public Failure4 parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        try {
+          return new Failure4(input, extensionRegistry);
+        } catch (RuntimeException e) {
+          if (e.getCause() instanceof
+              com.google.protobuf.InvalidProtocolBufferException) {
+            throw (com.google.protobuf.InvalidProtocolBufferException)
+                e.getCause();
+          }
+          throw e;
+        }
+      }
+    };
+
+    public static com.google.protobuf.Parser<Failure4> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Failure4> getParserForType() {
+      return PARSER;
+    }
+
+    public org.spine3.sample.failures.Failures.Failure4 getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static com.google.protobuf.Descriptors.Descriptor
     internal_static_spine_sample_failures_Failure1_descriptor;
   private static
@@ -2150,6 +3735,16 @@ public final class Failures {
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_spine_sample_failures_Failure3_Failure3Inner_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_spine_sample_failures_Failure4_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_spine_sample_failures_Failure4_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_spine_sample_failures_Failure4_Failure4Inner_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_spine_sample_failures_Failure4_Failure4Inner_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -2161,15 +3756,22 @@ public final class Failures {
     java.lang.String[] descriptorData = {
       "\n$spine/sample/failures/failures.proto\022\025" +
       "spine.sample.failures\032%spine/sample/fail" +
-      "ures/deps/deps.proto\"?\n\010Failure1\0223\n\002id\030\001" +
-      " \001(\0132\'.spine.sample.failures.deps.Failur" +
-      "e1Dep\"C\n\010Failure2\0227\n\002id\030\001 \001(\0162+.spine.sa" +
-      "mple.failures.deps.Failure2DepEnum\"x\n\010Fa" +
-      "ilure3\022\n\n\002id\030\001 \001(\t\022C\n\014innerMessage\030\002 \001(\013" +
-      "2-.spine.sample.failures.Failure3.Failur" +
-      "e3Inner\032\033\n\rFailure3Inner\022\n\n\002id\030\001 \001(\tB!\n\032" +
-      "org.spine3.sample.failuresP\000\240\001\001P\000b\006proto",
-      "3"
+      "ures/deps/deps.proto\032\031google/protobuf/an" +
+      "y.proto\"?\n\010Failure1\0223\n\002id\030\001 \001(\0132\'.spine." +
+      "sample.failures.deps.Failure1Dep\"C\n\010Fail" +
+      "ure2\0227\n\002id\030\001 \001(\0162+.spine.sample.failures" +
+      ".deps.Failure2DepEnum\"\177\n\010Failure3\022\021\n\tid_" +
+      "string\030\001 \001(\t\022C\n\014innerMessage\030\002 \001(\0132-.spi" +
+      "ne.sample.failures.Failure3.Failure3Inne" +
+      "r\032\033\n\rFailure3Inner\022\n\n\002id\030\001 \001(\t\"\225\002\n\010Failu",
+      "re4\022\n\n\002id\030\001 \001(\t\022$\n\006any_id\030\002 \001(\0132\024.google" +
+      ".protobuf.Any\022\022\n\nboolean_id\030\003 \001(\010\022?\n\010inn" +
+      "er_id\030\004 \001(\0132-.spine.sample.failures.Fail" +
+      "ure4.Failure4Inner\022H\n\rinner_enum_id\030\005 \001(" +
+      "\01621.spine.sample.failures.Failure4.Failu" +
+      "re4InnerEnum\032\033\n\rFailure4Inner\022\n\n\002id\030\001 \001(" +
+      "\t\"\033\n\021Failure4InnerEnum\022\006\n\002OK\020\000B!\n\032org.sp" +
+      "ine3.sample.failuresP\000\240\001\001P\000b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -2183,6 +3785,7 @@ public final class Failures {
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           org.spine3.sample.failures.deps.Deps.getDescriptor(),
+          com.google.protobuf.AnyProto.getDescriptor(),
         }, assigner);
     internal_static_spine_sample_failures_Failure1_descriptor =
       getDescriptor().getMessageTypes().get(0);
@@ -2201,14 +3804,27 @@ public final class Failures {
     internal_static_spine_sample_failures_Failure3_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_spine_sample_failures_Failure3_descriptor,
-        new java.lang.String[] { "Id", "InnerMessage", });
+        new java.lang.String[] { "IdString", "InnerMessage", });
     internal_static_spine_sample_failures_Failure3_Failure3Inner_descriptor =
       internal_static_spine_sample_failures_Failure3_descriptor.getNestedTypes().get(0);
     internal_static_spine_sample_failures_Failure3_Failure3Inner_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_spine_sample_failures_Failure3_Failure3Inner_descriptor,
         new java.lang.String[] { "Id", });
+    internal_static_spine_sample_failures_Failure4_descriptor =
+      getDescriptor().getMessageTypes().get(3);
+    internal_static_spine_sample_failures_Failure4_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_spine_sample_failures_Failure4_descriptor,
+        new java.lang.String[] { "Id", "AnyId", "BooleanId", "InnerId", "InnerEnumId", });
+    internal_static_spine_sample_failures_Failure4_Failure4Inner_descriptor =
+      internal_static_spine_sample_failures_Failure4_descriptor.getNestedTypes().get(0);
+    internal_static_spine_sample_failures_Failure4_Failure4Inner_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_spine_sample_failures_Failure4_Failure4Inner_descriptor,
+        new java.lang.String[] { "Id", });
     org.spine3.sample.failures.deps.Deps.getDescriptor();
+    com.google.protobuf.AnyProto.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)
