@@ -39,7 +39,8 @@ class FailuresGenPlugin implements Plugin<Project> {
         final String filePath = "${target.projectDir.absolutePath}/build/descriptors/main.desc";
 
         if (!new File(filePath).exists()) {
-            throw new RuntimeException("Please enable descriptor set generation. See an appropriate section at https://github.com/google/protobuf-gradle-plugin/blob/master/README.md#customize-code-generation-tasks")
+            log.warn("Please enable descriptor set generation. See an appropriate section at https://github.com/google/protobuf-gradle-plugin/blob/master/README.md#customize-code-generation-tasks")
+            return new ArrayList<DescriptorProtos.FileDescriptorProto>();
         }
 
         new FileInputStream(filePath).withStream {
