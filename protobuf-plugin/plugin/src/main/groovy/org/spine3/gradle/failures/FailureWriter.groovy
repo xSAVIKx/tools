@@ -70,7 +70,7 @@ import groovy.util.logging.Slf4j
     }
 
     private static void writeImports(OutputStreamWriter writer) {
-        writer.write("import org.spine3.server.FailureThrowable;\n");
+        writer.write("import org.spine3.server.failure.FailureThrowable;\n");
         writer.write("\n");
     }
 
