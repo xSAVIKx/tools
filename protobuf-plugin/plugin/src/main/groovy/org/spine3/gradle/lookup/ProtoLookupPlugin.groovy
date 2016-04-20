@@ -153,9 +153,11 @@ class ProtoLookupPlugin implements Plugin<Project> {
                 protoPackage = findLineData(trimmedLine, PROTO_PACKAGE_PATTERN) + ".";
             }
             // This won't work for bad-formatted proto files. Consider moving to descriptors.
+            // Again, won' work for }} case, move to descriptors instead of fixing
             if (trimmedLine.contains(OPENING_BRACKET)) {
                 nestedClassDepth++;
-            } else if (trimmedLine.contains(CLOSING_BRACKET)) {
+            }
+            if (trimmedLine.contains(CLOSING_BRACKET)) {
                 nestedClassDepth--;
             }
         }
