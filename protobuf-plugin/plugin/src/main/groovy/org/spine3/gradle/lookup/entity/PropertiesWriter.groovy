@@ -53,12 +53,7 @@ public class PropertiesWriter {
         if (!rootDir.exists()) {
             rootDir.mkdirs();
         }
-        final Properties props = new Properties() {
-            @Override
-            public synchronized Enumeration<Object> keys() {
-                return Collections.enumeration(new TreeSet<Object>(super.keySet()));
-            }
-        };
+        final Properties props = obtainSortedProperties();
         File file = null;
         try {
             file = new File(propsFilePath);
@@ -82,5 +77,18 @@ public class PropertiesWriter {
         final BufferedWriter writer = file.newWriter();
         props.store(writer, /*comments=*/null);
         writer.close();
+    }
+
+    /**
+     * Returns {@link Properties} instance, which has it's key set sorted by names.
+     */
+    private static Properties obtainSortedProperties() {
+        final Properties props = new Properties() {
+            @Override
+            public synchronized Enumeration<Object> keys() {
+                return Collections.enumeration(new TreeSet<Object>(super.keySet()));
+            }
+        };
+        return props;
     }
 }
