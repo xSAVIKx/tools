@@ -28,6 +28,12 @@ import org.gradle.api.Task;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Plugin, which performs generated Java classes (based on protobuf) search.
+ *
+ * <p> Generates proto_to_java_class.properties files, which contain entries like
+ * PROTO_FULL_MESSAGE_NAME=JAVA_FULL_CLASS_NAME.
+ */
 @Slf4j
 class ProtoLookupPlugin implements Plugin<Project> {
 

@@ -6,6 +6,9 @@ import org.spine3.gradle.failures.FailuresGenPlugin
 import org.spine3.gradle.lookup.entity.EntityLookupPlugin
 import org.spine3.gradle.lookup.ProtoLookupPlugin
 
+/**
+ * Root plugin, which aggregates other plugins.
+ */
 class ProtobufPlugin implements Plugin<Project> {
 
     @Override
