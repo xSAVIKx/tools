@@ -6,6 +6,12 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 
+/**
+ * Plugin, which generates Failures, based on failures.proto files.
+ *
+ * <p>Uses generated proto descriptors.
+ * <p>Generates warning if there are no protobuf descriptors generated.
+ */
 @Slf4j
 class FailuresGenPlugin implements Plugin<Project> {
 
