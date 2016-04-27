@@ -23,7 +23,8 @@ package org.spine3.gradle.lookup;
 import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.Task
+import org.spine3.gradle.lookup.entity.PropertiesWriter;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -80,77 +81,38 @@ class ProtoLookupPlugin implements Plugin<Project> {
 
     private static void scanRootDir(Project target, String rootDirPathSuffix) {
         final String projectPath = target.projectDir.absolutePath;
-        final String rootDirPath = "${projectPath}/generated/" + rootDirPathSuffix;
+        final String rootDirPath = "${projectPath}/generated/${rootDirPathSuffix}";
+        final String protoFilesPath = "${projectPath}/src/${rootDirPathSuffix}/proto";
+        final String srcFolder = "${rootDirPath}/java";
 
-        final String srcFolder = rootDirPath + "/java";
         final File rootDir = new File(srcFolder);
         if (!rootDir.exists()) {
             log.debug("${ProtoLookupPlugin.class.getSimpleName()}: no ${rootDirPath}");
             return;
         }
 
-        final File propsFile = obtainPropsFile(rootDirPath);
+        def protosPropertyValues = readProtos(protoFilesPath, target);
 
-        final Properties props = new Properties() {
-            @Override
-            public synchronized Enumeration<Object> keys() {
-                return Collections.enumeration(new TreeSet<Object>(super.keySet()));
-            }
-        };
-        if (propsFile.exists()) {
-            log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: reading properties file");
-
-            props.load(propsFile.newDataInputStream());
-            // as Properties API does not support saving default table values, we have to rewrite them all
-            // Probably we should use Apache property API
-            final Set<String> names = props.stringPropertyNames();
-            for (Iterator<String> i = names.iterator(); i.hasNext();) {
-                final String propName = i.next();
-                props.setProperty(propName, props.getProperty(propName));
-            }
-        } else {
-            log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: creating properties file");
-
-            propsFile.parentFile.mkdirs();
-            propsFile.createNewFile();
-        }
-
-        final String srcDirPath = "${projectPath}/src/" + rootDirPathSuffix;
-        final String protoFilesPath = srcDirPath + "/proto";
-        readProtos(props, protoFilesPath, target);
-
-        final BufferedWriter writer = propsFile.newWriter();
-        props.store(writer, null);
-        writer.close();
-        log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: written properties");
+        final def propsFolderPath = rootDirPath + "/" + PROPERTIES_PATH_SUFFIX;
+        def writer = new PropertiesWriter(propsFolderPath, PROPERTIES_PATH_FILE_NAME);
+        writer.write(protosPropertyValues)
     }
 
-    private static File obtainPropsFile(String rootDirPath) {
-        final File propsFileFolder = new File(rootDirPath + "/" + PROPERTIES_PATH_SUFFIX);
-        if (!propsFileFolder.exists()) {
-            log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: props folder does not exist");
-            propsFileFolder.mkdirs();
-        }
-        File propsFile = null;
-        final String propsFilePath = rootDirPath + "/" + PROPERTIES_PATH_SUFFIX + "/" + PROPERTIES_PATH_FILE_NAME;
-        try {
-            propsFile = new File(propsFilePath);
-            log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: successfully found props");
-        } catch (FileNotFoundException ignored) {
-        }
-        return propsFile;
-    }
+    private static Map<String, String> readProtos(String rootProtoPath, Project project) {
+        final def entries = new HashMap<String, String>();
 
-    private static void readProtos(Properties properties, String rootProtoPath, Project project) {
         final File root = new File(rootProtoPath);
         project.fileTree(root).each {
             if (it.name.endsWith(PROTO_SUFFIX)) {
-                readProtoFile(properties, it.canonicalFile);
+                def fileEntries = readProtoFile(it.canonicalFile);
+                entries.putAll(fileEntries);
             }
         }
+
+        return entries;
     }
 
-    private static void readProtoFile(Properties properties, File file) {
+    private static Map<String, String> readProtoFile(File file) {
         final List<String> lines = file.readLines();
         String javaPackage = "";
         String protoPackage = "";
@@ -166,7 +128,7 @@ class ProtoLookupPlugin implements Plugin<Project> {
                 protoPackage = findLineData(trimmedLine, PROTO_PACKAGE_PATTERN) + ".";
             }
             // This won't work for bad-formatted proto files. Consider moving to descriptors.
-            // Again, won' work for }} case, move to descriptors instead of fixing
+            // Again, won't work for }} case, move to descriptors instead of fixing
             if (trimmedLine.contains(OPENING_BRACKET)) {
                 nestedClassDepth++;
             }
@@ -175,9 +137,12 @@ class ProtoLookupPlugin implements Plugin<Project> {
             }
         }
 
+        final def entries = new HashMap<String, String>();
         for (String className : classes) {
-            properties.setProperty(protoPackage + className, javaPackage + className);
+            entries.put(protoPackage + className, javaPackage + className);
         }
+
+        return entries;
     }
 
     private static void addClass(String className, List<String> classes, int nestedClassDepth) {
