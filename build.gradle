@@ -1,15 +1,13 @@
 def CREDENTIALS_LOCATION = "credentials.properties"
 
-apply plugin: 'java'
 apply plugin: 'maven'
 
 allprojects {
     group = 'org.spine3.tools'
-    version = '1.2'
-}
 
-project.ext {
-    MAVEN_REPOSITORY_URL = 'http://maven.teamdev.com/repository/spine'
+    project.ext {
+        MAVEN_REPOSITORY_URL = 'http://maven.teamdev.com/repository/spine'
+    }
 }
 
 def repositoryUserName = null
