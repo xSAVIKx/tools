@@ -59,9 +59,10 @@ class FailuresGenPlugin implements Plugin<Project> {
     }
 
     private static boolean validateFailures(DescriptorProtos.FileDescriptorProto descriptor) {
-        return !(descriptor.options.javaMultipleFiles || (descriptor.options.javaOuterClassname != null
-                && !descriptor.options.javaOuterClassname.isEmpty()
-                && !descriptor.options.javaOuterClassname.equals("Failures")));
+        def javaMultipleFiles = descriptor.options.javaMultipleFiles
+        def javaOuterClassName = descriptor.options.javaOuterClassname
+        def javaOuterClassNameNotEmpty = javaOuterClassName != null && !javaOuterClassName.isEmpty()
+        return !(javaMultipleFiles || (javaOuterClassNameNotEmpty && !javaOuterClassName.equals("Failures")));
     }
 
     private void cacheFieldTypes(DescriptorProtos.FileDescriptorProto fileDescriptor) {
