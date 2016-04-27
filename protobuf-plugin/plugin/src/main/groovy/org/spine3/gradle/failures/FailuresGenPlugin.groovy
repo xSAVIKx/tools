@@ -36,7 +36,7 @@ class FailuresGenPlugin implements Plugin<Project> {
             }
         };
 
-        generateFailures.dependsOn("compileJava", "generateProto");
+        generateFailures.dependsOn("generateProto");
         target.getTasks().getByPath("processResources").dependsOn(generateFailures);
     }
 
