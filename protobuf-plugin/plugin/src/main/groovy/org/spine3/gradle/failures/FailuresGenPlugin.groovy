@@ -59,9 +59,9 @@ class FailuresGenPlugin implements Plugin<Project> {
     }
 
     private static boolean validateFailures(DescriptorProtos.FileDescriptorProto descriptor) {
-        def javaMultipleFiles = descriptor.options.javaMultipleFiles
-        def javaOuterClassName = descriptor.options.javaOuterClassname
-        def javaOuterClassNameNotEmpty = javaOuterClassName != null && !javaOuterClassName.isEmpty()
+        final def javaMultipleFiles = descriptor.options.javaMultipleFiles
+        final def javaOuterClassName = descriptor.options.javaOuterClassname
+        final def javaOuterClassNameNotEmpty = javaOuterClassName != null && !javaOuterClassName.isEmpty()
         return !(javaMultipleFiles || (javaOuterClassNameNotEmpty && !javaOuterClassName.equals("Failures")));
     }
 
