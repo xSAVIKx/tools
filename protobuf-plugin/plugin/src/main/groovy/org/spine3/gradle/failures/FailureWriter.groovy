@@ -91,7 +91,7 @@ import groovy.util.logging.Slf4j
 
     private void writeConstructor(OutputStreamWriter writer) {
         writer.write("\tpublic $className(");
-        Set<Map.Entry<String, String>> fieldsEntries = readFieldValues().entrySet();
+        final Set<Map.Entry<String, String>> fieldsEntries = readFieldValues().entrySet();
         for (int i = 0; i < fieldsEntries.size(); i++) {
             Map.Entry<String, String> field = fieldsEntries.getAt(i);
 
