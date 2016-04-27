@@ -3,8 +3,11 @@ package org.spine3.gradle.failures
 import com.google.protobuf.DescriptorProtos
 import groovy.util.logging.Slf4j
 
+/**
+ * Class, which writes Failure java code, based on it's descriptor.
+ */
 @Slf4j
-/* package */ class FailureWriter {
+class FailureWriter {
 
     private final DescriptorProtos.DescriptorProto failureDescriptor;
     private final File outputFile;
@@ -34,6 +37,14 @@ import groovy.util.logging.Slf4j
             (DescriptorProtos.FieldDescriptorProto.Type.TYPE_SINT64.name())  : "long",
     ]
 
+    /**
+     * Public constructor for {@code FailureWriter}.
+     *
+     * @param failureDescriptor {@link DescriptorProtos.DescriptorProto} of failure's proto message
+     * @param outputFile a {@link File} to write Failure code
+     * @param javaPackage Failure's java package
+     * @param messageTypeMap pre-scanned map with proto types and their appropriate Java classes
+     */
     FailureWriter(DescriptorProtos.DescriptorProto failureDescriptor,
                   File outputFile,
                   String javaPackage,
@@ -44,7 +55,10 @@ import groovy.util.logging.Slf4j
         this.messageTypeMap = messageTypeMap;
     }
 
-    public void write() {
+    /**
+     * Initiates writing.
+     */
+    void write() {
         outputFile.getParentFile().mkdirs();
         outputFile.createNewFile();
 
@@ -91,7 +105,7 @@ import groovy.util.logging.Slf4j
 
     private void writeConstructor(OutputStreamWriter writer) {
         writer.write("\tpublic $className(");
-        Set<Map.Entry<String, String>> fieldsEntries = readFieldValues().entrySet();
+        final Set<Map.Entry<String, String>> fieldsEntries = readFieldValues().entrySet();
         for (int i = 0; i < fieldsEntries.size(); i++) {
             Map.Entry<String, String> field = fieldsEntries.getAt(i);
 

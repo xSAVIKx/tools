@@ -1,11 +1,11 @@
 group 'org.spine3.tools'
-version '1.1'
+version '1.0'
 
 buildscript {
     repositories {
         mavenLocal()
         maven {
-            url = 'http://maven.teamdev.com/repository/spine'
+            url = "${project.MAVEN_REPOSITORY_URL}"
         }
         mavenCentral()
     }
@@ -25,7 +25,7 @@ apply plugin: 'org.spine3.tools.protobuf-plugin'
 repositories {
     mavenLocal()
     maven {
-        url = 'http://maven.teamdev.com/repository/spine'
+        url = "${project.MAVEN_REPOSITORY_URL}"
     }
     mavenCentral()
 }

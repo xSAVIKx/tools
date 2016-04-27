@@ -6,6 +6,12 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 
+/**
+ * Plugin which generates Failures, based on failures.proto files.
+ *
+ * <p>Uses generated proto descriptors.
+ * <p>Logs a warning if there are no protobuf descriptors generated.
+ */
 @Slf4j
 class FailuresGenPlugin implements Plugin<Project> {
 
@@ -30,7 +36,7 @@ class FailuresGenPlugin implements Plugin<Project> {
             }
         };
 
-        generateFailures.dependsOn("compileJava", "generateProto");
+        generateFailures.dependsOn("generateProto", "generateTestProto");
         target.getTasks().getByPath("processResources").dependsOn(generateFailures);
     }
 
@@ -59,9 +65,11 @@ class FailuresGenPlugin implements Plugin<Project> {
     }
 
     private static boolean validateFailures(DescriptorProtos.FileDescriptorProto descriptor) {
-        return !(descriptor.options.javaMultipleFiles || (descriptor.options.javaOuterClassname != null
-                && !descriptor.options.javaOuterClassname.isEmpty()
-                && !descriptor.options.javaOuterClassname.equals("Failures")));
+        final def javaMultipleFiles = descriptor.options.javaMultipleFiles
+        final def javaOuterClassName = descriptor.options.javaOuterClassname
+        final def javaOuterClassNameNotEmpty = javaOuterClassName != null && !javaOuterClassName.isEmpty()
+        final def result = !(javaMultipleFiles || (javaOuterClassNameNotEmpty && !javaOuterClassName.equals("Failures")))
+        return result;
     }
 
     private void cacheFieldTypes(DescriptorProtos.FileDescriptorProto fileDescriptor) {
