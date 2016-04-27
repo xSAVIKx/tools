@@ -68,7 +68,8 @@ class FailuresGenPlugin implements Plugin<Project> {
         final def javaMultipleFiles = descriptor.options.javaMultipleFiles
         final def javaOuterClassName = descriptor.options.javaOuterClassname
         final def javaOuterClassNameNotEmpty = javaOuterClassName != null && !javaOuterClassName.isEmpty()
-        return !(javaMultipleFiles || (javaOuterClassNameNotEmpty && !javaOuterClassName.equals("Failures")));
+        final def result = !(javaMultipleFiles || (javaOuterClassNameNotEmpty && !javaOuterClassName.equals("Failures")))
+        return result;
     }
 
     private void cacheFieldTypes(DescriptorProtos.FileDescriptorProto fileDescriptor) {
