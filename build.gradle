@@ -26,6 +26,10 @@ subprojects {
     apply plugin: 'idea'
     apply plugin: 'maven-publish'
 
+    repositories {
+        mavenCentral()
+    }
+
     dependencies {
         compile gradleApi()
         compile localGroovy()
@@ -60,10 +64,6 @@ subprojects {
                 url "${project.MAVEN_REPOSITORY_URL}"
             }
         }
-    }
-
-    repositories {
-        mavenCentral()
     }
 }
 
