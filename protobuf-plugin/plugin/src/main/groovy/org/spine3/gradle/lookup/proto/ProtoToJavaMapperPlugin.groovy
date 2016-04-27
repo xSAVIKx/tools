@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.lookup;
+package org.spine3.gradle.lookup.proto;
 
 import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin;
@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
  * PROTO_FULL_MESSAGE_NAME=JAVA_FULL_CLASS_NAME.
  */
 @Slf4j
-class ProtoLookupPlugin implements Plugin<Project> {
+class ProtoToJavaMapperPlugin implements Plugin<Project> {
 
     static final String PROPERTIES_PATH_SUFFIX = "resources";
     private static final String PROPERTIES_PATH_FILE_NAME = "proto_to_java_class.properties";
@@ -71,8 +71,8 @@ class ProtoLookupPlugin implements Plugin<Project> {
 
         final String projectPath = target.projectDir.absolutePath;
 
-        log.debug("${ProtoLookupPlugin.class.getSimpleName()}: start");
-        log.debug("${ProtoLookupPlugin.class.getSimpleName()}: Project path: ${projectPath}");
+        log.debug("${ProtoToJavaMapperPlugin.class.getSimpleName()}: start");
+        log.debug("${ProtoToJavaMapperPlugin.class.getSimpleName()}: Project path: ${projectPath}");
 
         for (String rootDirPathSuffix : ["main", "test"]) {
             scanRootDir(target, rootDirPathSuffix)
@@ -87,7 +87,7 @@ class ProtoLookupPlugin implements Plugin<Project> {
 
         final File rootDir = new File(srcFolder);
         if (!rootDir.exists()) {
-            log.debug("${ProtoLookupPlugin.class.getSimpleName()}: no ${rootDirPath}");
+            log.debug("${ProtoToJavaMapperPlugin.class.getSimpleName()}: no ${rootDirPath}");
             return;
         }
 
