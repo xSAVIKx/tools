@@ -37,7 +37,9 @@ class FailuresGenPlugin implements Plugin<Project> {
         };
 
         generateFailures.dependsOn("generateProto", "generateTestProto");
-        target.getTasks().getByPath("processResources").dependsOn(generateFailures);
+        final def targetTasks = target.getTasks()
+        targetTasks.getByPath("processResources").dependsOn(generateFailures);
+        targetTasks.getByPath("compileJava").dependsOn(generateFailures);
     }
 
     private List<DescriptorProtos.FileDescriptorProto> readFailureDescriptors(Project target) {
