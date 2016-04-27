@@ -82,34 +82,21 @@ class ProtoLookupPlugin implements Plugin<Project> {
         final String projectPath = target.projectDir.absolutePath;
         final String rootDirPath = "${projectPath}/generated/" + rootDirPathSuffix;
 
-        log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}");
-
         final String srcFolder = rootDirPath + "/java";
-
         final File rootDir = new File(srcFolder);
         if (!rootDir.exists()) {
             log.debug("${ProtoLookupPlugin.class.getSimpleName()}: no ${rootDirPath}");
             return;
         }
 
-        final File propsFileFolder = new File(rootDirPath + "/" + PROPERTIES_PATH_SUFFIX);
-        if (!propsFileFolder.exists()) {
-            log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: props folder does not exist");
-            propsFileFolder.mkdirs();
-        }
+        final File propsFile = obtainPropsFile(rootDirPath);
+
         final Properties props = new Properties() {
             @Override
             public synchronized Enumeration<Object> keys() {
                 return Collections.enumeration(new TreeSet<Object>(super.keySet()));
             }
         };
-        File propsFile = null;
-        final String propsFilePath = rootDirPath + "/" + PROPERTIES_PATH_SUFFIX + "/" + PROPERTIES_PATH_FILE_NAME;
-        try {
-            propsFile = new File(propsFilePath);
-            log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: successfully found props");
-        } catch (FileNotFoundException ignored) {
-        }
         if (propsFile.exists()) {
             log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: reading properties file");
 
@@ -136,6 +123,22 @@ class ProtoLookupPlugin implements Plugin<Project> {
         props.store(writer, null);
         writer.close();
         log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: written properties");
+    }
+
+    private static File obtainPropsFile(String rootDirPath) {
+        final File propsFileFolder = new File(rootDirPath + "/" + PROPERTIES_PATH_SUFFIX);
+        if (!propsFileFolder.exists()) {
+            log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: props folder does not exist");
+            propsFileFolder.mkdirs();
+        }
+        File propsFile = null;
+        final String propsFilePath = rootDirPath + "/" + PROPERTIES_PATH_SUFFIX + "/" + PROPERTIES_PATH_FILE_NAME;
+        try {
+            propsFile = new File(propsFilePath);
+            log.debug("${ProtoLookupPlugin.class.getSimpleName()}: for ${rootDirPath}: successfully found props");
+        } catch (FileNotFoundException ignored) {
+        }
+        return propsFile;
     }
 
     private static void readProtos(Properties properties, String rootProtoPath, Project project) {
