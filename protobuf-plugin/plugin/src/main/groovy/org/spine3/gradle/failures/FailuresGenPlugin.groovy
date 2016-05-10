@@ -24,34 +24,56 @@ class FailuresGenPlugin implements Plugin<Project> {
         projectPath = target.projectDir.absolutePath;
 
         final Task generateFailures = target.task("generateFailures") << {
-
-            def descriptors = readFailureDescriptors(target);
-
-            descriptors.each { def descriptor ->
-                if (validateFailures(descriptor)) {
-                    generateFailures(descriptor, cachedMessageTypes);
-                } else {
-                    log.error("Invalid failures file");
-                }
-            }
+            processDescriptors(readFailureDescriptorsMain(target));
         };
 
-        generateFailures.dependsOn("generateProto", "generateTestProto");
+        final Task generateTestFailures = target.task("generateTestFailures") << {
+            processDescriptors(readFailureDescriptorsTest(target));
+        };
+
+        generateFailures.dependsOn("generateProto");
+        generateTestFailures.dependsOn("generateTestProto");
         final def targetTasks = target.getTasks()
-        targetTasks.getByPath("processResources").dependsOn(generateFailures);
         targetTasks.getByPath("compileJava").dependsOn(generateFailures);
+        targetTasks.getByPath("compileTestJava").dependsOn(generateTestFailures);
     }
 
-    private List<DescriptorProtos.FileDescriptorProto> readFailureDescriptors(Project target) {
-        final List<DescriptorProtos.FileDescriptorProto> failureDescriptors = new ArrayList<>();
-        final String filePath = "${target.projectDir.absolutePath}/build/descriptors/main.desc";
+    private void processDescriptors(List<DescriptorProtos.FileDescriptorProto> descriptors) {
+        descriptors.each { def descriptor ->
+            if (validateFailures(descriptor)) {
+                generateFailures(descriptor, cachedMessageTypes);
+            } else {
+                log.error("Invalid failures file");
+            }
+        }
+    }
 
-        if (!new File(filePath).exists()) {
-            log.warn("Please enable descriptor set generation. See an appropriate section at https://github.com/google/protobuf-gradle-plugin/blob/master/README.md#customize-code-generation-tasks")
+    private List<DescriptorProtos.FileDescriptorProto> readFailureDescriptorsMain(Project target) {
+        final String filePath = "${target.projectDir.absolutePath}/build/descriptors/main.desc";
+        final boolean noDescriptorsWarning = true;
+
+        readFailureDescriptors(filePath, noDescriptorsWarning);
+    }
+
+    private List<DescriptorProtos.FileDescriptorProto> readFailureDescriptorsTest(Project target) {
+        final String filePath = "${target.projectDir.absolutePath}/build/descriptors/test.desc";
+        final boolean noDescriptorsWarning = false;
+
+        readFailureDescriptors(filePath, noDescriptorsWarning);
+    }
+
+    private List<DescriptorProtos.FileDescriptorProto> readFailureDescriptors(String descFilePath,
+                                                                              boolean noDescriptorsWarning) {
+        final List<DescriptorProtos.FileDescriptorProto> failureDescriptors = new ArrayList<>();
+
+        if (!new File(descFilePath).exists()) {
+            if (noDescriptorsWarning) {
+                log.warn("Please enable descriptor set generation. See an appropriate section at https://github.com/google/protobuf-gradle-plugin/blob/master/README.md#customize-code-generation-tasks")
+            }
             return new ArrayList<DescriptorProtos.FileDescriptorProto>();
         }
 
-        new FileInputStream(filePath).withStream {
+        new FileInputStream(descFilePath).withStream {
             final DescriptorProtos.FileDescriptorSet descriptorSet = DescriptorProtos.FileDescriptorSet
                     .parseFrom(it);
 
@@ -70,7 +92,8 @@ class FailuresGenPlugin implements Plugin<Project> {
         final def javaMultipleFiles = descriptor.options.javaMultipleFiles
         final def javaOuterClassName = descriptor.options.javaOuterClassname
         final def javaOuterClassNameNotEmpty = javaOuterClassName != null && !javaOuterClassName.isEmpty()
-        final def result = !(javaMultipleFiles || (javaOuterClassNameNotEmpty && !javaOuterClassName.equals("Failures")))
+        final
+        def result = !(javaMultipleFiles || (javaOuterClassNameNotEmpty && !javaOuterClassName.equals("Failures")))
         return result;
     }
 
@@ -130,4 +153,5 @@ class FailuresGenPlugin implements Plugin<Project> {
                                              Map<String, String> messageTypeMap) {
         new FailureWriter(failure, file, javaPackage, messageTypeMap).write();
     }
+
 }
