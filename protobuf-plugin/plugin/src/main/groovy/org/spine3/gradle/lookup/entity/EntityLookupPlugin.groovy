@@ -43,10 +43,10 @@ public class EntityLookupPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         this.project = project;
-        final Task findEntitiesTask = project.task("findEntities") {
+        final Task findEntitiesTask = project.task("findEntities") << {
             findEntityFilesAndWriteProps("main");
         }
-        final Task findTestEntitiesTask = project.task("findTestEntities") {
+        final Task findTestEntitiesTask = project.task("findTestEntities") << {
             findEntityFilesAndWriteProps("test");
         }
         findEntitiesTask.dependsOn("compileJava");
