@@ -16,13 +16,15 @@ class ProtobufPlugin implements Plugin<Project> {
     void apply(Project target) {
 
         final ProtoToJavaMapperPlugin protoLookup = new ProtoToJavaMapperPlugin();
-        final FailuresGenPlugin failuresGen = new FailuresGenPlugin();
-        final EntityLookupPlugin entityLookup = new EntityLookupPlugin();
-        final CleaningPlugin cleaningPlugin = new CleaningPlugin();
-
         protoLookup.apply(target);
-        entityLookup.apply(target);
+
+        final FailuresGenPlugin failuresGen = new FailuresGenPlugin();
         failuresGen.apply(target);
+
+        final EntityLookupPlugin entityLookup = new EntityLookupPlugin();
+        entityLookup.apply(target);
+
+        final CleaningPlugin cleaningPlugin = new CleaningPlugin();
         cleaningPlugin.apply(target);
     }
 }
