@@ -22,7 +22,7 @@ class CleaningPlugin implements Plugin<Project> {
         projectPath = target.projectDir.absolutePath;
 
         final Task preClean = target.task("preClean") << {
-            def dirsToClean = collectDirs(target);
+            def dirsToClean = collectDirs();
             cleanDirs(dirsToClean);
         }
 
@@ -30,7 +30,7 @@ class CleaningPlugin implements Plugin<Project> {
         targetTasks.getByPath("clean").dependsOn(preClean);
     }
 
-    private List<String> collectDirs(Project target) {
+    private List<String> collectDirs() {
 
         final def dirs = new ArrayList<String>();
 
