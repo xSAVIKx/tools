@@ -26,11 +26,11 @@ class FailuresGenPlugin implements Plugin<Project> {
         projectPath = target.projectDir.absolutePath;
 
         final Task generateFailures = target.task("generateFailures") << {
-            processDescriptors(readFailureDescriptorsMain(target));
+            processDescriptors(readFailureDescriptors("main", false));
         };
 
         final Task generateTestFailures = target.task("generateTestFailures") << {
-            processDescriptors(readFailureDescriptorsTest(target));
+            processDescriptors(readFailureDescriptors("test", true));
         };
 
         generateFailures.dependsOn("generateProto");
@@ -50,22 +50,9 @@ class FailuresGenPlugin implements Plugin<Project> {
         }
     }
 
-    private List<FileDescriptorProto> readFailureDescriptorsMain(Project target) {
-        final String filePath = "${target.projectDir.absolutePath}/build/descriptors/main.desc";
-        final boolean noDescriptorsWarning = true;
-
-        readFailureDescriptors(filePath, noDescriptorsWarning);
-    }
-
-    private List<FileDescriptorProto> readFailureDescriptorsTest(Project target) {
-        final String filePath = "${target.projectDir.absolutePath}/build/descriptors/test.desc";
-        final boolean noDescriptorsWarning = false;
-
-        readFailureDescriptors(filePath, noDescriptorsWarning);
-    }
-
-    private List<FileDescriptorProto> readFailureDescriptors(String descFilePath,
-                                                                              boolean noDescriptorsWarning) {
+    private List<FileDescriptorProto> readFailureDescriptors(String descSourceSet,
+                                                             boolean noDescriptorsWarning) {
+        final String descFilePath = "${projectPath}/build/descriptors/${descSourceSet}.desc";
         final List<FileDescriptorProto> failureDescriptors = new ArrayList<>();
 
         if (!new File(descFilePath).exists()) {
