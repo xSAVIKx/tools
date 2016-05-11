@@ -58,25 +58,21 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
     public void apply(Project project) {
 
         final Task scanProtosTask = project.task("scanProtos") << {
-            scanProtos(project);
+            scanRootDir(project, "main");
         };
 
-        scanProtosTask.dependsOn("compileJava", "generateProto", "generateTestProto");
+        final Task scanTestProtosTask = project.task("scanTestProtos") << {
+            scanRootDir(project, "test");
+        };
+
+        scanProtosTask.dependsOn("generateProto");
+        scanTestProtosTask.dependsOn("generateTestProto");
 
         final Task processResources = project.getTasks().getByPath("processResources");
+        final Task processTestResources = project.getTasks().getByPath("processTestResources");
+
         processResources.dependsOn(scanProtosTask);
-    }
-
-    private static void scanProtos(Project target) {
-
-        final String projectPath = target.projectDir.absolutePath;
-
-        log.debug("${ProtoToJavaMapperPlugin.class.getSimpleName()}: start");
-        log.debug("${ProtoToJavaMapperPlugin.class.getSimpleName()}: Project path: ${projectPath}");
-
-        for (String rootDirPathSuffix : ["main", "test"]) {
-            scanRootDir(target, rootDirPathSuffix)
-        }
+        processTestResources.dependsOn(scanTestProtosTask);
     }
 
     private static void scanRootDir(Project target, String rootDirPathSuffix) {
