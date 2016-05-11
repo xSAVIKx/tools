@@ -5,7 +5,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 
 /**
- * Plugin, which performs additional cleaning on clean task.
+ * Plugin which performs additional cleaning on clean task.
  *
  * <p>Currently removes build and generated directories. If we are going to need additional directories
  * to be cleaned, we need to extend this plugin's functionality with adding configurable closure.
