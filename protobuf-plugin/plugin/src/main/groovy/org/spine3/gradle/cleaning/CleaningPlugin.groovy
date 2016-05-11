@@ -7,14 +7,15 @@ import org.gradle.api.Task
 /**
  * Plugin which performs additional cleaning on clean task.
  *
- * <p>Currently removes build and generated directories. If we are going to need additional directories
- * to be cleaned, we need to extend this plugin's functionality with adding configurable closure.
+ * <p>Currently removes generated files directory. To clean additional directories,
+ * we need to extend this plugin's functionality with adding configurable closure
+ * or add these directories to {@code defaultDirsToClean}.
  */
 class CleaningPlugin implements Plugin<Project> {
 
     private String projectPath;
 
-    private def defaultDirsToClean = ["build", "generated"];
+    private def defaultDirsToClean = ["generated"];
 
     @Override
     void apply(Project target) {
