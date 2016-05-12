@@ -149,8 +149,9 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         String protoFullClassName = className;
         String javaFullClassName = className;
         for (int i = 0; i < nestedClassDepth; i++) {
-            protoFullClassName = "${protoClasses.get(protoClasses.size() - i - 1)}.$protoFullClassName";
-            javaFullClassName = "${javaClasses.get(javaClasses.size() - i - 1)}\$$javaFullClassName";
+            final int rootClassIndex = protoClasses.size() - i - 1;
+            protoFullClassName = "${protoClasses.get(rootClassIndex)}.$protoFullClassName";
+            javaFullClassName = "${javaClasses.get(rootClassIndex)}\$$javaFullClassName";
         }
         protoClasses.add(protoFullClassName);
         javaClasses.add(javaFullClassName);
