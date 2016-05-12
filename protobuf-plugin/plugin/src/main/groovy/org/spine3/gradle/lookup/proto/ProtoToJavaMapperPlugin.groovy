@@ -112,12 +112,13 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         final List<String> lines = file.readLines();
         String javaPackage = "";
         String protoPackage = "";
-        final List<String> classes = new ArrayList<>();
-        int nestedClassDepth = 0; // for inner classes
+        final List<String> protoClasses = new ArrayList<>();
+        final List<String> javaClasses = new ArrayList<>();
+        int nestedClassDepth = 0; // for inner protoClasses
         for (String line : lines) {
             def trimmedLine = line.trim();
             if (trimmedLine.startsWith(MESSAGE_PREFIX)) {
-                addClass(findLineData(trimmedLine, MESSAGE_PATTERN), classes, nestedClassDepth);
+                addClass(findLineData(trimmedLine, MESSAGE_PATTERN), protoClasses, javaClasses, nestedClassDepth);
             } else if (javaPackage.isEmpty() && trimmedLine.startsWith(JAVA_PACKAGE_PREFIX)) {
                 javaPackage = findLineData(trimmedLine, JAVA_PACKAGE_PATTERN) + ".";
             } else if (protoPackage.isEmpty() && trimmedLine.startsWith(PROTO_PACKAGE_PREFIX)) {
@@ -134,19 +135,26 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         }
 
         final def entries = new HashMap<String, String>();
-        for (String className : classes) {
-            entries.put(protoPackage + className, javaPackage + className);
+        for (int i = 0; i < protoClasses.size(); i++) {
+            def protoClassName = protoClasses.get(i);
+            def javaClassName = javaClasses.get(i);
+            entries.put(protoPackage + protoClassName, javaPackage + javaClassName);
         }
 
         return entries;
     }
 
-    private static void addClass(String className, List<String> classes, int nestedClassDepth) {
-        String fullClassName = className;
+    private static void addClass(String className, List<String> protoClasses, List<String> javaClasses,
+                                 int nestedClassDepth) {
+        String protoFullClassName = className;
+        String javaFullClassName = className;
         for (int i = 0; i < nestedClassDepth; i++) {
-            fullClassName = "${classes.get(classes.size() - i - 1)}.$fullClassName";
+            final int rootClassIndex = protoClasses.size() - i - 1;
+            protoFullClassName = "${protoClasses.get(rootClassIndex)}.$protoFullClassName";
+            javaFullClassName = "${javaClasses.get(rootClassIndex)}\$$javaFullClassName";
         }
-        classes.add(fullClassName);
+        protoClasses.add(protoFullClassName);
+        javaClasses.add(javaFullClassName);
     }
 
     private static String findLineData(String line, Pattern pattern) {

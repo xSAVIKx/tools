@@ -56,7 +56,7 @@ class FailuresGenPlugin implements Plugin<Project> {
         final List<FileDescriptorProto> failureDescriptors = new ArrayList<>();
 
         if (!new File(descFilePath).exists()) {
-            if (noDescriptorsWarning) {
+            if (!noDescriptorsWarning) {
                 log.warn("Please enable descriptor set generation. See an appropriate section at https://github.com/google/protobuf-gradle-plugin/blob/master/README.md#customize-code-generation-tasks");
             }
             return new ArrayList<FileDescriptorProto>();
