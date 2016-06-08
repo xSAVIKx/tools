@@ -16,6 +16,8 @@ hs_err_pid*
 
 credentials.properties
 
+gradle.properties
+
 */generated/*
 
 .idea
