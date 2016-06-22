@@ -18,16 +18,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.lookup.proto;
-import groovy.util.logging.Slf4j;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.spine3.gradle.lookup.entity.PropertiesWriter;
+package org.spine3.gradle.lookup.proto
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import groovy.util.logging.Slf4j
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.Task
+import org.spine3.gradle.lookup.entity.PropertiesWriter
 
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 /**
  * Plugin which performs generated Java classes (based on protobuf) search.
  *
@@ -47,9 +47,11 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
     private static final String OPENING_BRACKET = "{";
     private static final String CLOSING_BRACKET = "}";
 
-    private static final String MESSAGE_OR_ENUM_PREFIX = "message |enum ";
-    private static final String TYPE_NAME_REGEX = "([a-zA-Z0-9]*) *\\{";
-    private static final Pattern MESSAGE_OR_ENUM_PATTERN = Pattern.compile(MESSAGE_OR_ENUM_PREFIX + TYPE_NAME_REGEX);
+    private static final Pattern TYPE_NAME_PATTERN = Pattern.compile("([a-zA-Z0-9]*) *\\{");
+    private static final String MESSAGE_PREFIX = "message ";
+    private static final Pattern MESSAGE_PATTERN = Pattern.compile(MESSAGE_PREFIX + "*" + TYPE_NAME_PATTERN);
+    private static final String ENUM_PREFIX = "enum ";
+    private static final Pattern ENUM_PATTERN = Pattern.compile(ENUM_PREFIX + "*" + TYPE_NAME_PATTERN);
 
     private static final String JAVA_PACKAGE_PREFIX = "option java_package";
     private static final Pattern JAVA_PACKAGE_PATTERN = Pattern.compile(JAVA_PACKAGE_PREFIX + " *= *\\\"(.*)\\\";*");
@@ -111,8 +113,10 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         int nestedClassDepth = 0; // for inner protoClasses
         for (String line : lines) {
             def trimmedLine = line.trim();
-            if (trimmedLine.startsWith(MESSAGE_OR_ENUM_PREFIX)) {
-                addClass(findLineData(trimmedLine, MESSAGE_OR_ENUM_PATTERN), protoClasses, javaClasses, nestedClassDepth);
+            if (trimmedLine.startsWith(MESSAGE_PREFIX)) {
+                addClass(findLineData(trimmedLine, MESSAGE_PATTERN), protoClasses, javaClasses, nestedClassDepth);
+            } else if (trimmedLine.startsWith(ENUM_PREFIX)) {
+                addClass(findLineData(trimmedLine, ENUM_PATTERN), protoClasses, javaClasses, nestedClassDepth);
             } else if (javaPackage.isEmpty() && trimmedLine.startsWith(JAVA_PACKAGE_PREFIX)) {
                 javaPackage = findLineData(trimmedLine, JAVA_PACKAGE_PATTERN) + ".";
             } else if (protoPackage.isEmpty() && trimmedLine.startsWith(PROTO_PACKAGE_PREFIX)) {
