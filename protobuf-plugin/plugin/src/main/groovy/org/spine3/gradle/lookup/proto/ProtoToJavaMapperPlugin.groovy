@@ -49,9 +49,9 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
 
     private static final Pattern TYPE_NAME_PATTERN = Pattern.compile("([a-zA-Z0-9]*) *\\{");
     private static final String MESSAGE_PREFIX = "message ";
-    private static final Pattern MESSAGE_PATTERN = Pattern.compile(MESSAGE_PREFIX + "*" + TYPE_NAME_PATTERN);
+    private static final Pattern MESSAGE_PATTERN = Pattern.compile(MESSAGE_PREFIX + "+" + TYPE_NAME_PATTERN);
     private static final String ENUM_PREFIX = "enum ";
-    private static final Pattern ENUM_PATTERN = Pattern.compile(ENUM_PREFIX + "*" + TYPE_NAME_PATTERN);
+    private static final Pattern ENUM_PATTERN = Pattern.compile(ENUM_PREFIX + "+" + TYPE_NAME_PATTERN);
 
     private static final String JAVA_PACKAGE_PREFIX = "option java_package";
     private static final Pattern JAVA_PACKAGE_PATTERN = Pattern.compile(JAVA_PACKAGE_PREFIX + " *= *\\\"(.*)\\\";*");
