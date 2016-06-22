@@ -52,7 +52,7 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
     private static final String NAME_REGEX = "([a-zA-Z0-9]*) *\\{";
     private static final Pattern MESSAGE_PATTERN = Pattern.compile(MESSAGE_PREFIX + NAME_REGEX);
     private static final Pattern JAVA_PACKAGE_PATTERN = Pattern.compile(JAVA_PACKAGE_PREFIX + " *= *\\\"(.*)\\\";*");
-    private static final Pattern PROTO_PACKAGE_PATTERN = Pattern.compile(PROTO_PACKAGE_PREFIX + "([a-zA-Z0-9.]*);*");
+    private static final Pattern PROTO_PACKAGE_PATTERN = Pattern.compile(PROTO_PACKAGE_PREFIX + "([a-zA-Z0-9_.]*);*");
 
     @Override
     public void apply(Project project) {

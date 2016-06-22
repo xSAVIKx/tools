@@ -84,7 +84,7 @@ class FailureWriter {
     }
 
     private static void writeImports(OutputStreamWriter writer) {
-        writer.write("import org.spine3.server.failure.FailureThrowable;\n");
+        writer.write("import org.spine3.base.FailureThrowable;\n");
         writer.write("\n");
     }
 
