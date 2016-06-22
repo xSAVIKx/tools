@@ -37,20 +37,23 @@ import java.util.regex.Pattern
 @Slf4j
 class ProtoToJavaMapperPlugin implements Plugin<Project> {
 
-    static final String PROPERTIES_PATH_SUFFIX = "resources";
+    private static final String PROPERTIES_PATH_SUFFIX = "resources";
+
     private static final String PROPERTIES_PATH_FILE_NAME = "proto_to_java_class.properties";
 
     private static final String PROTO_SUFFIX = ".proto";
 
-    private static final String MESSAGE_PREFIX = "message ";
-    private static final String JAVA_PACKAGE_PREFIX = "option java_package";
-    private static final String PROTO_PACKAGE_PREFIX = "package ";
     private static final String OPENING_BRACKET = "{";
     private static final String CLOSING_BRACKET = "}";
 
-    private static final String NAME_REGEX = "([a-zA-Z0-9]*) *\\{";
-    private static final Pattern MESSAGE_PATTERN = Pattern.compile(MESSAGE_PREFIX + NAME_REGEX);
+    private static final String MESSAGE_OR_ENUM_PREFIX = "message |enum ";
+    private static final String TYPE_NAME_REGEX = "([a-zA-Z0-9]*) *\\{";
+    private static final Pattern MESSAGE_OR_ENUM_PATTERN = Pattern.compile(MESSAGE_OR_ENUM_PREFIX + TYPE_NAME_REGEX);
+
+    private static final String JAVA_PACKAGE_PREFIX = "option java_package";
     private static final Pattern JAVA_PACKAGE_PATTERN = Pattern.compile(JAVA_PACKAGE_PREFIX + " *= *\\\"(.*)\\\";*");
+
+    private static final String PROTO_PACKAGE_PREFIX = "package ";
     private static final Pattern PROTO_PACKAGE_PATTERN = Pattern.compile(PROTO_PACKAGE_PREFIX + "([a-zA-Z0-9_.]*);*");
 
     @Override
@@ -107,8 +110,8 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         int nestedClassDepth = 0; // for inner protoClasses
         for (String line : lines) {
             def trimmedLine = line.trim();
-            if (trimmedLine.startsWith(MESSAGE_PREFIX)) {
-                addClass(findLineData(trimmedLine, MESSAGE_PATTERN), protoClasses, javaClasses, nestedClassDepth);
+            if (trimmedLine.startsWith(MESSAGE_OR_ENUM_PREFIX)) {
+                addClass(findLineData(trimmedLine, MESSAGE_OR_ENUM_PATTERN), protoClasses, javaClasses, nestedClassDepth);
             } else if (javaPackage.isEmpty() && trimmedLine.startsWith(JAVA_PACKAGE_PREFIX)) {
                 javaPackage = findLineData(trimmedLine, JAVA_PACKAGE_PATTERN) + ".";
             } else if (protoPackage.isEmpty() && trimmedLine.startsWith(PROTO_PACKAGE_PREFIX)) {
