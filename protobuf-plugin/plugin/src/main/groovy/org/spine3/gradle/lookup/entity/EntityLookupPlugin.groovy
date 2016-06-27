@@ -46,14 +46,15 @@ public class EntityLookupPlugin implements Plugin<Project> {
         final Task findEntitiesTask = project.task("findEntities") << {
             findEntityFilesAndWriteProps("main");
         }
+        findEntitiesTask.dependsOn("compileJava");
+        final Task processResources = project.getTasks().getByPath("processResources");
+        processResources.dependsOn(findEntitiesTask);
+
         final Task findTestEntitiesTask = project.task("findTestEntities") << {
             findEntityFilesAndWriteProps("test");
         }
-        findEntitiesTask.dependsOn("compileJava");
         findTestEntitiesTask.dependsOn("compileTestJava");
-        final Task processResources = project.getTasks().getByPath("processResources");
         final Task processTestResources = project.getTasks().getByPath("processTestResources");
-        processResources.dependsOn(findEntitiesTask);
         processTestResources.dependsOn(findTestEntitiesTask);
     }
 
