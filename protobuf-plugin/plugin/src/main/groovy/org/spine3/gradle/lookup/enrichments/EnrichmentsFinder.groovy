@@ -106,7 +106,7 @@ public class EnrichmentsFinder {
     }
 
     private static boolean containsOnlyLowercaseChars(String outerTypeName) {
-        boolean result = outerTypeName.toLowerCase().equals(outerTypeName);
+        final boolean result = outerTypeName.toLowerCase().equals(outerTypeName);
         return result
     }
 
@@ -117,7 +117,7 @@ public class EnrichmentsFinder {
 
     private String parseEventToEnrichName(DescriptorProto msg) {
         // This option is "unknown" and serialized, but it is possible to print option's field number and value.
-        String optionsStr = msg.getOptions().getUnknownFields().toString();
+        final String optionsStr = msg.getOptions().getUnknownFields().toString();
         if (!optionsStr.contains(OPTION_FIELD_NUMBER_ENRICHMENT_FOR)) {
             return null;
         }
