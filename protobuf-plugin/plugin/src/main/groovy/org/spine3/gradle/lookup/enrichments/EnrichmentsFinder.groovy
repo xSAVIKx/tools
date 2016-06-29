@@ -19,6 +19,7 @@
  */
 
 package org.spine3.gradle.lookup.enrichments
+
 import groovy.util.logging.Slf4j
 
 import static com.google.protobuf.DescriptorProtos.*
