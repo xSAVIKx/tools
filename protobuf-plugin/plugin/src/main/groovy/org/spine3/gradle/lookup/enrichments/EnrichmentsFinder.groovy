@@ -34,12 +34,12 @@ public class EnrichmentsFinder {
     /**
      * The field number of the message option `enrichment_for` defined in `Spine/core-java`.
      */
-    private static final String OPTION_FIELD_NUMBER_ENRICHMENT_FOR = String.valueOf(57124);
+    private static final String OPTION_FIELD_NUMBER_ENRICHMENT_FOR = "57124";
 
     /**
      * The field number of the field option `by` defined in `Spine/core-java`.
      */
-    private static final String OPTION_FIELD_NUMBER_ENRICH_BY = String.valueOf(57125);
+    private static final String OPTION_FIELD_NUMBER_ENRICH_BY = "57125";
 
     public static final String QUOTE = '"';
 
