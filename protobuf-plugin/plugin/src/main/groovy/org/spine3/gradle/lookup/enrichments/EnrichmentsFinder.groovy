@@ -22,8 +22,10 @@ package org.spine3.gradle.lookup.enrichments
 
 import groovy.util.logging.Slf4j
 
-import static com.google.protobuf.DescriptorProtos.*
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
+import static com.google.protobuf.DescriptorProtos.*
 /**
  * Finds event enrichment Protobuf definitions.
  *
@@ -33,16 +35,17 @@ import static com.google.protobuf.DescriptorProtos.*
 public class EnrichmentsFinder {
 
     /**
-     * The field number of the message option `enrichment_for` defined in `Spine/core-java`.
-     */
-    private static final String OPTION_FIELD_NUMBER_ENRICHMENT_FOR = "57124";
-
-    /**
      * The field number of the field option `by` defined in `Spine/core-java`.
      */
     private static final String OPTION_FIELD_NUMBER_ENRICH_BY = "57125";
 
-    public static final String QUOTE = '"';
+    /**
+     * The field number of the message option `enrichment_for` defined in `Spine/core-java`.
+     */
+    private static final String OPTION_FIELD_NUMBER_ENRICHMENT_FOR = "57124";
+
+    private static final Pattern OPTION_ENRICHMENT_FOR_PATTERN =
+            Pattern.compile(/$OPTION_FIELD_NUMBER_ENRICHMENT_FOR: "([a-zA-Z0-9._]*)"/);
 
     public static final String PROTO_TYPE_SEPARATOR = '.';
 
@@ -69,69 +72,50 @@ public class EnrichmentsFinder {
         final Map<String, String> result = new HashMap<>();
         final List<DescriptorProto> messages = file.getMessageTypeList();
         for (DescriptorProto msg : messages) {
-            final String targetEventName = getEventToEnrichName(msg)
-            if (targetEventName != null) {
-                String enrichmentName = packagePrefix + msg.getName();
-                result.put(enrichmentName, targetEventName);
+            final Map.Entry<String, String> entry = getEntry(msg)
+            if (entry != null) {
+                result.put(entry.getKey(), entry.getValue());
             }
         }
         return result;
     }
 
-    private String getEventToEnrichName(DescriptorProto msg) {
-        final String eventToEnrichName = parseEventToEnrichName(msg);
-        if (eventToEnrichName != null) {
-            return eventToEnrichName;
+    private Map.Entry<String, String> getEntry(DescriptorProto msg) {
+        final String eventName = parseEventToEnrichName(msg);
+        if (eventName != null) {
+            final String enrichmentName = packagePrefix + msg.getName();
+            return new AbstractMap.SimpleEntry(enrichmentName, eventName);
         }
-        for (FieldDescriptorProto field : msg.getFieldList()) {
-            if (hasOptionEnrichBy(field)) {
-                final String enrichmentName = msg.getName();
-                final String outerTypeName = getOuterTypeName(enrichmentName)
-                if (outerTypeName == null || containsOnlyLowercaseChars(outerTypeName)) {
-                    logErrInvalidEnrichmentDeclaration(enrichmentName);
-                    return null;
+        for (DescriptorProto innerMsg : msg.getNestedTypeList()) {
+            for (FieldDescriptorProto field : innerMsg.getFieldList()) {
+                if (hasOptionEnrichBy(field)) {
+                    final String enrichmentName = packagePrefix + msg.getName() + PROTO_TYPE_SEPARATOR + innerMsg.getName();
+                    final String outerEventName = packagePrefix + msg.getName();
+                    return new AbstractMap.SimpleEntry(enrichmentName, outerEventName);
                 }
-                return outerTypeName;
             }
         }
         return null;
     }
 
-    private static String getOuterTypeName(String enrichmentName) {
-        final int lastDotIndex = enrichmentName.lastIndexOf(PROTO_TYPE_SEPARATOR);
-        if (lastDotIndex < 0) {
-            return null;
-        }
-        final String outerTypeName = enrichmentName.substring(0, lastDotIndex);
-        return outerTypeName;
-    }
-
-    private static boolean containsOnlyLowercaseChars(String outerTypeName) {
-        final boolean result = outerTypeName.toLowerCase().equals(outerTypeName);
-        return result
-    }
-
-    private static logErrInvalidEnrichmentDeclaration(String enrichmentName) {
-        log.error("Event enrichment message $enrichmentName must have 'enrichment_for' " +
-                "Protobuf option, or it must be an inner type of the event to enrich.");
-    }
-
     private String parseEventToEnrichName(DescriptorProto msg) {
-        // This option is "unknown" and serialized, but it is possible to print option's field number and value.
-        final String optionsStr = msg.getOptions().getUnknownFields().toString();
-        if (!optionsStr.contains(OPTION_FIELD_NUMBER_ENRICHMENT_FOR)) {
+        // This needed option is "unknown" and serialized, but it is possible to print option field numbers and values.
+        final String optionsStr = msg.getOptions().getUnknownFields().toString().trim();
+        final Matcher matcher = OPTION_ENRICHMENT_FOR_PATTERN.matcher(optionsStr);
+        if (!matcher.matches()) {
             return null;
         }
-        String msgName = optionsStr.substring(optionsStr.indexOf(QUOTE) + 1, optionsStr.lastIndexOf(QUOTE));
-        if (!msgName.contains(packagePrefix)) {
+
+        String msgName = matcher.group(1);
+        if (!msgName.contains(PROTO_TYPE_SEPARATOR)) {
             msgName = packagePrefix + msgName;
         }
         return msgName;
     }
 
     private static boolean hasOptionEnrichBy(FieldDescriptorProto field) {
-        // This option is "unknown" and serialized, but it is possible to print option's field number and value.
-        final String optionsStr = field.getOptions().getUnknownFields().toString();
+        // This needed option is "unknown" and serialized, but it is possible to print option field numbers and values.
+        final String optionsStr = field.getOptions().getUnknownFields().toString().trim();
         final boolean result = optionsStr.contains(OPTION_FIELD_NUMBER_ENRICH_BY);
         return result;
     }
