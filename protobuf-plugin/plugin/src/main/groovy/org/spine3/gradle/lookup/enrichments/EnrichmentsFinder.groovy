@@ -20,12 +20,14 @@
 
 package org.spine3.gradle.lookup.enrichments
 
+import com.google.common.collect.ImmutableMap
 import groovy.util.logging.Slf4j
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 import static com.google.protobuf.DescriptorProtos.*
+
 /**
  * Finds event enrichment Protobuf definitions.
  *
@@ -69,33 +71,31 @@ public class EnrichmentsFinder {
      */
     public Map<String, String> findEnrichments() {
         // Do not name this method "find" to avoid a confusion with "DefaultGroovyMethods.find()".
-        final Map<String, String> result = new HashMap<>();
+        final ImmutableMap.Builder<String, String> result = ImmutableMap.builder();
         final List<DescriptorProto> messages = file.getMessageTypeList();
         for (DescriptorProto msg : messages) {
-            final Map.Entry<String, String> entry = getEntry(msg)
-            if (entry != null) {
-                result.put(entry.getKey(), entry.getValue());
-            }
+            putEntry(result, msg)
         }
-        return result;
+        return result.build();
     }
 
-    private Map.Entry<String, String> getEntry(DescriptorProto msg) {
+    private void putEntry(ImmutableMap.Builder<String, String> map, DescriptorProto msg) {
         final String eventName = parseEventToEnrichName(msg);
         if (eventName != null) {
             final String enrichmentName = packagePrefix + msg.getName();
-            return new AbstractMap.SimpleEntry(enrichmentName, eventName);
+            map.put(enrichmentName, eventName);
+            return;
         }
         for (DescriptorProto innerMsg : msg.getNestedTypeList()) {
             for (FieldDescriptorProto field : innerMsg.getFieldList()) {
                 if (hasOptionEnrichBy(field)) {
-                    final String enrichmentName = packagePrefix + msg.getName() + PROTO_TYPE_SEPARATOR + innerMsg.getName();
                     final String outerEventName = packagePrefix + msg.getName();
-                    return new AbstractMap.SimpleEntry(enrichmentName, outerEventName);
+                    final String enrichmentName = outerEventName + PROTO_TYPE_SEPARATOR + innerMsg.getName();
+                    map.put(enrichmentName, outerEventName);
+                    return;
                 }
             }
         }
-        return null;
     }
 
     private String parseEventToEnrichName(DescriptorProto msg) {
@@ -105,7 +105,6 @@ public class EnrichmentsFinder {
         if (!matcher.matches()) {
             return null;
         }
-
         String msgName = matcher.group(1);
         if (!msgName.contains(PROTO_TYPE_SEPARATOR)) {
             msgName = packagePrefix + msgName;
