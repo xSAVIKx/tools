@@ -34,6 +34,10 @@ import static com.google.protobuf.DescriptorProtos.FileDescriptorSet
  *
  * <p>{@code ENRICHMENT_TYPE_NAME=EVENT_TO_ENRICH_TYPE_NAME}
  *
+ * There can be several event types:
+ *
+ * <p>{@code ENRICHMENT_TYPE_NAME=FIRST_EVENT_TYPE_NAME,SECOND_EVENT_TYPE_NAME}
+ *
  * @author Alexander Litus
  */
 @Slf4j

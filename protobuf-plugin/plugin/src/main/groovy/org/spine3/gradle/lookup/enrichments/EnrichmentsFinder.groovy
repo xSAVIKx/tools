@@ -20,15 +20,16 @@
 
 package org.spine3.gradle.lookup.enrichments
 
+import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableMap
 import groovy.util.logging.Slf4j
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
+import static com.google.common.collect.Lists.*
 import static com.google.protobuf.DescriptorProtos.*
-import static java.util.AbstractMap.*
-
+import static java.util.AbstractMap.SimpleEntry
 /**
  * Finds event enrichment Protobuf definitions.
  *
@@ -53,10 +54,12 @@ public class EnrichmentsFinder {
      */
     private static final String OPTION_FIELD_NUMBER_ENRICHMENT_FOR = "57124";
 
-    private static final Pattern OPTION_PATTERN_ENRICHMENT_FOR =
-            Pattern.compile(/$OPTION_FIELD_NUMBER_ENRICHMENT_FOR: "($MSG_FQN_REGEX)"/);
+    private static final Pattern PATTERN_SPACE = Pattern.compile(" ");
+    private static final Pattern PATTERN_QUOTE = Pattern.compile("\"");
 
-    private static final String PROTO_TYPE_SEPARATOR = '.';
+    private static final String PROTO_TYPE_SEPARATOR = ".";
+    private static final String EVENT_NAME_SEPARATOR = ",";
+    private static final String COLON = ":";
 
     private final FileDescriptorProto file;
     private final String packagePrefix;
@@ -104,12 +107,12 @@ public class EnrichmentsFinder {
     }
 
     private Map.Entry<String, String> scanMsg(DescriptorProto msg) {
-        final String eventName = parseEventNameFromMsgOption(msg);
-        if (eventName == null) {
+        final String eventNames = parseEventNamesFromMsgOption(msg);
+        if (eventNames == null) {
             return null;
         }
         final String enrichmentName = packagePrefix + msg.getName();
-        return new SimpleEntry<>(enrichmentName, eventName);
+        return new SimpleEntry<>(enrichmentName, eventNames);
     }
 
     private Map.Entry<String, String> scanFields(DescriptorProto msg) {
@@ -140,18 +143,33 @@ public class EnrichmentsFinder {
         return null;
     }
 
-    private String parseEventNameFromMsgOption(DescriptorProto msg) {
+    private String parseEventNamesFromMsgOption(DescriptorProto msg) {
         // This needed option is "unknown" and serialized, but it is possible to print option field numbers and values.
         final String optionsStr = msg.getOptions().getUnknownFields().toString().trim();
-        final Matcher matcher = OPTION_PATTERN_ENRICHMENT_FOR.matcher(optionsStr);
-        if (!matcher.matches()) {
+        if (!optionsStr.contains(OPTION_FIELD_NUMBER_ENRICHMENT_FOR)) {
             return null;
         }
-        String msgName = matcher.group(1);
-        if (!msgName.contains(PROTO_TYPE_SEPARATOR)) {
-            msgName = packagePrefix + msgName;
+        final List<String> eventNamesPrimary = parseEventNames(optionsStr)
+        final List<String> eventNamesResult = newLinkedList();
+        for (String eventName : eventNamesPrimary) {
+            final boolean isFqn = eventName.contains(PROTO_TYPE_SEPARATOR);
+            if (isFqn) {
+                eventNamesResult.add(eventName);
+            } else {
+                eventNamesResult.add(packagePrefix + eventName);
+            }
         }
-        return msgName;
+        final String result = Joiner.on(EVENT_NAME_SEPARATOR).join(eventNamesResult);
+        return result;
+    }
+
+    private static List<String> parseEventNames(String optionsStr) {
+        final int colonIndex = optionsStr.indexOf(COLON);
+        optionsStr = optionsStr.substring(colonIndex + 1);
+        optionsStr = PATTERN_SPACE.matcher(optionsStr).replaceAll("");
+        optionsStr = PATTERN_QUOTE.matcher(optionsStr).replaceAll("");
+        final List<String> eventNames = newArrayList(optionsStr.split(EVENT_NAME_SEPARATOR));
+        return eventNames;
     }
 
     private static boolean hasOptionEnrichBy(FieldDescriptorProto field) {
@@ -167,7 +185,11 @@ public class EnrichmentsFinder {
             return null;
         }
         final String fieldFqn = matcher.group(1);
-        final String eventName = fieldFqn.substring(0, fieldFqn.lastIndexOf(PROTO_TYPE_SEPARATOR));
+        final int index = fieldFqn.lastIndexOf(PROTO_TYPE_SEPARATOR);
+        if (index < 0) {
+            return null;
+        }
+        final String eventName = fieldFqn.substring(0, index);
         return eventName;
     }
 
