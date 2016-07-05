@@ -18,18 +18,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.lookup.enrichments
+package org.spine3.gradle.lookup.enrichments;
 
-import com.google.common.base.Joiner
-import com.google.common.collect.ImmutableMap
-import groovy.util.logging.Slf4j
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
+import groovy.util.logging.Slf4j;
 
-import java.util.regex.Matcher
-import java.util.regex.Pattern
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static com.google.common.collect.Lists.*
-import static com.google.protobuf.DescriptorProtos.*
-import static java.util.AbstractMap.SimpleEntry
+import static com.google.common.collect.Lists.*;
+import static com.google.protobuf.DescriptorProtos.*;
+import static java.util.AbstractMap.SimpleEntry;
+
 /**
  * Finds event enrichment Protobuf definitions.
  *
@@ -173,7 +174,7 @@ public class EnrichmentsFinder {
     }
 
     private static boolean hasOptionEnrichBy(FieldDescriptorProto field) {
-        final String optionsStr = getOptionsString(field)
+        final String optionsStr = getOptionsString(field);
         final boolean result = optionsStr.contains(OPTION_FIELD_NUMBER_ENRICH_BY);
         return result;
     }
