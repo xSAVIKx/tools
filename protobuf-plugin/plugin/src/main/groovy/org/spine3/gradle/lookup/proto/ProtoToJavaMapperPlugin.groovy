@@ -41,6 +41,9 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
 
     private static final String PROPERTIES_PATH_SUFFIX = "resources";
 
+    /**
+     * The name of the file to populate. NOTE: also change its name used in the `core-java` project on changing.
+     */
     private static final String PROPERTIES_PATH_FILE_NAME = "known_types.properties";
 
     private static final String PROTO_FILE__NAME_SUFFIX = ".proto";

@@ -43,6 +43,9 @@ import static com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 @Slf4j
 public class EnrichmentLookupPlugin implements Plugin<Project> {
 
+    /**
+     * The name of the file to populate. NOTE: also change its name used in the `core-java` project on changing.
+     */
     private static final String PROPS_FILE_NAME = "enrichments.properties";
 
     public static final String MSG_ENABLE_DESCRIPTOR_SET_GENERATION =
