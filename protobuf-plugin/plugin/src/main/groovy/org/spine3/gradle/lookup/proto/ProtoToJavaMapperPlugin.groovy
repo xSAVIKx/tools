@@ -19,22 +19,20 @@
  */
 
 package org.spine3.gradle.lookup.proto
+import groovy.util.logging.Slf4j
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.Task
+import org.spine3.gradle.lookup.PropertiesWriter
 
-import groovy.util.logging.Slf4j;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.spine3.gradle.lookup.PropertiesWriter;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 /**
  * Plugin which performs generated Java classes (based on protobuf) search.
  *
  * <p>Generates a {@code .properties} file, which contains entries like:
  *
- * <p>{@code PROTO_FULL_MESSAGE_NAME=JAVA_FULL_CLASS_NAME.}
+ * <p>{@code PROTO_TYPE_URL=JAVA_FULL_CLASS_NAME.}
  */
 @Slf4j
 class ProtoToJavaMapperPlugin implements Plugin<Project> {
@@ -46,7 +44,7 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
      */
     private static final String PROPERTIES_PATH_FILE_NAME = "known_types.properties";
 
-    private static final String PROTO_FILE__NAME_SUFFIX = ".proto";
+    private static final String PROTO_FILE_NAME_SUFFIX = ".proto";
 
     private static final String OPENING_BRACKET = "{";
     private static final String CLOSING_BRACKET = "}";
@@ -58,7 +56,10 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
     private static final Pattern ENUM_PATTERN = Pattern.compile(ENUM_PREFIX + " +" + TYPE_NAME_PATTERN);
 
     private static final String JAVA_PACKAGE_PREFIX = "option java_package";
-    private static final Pattern JAVA_PACKAGE_PATTERN = Pattern.compile(JAVA_PACKAGE_PREFIX + " *= *\\\"(.*)\\\";*");
+    private static final Pattern JAVA_PACKAGE_PATTERN = Pattern.compile(JAVA_PACKAGE_PREFIX + " *= *\"(.*)\";+");
+
+    private static final String TYPE_URL_PREFIX = "type_url_prefix";
+    private static final Pattern TYPE_URL_PATTERN = Pattern.compile(/option \($TYPE_URL_PREFIX\) *= *\"(.*)\";+/);
 
     private static final String PROTO_PACKAGE_PREFIX = "package ";
     private static final Pattern PROTO_PACKAGE_PATTERN = Pattern.compile(PROTO_PACKAGE_PREFIX + "([a-zA-Z0-9_.]*);*");
@@ -104,7 +105,7 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         final def entries = new HashMap<String, String>();
         final File root = new File(rootProtoPath);
         project.fileTree(root).each {
-            if (it.name.endsWith(PROTO_FILE__NAME_SUFFIX)) {
+            if (it.name.endsWith(PROTO_FILE_NAME_SUFFIX)) {
                 def fileEntries = readProtoFile(it.canonicalFile);
                 entries.putAll(fileEntries);
             }
@@ -117,31 +118,35 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         String javaPackage = "";
         String protoPackage = "";
         String commonOuterJavaClass = "";
+        String typeUrlPrefix = "";
         final List<String> protoClasses = new ArrayList<>();
         final List<String> javaClasses = new ArrayList<>();
         int nestedClassDepth = 0; // for inner protoClasses
-        for (String line : lines) {
-            final String trimmedLine = line.trim();
-            if (trimmedLine.startsWith(MESSAGE_PREFIX)) {
-                addClass(findLineData(trimmedLine, MESSAGE_PATTERN), protoClasses, javaClasses, nestedClassDepth);
-            } else if (trimmedLine.startsWith(ENUM_PREFIX)) {
-                addClass(findLineData(trimmedLine, ENUM_PATTERN), protoClasses, javaClasses, nestedClassDepth);
-            } else if (trimmedLine.startsWith(JAVA_PACKAGE_PREFIX) && javaPackage.isEmpty()) {
-                javaPackage = findLineData(trimmedLine, JAVA_PACKAGE_PATTERN) + ".";
-            } else if (trimmedLine.startsWith(PROTO_PACKAGE_PREFIX) && protoPackage.isEmpty()) {
-                protoPackage = findLineData(trimmedLine, PROTO_PACKAGE_PATTERN) + ".";
-            } else if (trimmedLine.startsWith(JAVA_MULTIPLE_FILES_OPT_PREFIX) && commonOuterJavaClass.isEmpty()) {
-                commonOuterJavaClass = getCommonOuterJavaClass(trimmedLine, file);
+        for (String lineRaw : lines) {
+            final String line = lineRaw.trim();
+            if (line.startsWith(MESSAGE_PREFIX)) {
+                addClass(findLineData(line, MESSAGE_PATTERN), protoClasses, javaClasses, nestedClassDepth);
+            } else if (line.startsWith(ENUM_PREFIX)) {
+                addClass(findLineData(line, ENUM_PATTERN), protoClasses, javaClasses, nestedClassDepth);
+            } else if (line.startsWith(JAVA_PACKAGE_PREFIX) && javaPackage.isEmpty()) {
+                javaPackage = findLineData(line, JAVA_PACKAGE_PATTERN) + ".";
+            } else if (line.startsWith(PROTO_PACKAGE_PREFIX) && protoPackage.isEmpty()) {
+                protoPackage = findLineData(line, PROTO_PACKAGE_PATTERN) + ".";
+            } else if (line.startsWith(JAVA_MULTIPLE_FILES_OPT_PREFIX) && commonOuterJavaClass.isEmpty()) {
+                commonOuterJavaClass = getCommonOuterJavaClass(line, file);
+            } else if (line.contains(TYPE_URL_PREFIX) && typeUrlPrefix.isEmpty()) {
+                typeUrlPrefix = findLineData(line, TYPE_URL_PATTERN);
             }
             // This won't work for bad-formatted proto files. Consider moving to descriptors.
             // Again, won't work for }} case, move to descriptors instead of fixing
-            if (trimmedLine.contains(OPENING_BRACKET)) {
+            if (line.contains(OPENING_BRACKET)) {
                 nestedClassDepth++;
             }
-            if (trimmedLine.contains(CLOSING_BRACKET)) {
+            if (line.contains(CLOSING_BRACKET)) {
                 nestedClassDepth--;
             }
         }
+        checkTypeUrlPrefix(typeUrlPrefix, file);
         final Map entries = new HashMap<String, String>();
         for (int i = 0; i < protoClasses.size(); i++) {
             final String protoClassName = protoClasses.get(i);
@@ -149,16 +154,25 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
             if (!commonOuterJavaClass.isEmpty()) {
                 javaClassName = "$commonOuterJavaClass$JAVA_INNER_CLASS_SEPARATOR$javaClassName";
             }
-            entries.put(protoPackage + protoClassName, javaPackage + javaClassName);
+            final String typeUrl = "$typeUrlPrefix/$protoPackage$protoClassName";
+            final String javaClassFqn = "$javaPackage$javaClassName";
+            entries.put(typeUrl, javaClassFqn);
         }
         return entries;
+    }
+
+    private static void checkTypeUrlPrefix(String prefix, File file) {
+        if (prefix.isEmpty()) {
+            final String msg = "$TYPE_URL_PREFIX Protobuf file option must be defined in file: '$file.name'.";
+            throw new IllegalStateException(msg);
+        }
     }
 
     private static String getCommonOuterJavaClass(String trimmedLine, File file) {
         boolean isMultipleFiles = trimmedLine.contains(JAVA_MULTIPLE_FILES_TRUE_VALUE);
         if (!isMultipleFiles) {
             final String fileNameFull = file.getName();
-            final String fileName = fileNameFull.substring(0, fileNameFull.indexOf(PROTO_FILE__NAME_SUFFIX));
+            final String fileName = fileNameFull.substring(0, fileNameFull.indexOf(PROTO_FILE_NAME_SUFFIX));
             final String firstChar = fileName.substring(0, 1).toUpperCase();
             final String result = firstChar + fileName.substring(1);
             return result;
@@ -186,6 +200,6 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         if (matcher.matches()) {
             return matcher.group(1);
         }
-        throw new IllegalArgumentException("Could not parse data: " + line);
+        throw new IllegalArgumentException("Cannot parse data: " + line);
     }
 }
