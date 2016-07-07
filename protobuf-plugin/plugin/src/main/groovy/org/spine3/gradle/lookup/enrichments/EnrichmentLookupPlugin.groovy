@@ -24,7 +24,7 @@ import groovy.util.logging.Slf4j;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.spine3.gradle.lookup.entity.PropertiesWriter;
+import org.spine3.gradle.lookup.PropertiesWriter;
 
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import static com.google.protobuf.DescriptorProtos.FileDescriptorSet;
