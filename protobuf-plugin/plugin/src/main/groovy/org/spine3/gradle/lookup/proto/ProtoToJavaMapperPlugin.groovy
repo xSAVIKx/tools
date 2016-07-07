@@ -118,7 +118,7 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         String javaPackage = "";
         String protoPackage = "";
         String commonOuterJavaClass = "";
-        String typeUrlPrefix = "";
+        String typeUrlPrefix = "type.googleapis.com";
         final List<String> protoClasses = new ArrayList<>();
         final List<String> javaClasses = new ArrayList<>();
         int nestedClassDepth = 0; // for inner protoClasses
@@ -146,7 +146,6 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
                 nestedClassDepth--;
             }
         }
-        checkTypeUrlPrefix(typeUrlPrefix, file);
         final Map entries = new HashMap<String, String>();
         for (int i = 0; i < protoClasses.size(); i++) {
             final String protoClassName = protoClasses.get(i);
@@ -159,13 +158,6 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
             entries.put(typeUrl, javaClassFqn);
         }
         return entries;
-    }
-
-    private static void checkTypeUrlPrefix(String prefix, File file) {
-        if (prefix.isEmpty()) {
-            final String msg = "$TYPE_URL_PREFIX Protobuf file option must be defined in file: '$file.name'.";
-            throw new IllegalStateException(msg);
-        }
     }
 
     private static String getCommonOuterJavaClass(String trimmedLine, File file) {
