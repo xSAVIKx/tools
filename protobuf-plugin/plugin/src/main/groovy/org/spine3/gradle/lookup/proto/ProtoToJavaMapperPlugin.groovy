@@ -40,7 +40,7 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
 
     private static final String PROPERTIES_PATH_SUFFIX = "resources";
 
-    private static final String PROPERTIES_PATH_FILE_NAME = "proto_to_java_class.properties";
+    private static final String PROPERTIES_PATH_FILE_NAME = "known_types.properties";
 
     private static final String PROTO_SUFFIX = ".proto";
 
