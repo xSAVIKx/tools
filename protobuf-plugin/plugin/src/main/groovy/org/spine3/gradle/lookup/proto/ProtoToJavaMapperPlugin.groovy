@@ -20,14 +20,15 @@
 
 package org.spine3.gradle.lookup.proto
 
-import groovy.util.logging.Slf4j
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.Task
-import org.spine3.gradle.lookup.entity.PropertiesWriter
+import groovy.util.logging.Slf4j;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.spine3.gradle.lookup.PropertiesWriter;
 
-import java.util.regex.Matcher
-import java.util.regex.Pattern
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Plugin which performs generated Java classes (based on protobuf) search.
  *
@@ -40,9 +41,12 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
 
     private static final String PROPERTIES_PATH_SUFFIX = "resources";
 
-    private static final String PROPERTIES_PATH_FILE_NAME = "proto_to_java_class.properties";
+    /**
+     * The name of the file to populate. NOTE: also change its name used in the `core-java` project on changing.
+     */
+    private static final String PROPERTIES_PATH_FILE_NAME = "known_types.properties";
 
-    private static final String PROTO_SUFFIX = ".proto";
+    private static final String PROTO_FILE__NAME_SUFFIX = ".proto";
 
     private static final String OPENING_BRACKET = "{";
     private static final String CLOSING_BRACKET = "}";
@@ -58,6 +62,10 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
 
     private static final String PROTO_PACKAGE_PREFIX = "package ";
     private static final Pattern PROTO_PACKAGE_PATTERN = Pattern.compile(PROTO_PACKAGE_PREFIX + "([a-zA-Z0-9_.]*);*");
+
+    private static final String JAVA_MULTIPLE_FILES_OPT_PREFIX = "option java_multiple_files";
+    public static final String JAVA_MULTIPLE_FILES_TRUE_VALUE = "true";
+    public static final String JAVA_INNER_CLASS_SEPARATOR = "\$";
 
     @Override
     public void apply(Project project) {
@@ -96,7 +104,7 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         final def entries = new HashMap<String, String>();
         final File root = new File(rootProtoPath);
         project.fileTree(root).each {
-            if (it.name.endsWith(PROTO_SUFFIX)) {
+            if (it.name.endsWith(PROTO_FILE__NAME_SUFFIX)) {
                 def fileEntries = readProtoFile(it.canonicalFile);
                 entries.putAll(fileEntries);
             }
@@ -108,19 +116,22 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         final List<String> lines = file.readLines();
         String javaPackage = "";
         String protoPackage = "";
+        String commonOuterJavaClass = "";
         final List<String> protoClasses = new ArrayList<>();
         final List<String> javaClasses = new ArrayList<>();
         int nestedClassDepth = 0; // for inner protoClasses
         for (String line : lines) {
-            def trimmedLine = line.trim();
+            final String trimmedLine = line.trim();
             if (trimmedLine.startsWith(MESSAGE_PREFIX)) {
                 addClass(findLineData(trimmedLine, MESSAGE_PATTERN), protoClasses, javaClasses, nestedClassDepth);
             } else if (trimmedLine.startsWith(ENUM_PREFIX)) {
                 addClass(findLineData(trimmedLine, ENUM_PATTERN), protoClasses, javaClasses, nestedClassDepth);
-            } else if (javaPackage.isEmpty() && trimmedLine.startsWith(JAVA_PACKAGE_PREFIX)) {
+            } else if (trimmedLine.startsWith(JAVA_PACKAGE_PREFIX) && javaPackage.isEmpty()) {
                 javaPackage = findLineData(trimmedLine, JAVA_PACKAGE_PATTERN) + ".";
-            } else if (protoPackage.isEmpty() && trimmedLine.startsWith(PROTO_PACKAGE_PREFIX)) {
+            } else if (trimmedLine.startsWith(PROTO_PACKAGE_PREFIX) && protoPackage.isEmpty()) {
                 protoPackage = findLineData(trimmedLine, PROTO_PACKAGE_PATTERN) + ".";
+            } else if (trimmedLine.startsWith(JAVA_MULTIPLE_FILES_OPT_PREFIX) && commonOuterJavaClass.isEmpty()) {
+                commonOuterJavaClass = getCommonOuterJavaClass(trimmedLine, file);
             }
             // This won't work for bad-formatted proto files. Consider moving to descriptors.
             // Again, won't work for }} case, move to descriptors instead of fixing
@@ -131,13 +142,28 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
                 nestedClassDepth--;
             }
         }
-        final def entries = new HashMap<String, String>();
+        final Map entries = new HashMap<String, String>();
         for (int i = 0; i < protoClasses.size(); i++) {
-            def protoClassName = protoClasses.get(i);
-            def javaClassName = javaClasses.get(i);
+            final String protoClassName = protoClasses.get(i);
+            String javaClassName = javaClasses.get(i);
+            if (!commonOuterJavaClass.isEmpty()) {
+                javaClassName = "$commonOuterJavaClass$JAVA_INNER_CLASS_SEPARATOR$javaClassName";
+            }
             entries.put(protoPackage + protoClassName, javaPackage + javaClassName);
         }
         return entries;
+    }
+
+    private static String getCommonOuterJavaClass(String trimmedLine, File file) {
+        boolean isMultipleFiles = trimmedLine.contains(JAVA_MULTIPLE_FILES_TRUE_VALUE);
+        if (!isMultipleFiles) {
+            final String fileNameFull = file.getName();
+            final String fileName = fileNameFull.substring(0, fileNameFull.indexOf(PROTO_FILE__NAME_SUFFIX));
+            final String firstChar = fileName.substring(0, 1).toUpperCase();
+            final String result = firstChar + fileName.substring(1);
+            return result;
+        }
+        return "";
     }
 
     private static void addClass(String className,
@@ -149,7 +175,7 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         for (int i = 0; i < nestedClassDepth; i++) {
             final int rootClassIndex = protoClasses.size() - i - 1;
             protoFullClassName = "${protoClasses.get(rootClassIndex)}.$protoFullClassName";
-            javaFullClassName = "${javaClasses.get(rootClassIndex)}\$$javaFullClassName";
+            javaFullClassName = "${javaClasses.get(rootClassIndex)}$JAVA_INNER_CLASS_SEPARATOR$javaFullClassName";
         }
         protoClasses.add(protoFullClassName);
         javaClasses.add(javaFullClassName);

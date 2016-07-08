@@ -24,7 +24,7 @@ import groovy.util.logging.Slf4j;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.spine3.gradle.lookup.entity.PropertiesWriter;
+import org.spine3.gradle.lookup.PropertiesWriter;
 
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import static com.google.protobuf.DescriptorProtos.FileDescriptorSet;
@@ -43,6 +43,9 @@ import static com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 @Slf4j
 public class EnrichmentLookupPlugin implements Plugin<Project> {
 
+    /**
+     * The name of the file to populate. NOTE: also change its name used in the `core-java` project on changing.
+     */
     private static final String PROPS_FILE_NAME = "enrichments.properties";
 
     public static final String MSG_ENABLE_DESCRIPTOR_SET_GENERATION =

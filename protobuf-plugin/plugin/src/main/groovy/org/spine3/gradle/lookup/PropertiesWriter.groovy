@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.lookup.entity;
+package org.spine3.gradle.lookup;
 
 import static java.util.Map.Entry;
 
