@@ -18,16 +18,18 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.lookup.proto
-import com.google.common.collect.ImmutableMap
-import groovy.util.logging.Slf4j
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.Task
-import org.spine3.gradle.lookup.PropertiesWriter
+package org.spine3.gradle.lookup.proto;
 
-import java.util.regex.Matcher
-import java.util.regex.Pattern
+import com.google.common.collect.ImmutableMap;
+import groovy.util.logging.Slf4j;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.spine3.gradle.lookup.PropertiesWriter;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Plugin which performs generated Java classes (based on protobuf) search.
  *
@@ -106,7 +108,7 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
     }
 
     private static Map<String, String> parseProtos(String rootProtoPath, Project project) {
-        final  Map<String, String> entries = new HashMap<String, String>();
+        final Map<String, String> entries = new HashMap<String, String>();
         final File root = new File(rootProtoPath);
         project.fileTree(root).each {
             if (it.name.endsWith(PROTO_FILE_NAME_SUFFIX)) {
