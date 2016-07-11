@@ -49,9 +49,6 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
 
     private static final String PROTO_FILE_NAME_SUFFIX = ".proto";
 
-    private static final String OPENING_BRACKET = "{";
-    private static final String CLOSING_BRACKET = "}";
-
     private static final Pattern TYPE_NAME_PATTERN = Pattern.compile("([a-zA-Z0-9]*) *\\{");
     private static final String MESSAGE_PREFIX = "message";
     private static final Pattern MESSAGE_PATTERN = Pattern.compile(MESSAGE_PREFIX + " +" + TYPE_NAME_PATTERN);
@@ -67,12 +64,6 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
 
     private static final String PROTO_PACKAGE_PREFIX = "package ";
     private static final Pattern PROTO_PACKAGE_PATTERN = Pattern.compile(PROTO_PACKAGE_PREFIX + "([a-zA-Z0-9_.]*);*");
-
-    private static final String JAVA_MULTIPLE_FILES_OPT_PREFIX = "option java_multiple_files";
-    public static final String JAVA_MULTIPLE_FILES_TRUE_VALUE = "true";
-    public static final String JAVA_INNER_CLASS_SEPARATOR = "\$";
-
-    public static final String GOOGLE_TYPE_URL_PREFIX = "type.googleapis.com";
 
     @Override
     public void apply(Project project) {
@@ -124,7 +115,21 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         return result;
     }
 
+    /** Parses a `.proto` file and creates a map with entries for the `.properties` file. */
     private static class ProtoParser {
+
+        public static final String PROTO_FILE_NAME_SEPARATOR = "_";
+
+        private static final String PROTO_FILE_NAME_SUFFIX = ".proto";
+
+        private static final String OPENING_BRACKET = "{";
+        private static final String CLOSING_BRACKET = "}";
+
+        private static final String JAVA_MULTIPLE_FILES_OPT_PREFIX = "option java_multiple_files";
+        private static final String JAVA_MULTIPLE_FILES_FALSE_VALUE = "false";
+        private static final String JAVA_INNER_CLASS_SEPARATOR = "\$";
+
+        private static final String GOOGLE_TYPE_URL_PREFIX = "type.googleapis.com";
 
         private final File file;
         private final List<String> lines;
@@ -141,6 +146,7 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
             this.lines = file.readLines();
         }
 
+        /** Parses given `.proto` file and creates a map from type URLs to Java class FQNs. */
         private ImmutableMap<String, String> parse() {
             for (String line : lines) {
                 parseLine(line.trim());
@@ -168,8 +174,10 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
                 javaPackage = findLineData(line, JAVA_PACKAGE_PATTERN) + ".";
             } else if (line.startsWith(PROTO_PACKAGE_PREFIX) && protoPackage.isEmpty()) {
                 protoPackage = findLineData(line, PROTO_PACKAGE_PATTERN) + ".";
-            } else if (line.startsWith(JAVA_MULTIPLE_FILES_OPT_PREFIX) && commonOuterJavaClass.isEmpty()) {
-                commonOuterJavaClass = getCommonOuterJavaClass(line);
+            } else if (line.startsWith(JAVA_MULTIPLE_FILES_OPT_PREFIX) &&
+                       line.contains(JAVA_MULTIPLE_FILES_FALSE_VALUE) &&
+                       commonOuterJavaClass.isEmpty()) {
+                commonOuterJavaClass = toClassName(file.getName());
             } else if (line.startsWith(TYPE_URL_PREFIX_DECLARATION)) {
                 typeUrlPrefix = findLineData(line, TYPE_URL_PATTERN);
             }
@@ -183,16 +191,20 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
             }
         }
 
-        private String getCommonOuterJavaClass(String line) {
-            boolean isMultipleFiles = line.contains(JAVA_MULTIPLE_FILES_TRUE_VALUE);
-            if (!isMultipleFiles) {
-                final String fileNameFull = file.getName();
-                final String fileName = fileNameFull.substring(0, fileNameFull.indexOf(PROTO_FILE_NAME_SUFFIX));
-                final String firstChar = fileName.substring(0, 1).toUpperCase();
-                final String result = firstChar + fileName.substring(1);
-                return result;
+        /**
+         * Converts `.proto` file name to Java class name,
+         * for example: `my_test.proto` to `MyTest`.
+         */
+        private static String toClassName(String fullFileName) {
+            final String fileName = fullFileName.substring(0, fullFileName.indexOf(PROTO_FILE_NAME_SUFFIX));
+            String result = "";
+            final String[] parts = fileName.split(PROTO_FILE_NAME_SEPARATOR);
+            for (String part : parts) {
+                final String firstChar = part.substring(0, 1).toUpperCase();
+                final String partProcessed = firstChar + part.substring(1).toLowerCase();
+                result += partProcessed;
             }
-            return "";
+            return result;
         }
 
         private void addClass(String className) {
