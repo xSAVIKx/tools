@@ -7,7 +7,7 @@ allprojects {
 
     project.ext {
         MAVEN_REPOSITORY_URL = 'http://maven.teamdev.com/repository/spine'
-        SPINE_VERSION = "0.4.4"
+        SPINE_VERSION = "0.5.1-SNAPSHOT"
     }
 }
 
