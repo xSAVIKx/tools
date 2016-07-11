@@ -1,7 +1,9 @@
 package org.spine3.gradle.failures
 
-import com.google.protobuf.DescriptorProtos
 import groovy.util.logging.Slf4j
+
+import static com.google.protobuf.DescriptorProtos.DescriptorProto
+import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto
 
 /**
  * Class, which writes Failure java code, based on it's descriptor.
@@ -9,7 +11,7 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class FailureWriter {
 
-    private final DescriptorProtos.DescriptorProto failureDescriptor;
+    private final DescriptorProto failureDescriptor;
     private final File outputFile;
     private final String javaPackage;
 
@@ -19,33 +21,33 @@ class FailureWriter {
 
     // https://developers.google.com/protocol-buffers/docs/proto3#scalar
     private static final def commonProtoTypes = [
-            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_DOUBLE.name())  : "double",
-            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_FLOAT.name())   : "float",
-            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT64.name())   : "long",
-            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_UINT64.name())  : "long",
-            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT32.name())   : "int",
-            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_FIXED64.name()) : "long",
-            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_FIXED32.name()) : "int",
-            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_BOOL.name())    : "boolean",
-            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING.name())  : "String",
-            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_GROUP.name())   : null, // GROUPS ARE NOT SUPPORTED
-            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_BYTES.name())   : "com.google.protobuf.ByteString",
-            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_UINT32.name())  : "int",
-            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_SFIXED32.name()): "int",
-            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_SFIXED64.name()): "long",
-            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_SINT32.name())  : "int",
-            (DescriptorProtos.FieldDescriptorProto.Type.TYPE_SINT64.name())  : "long",
+            (FieldDescriptorProto.Type.TYPE_DOUBLE.name())  : "double",
+            (FieldDescriptorProto.Type.TYPE_FLOAT.name())   : "float",
+            (FieldDescriptorProto.Type.TYPE_INT64.name())   : "long",
+            (FieldDescriptorProto.Type.TYPE_UINT64.name())  : "long",
+            (FieldDescriptorProto.Type.TYPE_INT32.name())   : "int",
+            (FieldDescriptorProto.Type.TYPE_FIXED64.name()) : "long",
+            (FieldDescriptorProto.Type.TYPE_FIXED32.name()) : "int",
+            (FieldDescriptorProto.Type.TYPE_BOOL.name())    : "boolean",
+            (FieldDescriptorProto.Type.TYPE_STRING.name())  : "String",
+            (FieldDescriptorProto.Type.TYPE_GROUP.name())   : null, // GROUPS ARE NOT SUPPORTED
+            (FieldDescriptorProto.Type.TYPE_BYTES.name())   : "com.google.protobuf.ByteString",
+            (FieldDescriptorProto.Type.TYPE_UINT32.name())  : "int",
+            (FieldDescriptorProto.Type.TYPE_SFIXED32.name()): "int",
+            (FieldDescriptorProto.Type.TYPE_SFIXED64.name()): "long",
+            (FieldDescriptorProto.Type.TYPE_SINT32.name())  : "int",
+            (FieldDescriptorProto.Type.TYPE_SINT64.name())  : "long",
     ]
 
     /**
      * Public constructor for {@code FailureWriter}.
      *
-     * @param failureDescriptor {@link DescriptorProtos.DescriptorProto} of failure's proto message
+     * @param failureDescriptor {@link DescriptorProto} of failure's proto message
      * @param outputFile a {@link File} to write Failure code
      * @param javaPackage Failure's java package
      * @param messageTypeMap pre-scanned map with proto types and their appropriate Java classes
      */
-    FailureWriter(DescriptorProtos.DescriptorProto failureDescriptor,
+    FailureWriter(DescriptorProto failureDescriptor,
                   File outputFile,
                   String javaPackage,
                   Map<String, String> messageTypeMap) {
@@ -147,12 +149,12 @@ class FailureWriter {
     private Map<String, String> readFieldValues() {
         def fields = new LinkedHashMap<>();
 
-        failureDescriptor.fieldList.each { DescriptorProtos.FieldDescriptorProto field ->
+        failureDescriptor.fieldList.each { FieldDescriptorProto field ->
             def name = field.name;
             String value;
 
-            if (field.type == DescriptorProtos.FieldDescriptorProto.Type.TYPE_MESSAGE ||
-                    field.type == DescriptorProtos.FieldDescriptorProto.Type.TYPE_ENUM) {
+            if (field.type == FieldDescriptorProto.Type.TYPE_MESSAGE ||
+                    field.type == FieldDescriptorProto.Type.TYPE_ENUM) {
                 def fieldTypeName = field.typeName;
                 // Somewhy it has a dot in the beginning
                 if (fieldTypeName.startsWith(".")) {
