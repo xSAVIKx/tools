@@ -103,16 +103,11 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         final File root = new File(rootProtoPath);
         project.fileTree(root).each {
             if (it.name.endsWith(PROTO_FILE_NAME_SUFFIX)) {
-                final Map<String, String> fileEntries = parseProtoFile(it.canonicalFile);
+                final Map<String, String> fileEntries = new ProtoParser(it.canonicalFile).parse();
                 entries.putAll(fileEntries);
             }
         }
         return entries;
-    }
-
-    private static Map<String, String> parseProtoFile(File file) {
-        final Map<String, String> result = new ProtoParser(file).parse();
-        return result;
     }
 
     /** Parses a `.proto` file and creates a map with entries for the `.properties` file. */
