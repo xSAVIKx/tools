@@ -17,6 +17,12 @@ class CleaningPlugin implements Plugin<Project> {
 
     private def defaultDirsToClean = ["generated"];
 
+    /**
+     * Applied to project.
+     *
+     * <p>Adds :preClean task.
+     * <p>Is executed before :clean task.
+     */
     @Override
     void apply(Project target) {
         projectPath = target.projectDir.absolutePath;

@@ -21,6 +21,13 @@ class FailuresGenPlugin implements Plugin<Project> {
 
     private Map<String, String> cachedMessageTypes = new HashMap<>();
 
+    /**
+     * Applied to project.
+     *
+     * <p>Adds :generateFailures and :generateTestFailures tasks.
+     * <p>Tasks depend on corresponding :generateProto tasks and are executed before corresponding
+     * :compileJava tasks.
+     */
     @Override
     void apply(Project target) {
         projectPath = target.projectDir.absolutePath;

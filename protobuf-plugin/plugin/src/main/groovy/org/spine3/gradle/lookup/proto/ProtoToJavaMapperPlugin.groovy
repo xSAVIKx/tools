@@ -65,6 +65,14 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
     private static final String PROTO_PACKAGE_PREFIX = "package ";
     private static final Pattern PROTO_PACKAGE_PATTERN = Pattern.compile(PROTO_PACKAGE_PREFIX + "([a-zA-Z0-9_.]*);*");
 
+    /**
+     * Applied to project.
+     *
+     * <p>Adds :scanProtos and :scanTestProtos tasks.
+     * <p>Depends on corresponding :generateProto tasks.
+     * <p>Is executed before corresponding :processResources tasks.
+     * @param project
+     */
     @Override
     public void apply(Project project) {
         final Task scanProtosTask = project.task("scanProtos") << {
@@ -82,6 +90,12 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         processTestResources.dependsOn(scanTestProtosTask);
     }
 
+    /**
+     * Scans root directory and starts reading protos and writing properties.
+     *
+     * @param target root directory's project.
+     * @param rootDirPathSuffix source set, the task is applied to (usually, it's main or test).
+     */
     private static void scanRootDir(Project target, String rootDirPathSuffix) {
         final String projectPath = target.projectDir.absolutePath;
         final String rootDirPath = "${projectPath}/generated/${rootDirPathSuffix}";
@@ -98,6 +112,13 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         writer.write(protosPropertyValues)
     }
 
+    /**
+     * Extracts Proto and Java names from .proto files in path.
+     *
+     * @param rootProtoPath where all .proto files are located.
+     * @param project target, the task is applied to.
+     * @return proto-to-java names map.
+     */
     private static Map<String, String> parseProtos(String rootProtoPath, Project project) {
         final Map<String, String> entries = new HashMap<String, String>();
         final File root = new File(rootProtoPath);
@@ -110,6 +131,12 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         return entries;
     }
 
+    /**
+     * Reads Proto and Java names from a .proto file.
+     *
+     * @param file a .proto file.
+     * @return proto-to-java names map.
+     */
     private static Map<String, String> parseProtoFile(File file) {
         final Map<String, String> result = new ProtoParser(file).parse();
         return result;
@@ -207,6 +234,13 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
             return result;
         }
 
+        /**
+         * Adds class to Proto and Java class names lists.
+         *
+         * <p>Responds to class depth and adds necessary parent names.
+         *
+         * @param className Found proto class name.
+         */
         private void addClass(String className) {
             String protoFullClassName = className;
             String javaFullClassName = className;
@@ -219,6 +253,11 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
             javaClasses.add(javaFullClassName);
         }
 
+        /**
+         * Finds data inside the String using Pattern.
+         * @return matched String.
+         * @throws IllegalArgumentException in case of invalid data received.
+         */
         private String findLineData(String line, Pattern pattern) {
             final Matcher matcher = pattern.matcher(line);
             if (matcher.matches()) {
