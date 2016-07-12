@@ -65,10 +65,6 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
     private static final String PROTO_PACKAGE_PREFIX = "package ";
     private static final Pattern PROTO_PACKAGE_PATTERN = Pattern.compile(PROTO_PACKAGE_PREFIX + "([a-zA-Z0-9_.]*);*");
 
-    private static final String JAVA_MULTIPLE_FILES_OPT_PREFIX = "option java_multiple_files";
-    public static final String JAVA_MULTIPLE_FILES_TRUE_VALUE = "true";
-    public static final String JAVA_INNER_CLASS_SEPARATOR = "\$";
-
     /**
      * Applied to project.
      *
