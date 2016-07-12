@@ -52,12 +52,10 @@ public class EnrichmentLookupPlugin implements Plugin<Project> {
             "Please enable descriptor set generation. See an appropriate section at " +
             "https://github.com/google/protobuf-gradle-plugin/blob/master/README.md#customize-code-generation-tasks"
 
-    private Project project;
     private String projectPath;
 
     @Override
     void apply(Project project) {
-        this.project = project;
         this.projectPath = project.getProjectDir().getAbsolutePath();
         final Task findEnrichmentsTask = project.task("findEnrichments") << {
             findEnrichmentsAndWriteProps("main", true);
