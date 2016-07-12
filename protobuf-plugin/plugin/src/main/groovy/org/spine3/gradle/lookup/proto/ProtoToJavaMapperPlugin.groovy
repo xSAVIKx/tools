@@ -240,9 +240,6 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
          * <p>Responds to class depth and adds necessary parent names.
          *
          * @param className Found proto class name.
-         * @param protoClasses List with fully qualified proto class names.
-         * @param javaClasses List with fully qualified java class names.
-         * @param nestedClassDepth Nested depth to determine the fully qualified name.
          */
         private void addClass(String className) {
             String protoFullClassName = className;
