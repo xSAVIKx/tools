@@ -30,7 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Plugin which performs generated Java classes (based on protobuf) search.
+ * Plugin which performs generated Java classes (based on Protobuf) search.
  *
  * <p>Generates a {@code .properties} file, which contains entries like:
  *
@@ -67,6 +67,14 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
     public static final String JAVA_MULTIPLE_FILES_TRUE_VALUE = "true";
     public static final String JAVA_INNER_CLASS_SEPARATOR = "\$";
 
+    /**
+     * Applied to project.
+     *
+     * <p>Adds :scanProtos and :scanTestProtos tasks.
+     * <p>Depends on corresponding :generateProto tasks.
+     * <p>Is executed before corresponding :processResources tasks.
+     * @param project
+     */
     @Override
     public void apply(Project project) {
         final Task scanProtosTask = project.task("scanProtos") << {
@@ -84,6 +92,12 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         processTestResources.dependsOn(scanTestProtosTask);
     }
 
+    /**
+     * Scans root directory and starts reading protos and writing properties.
+     *
+     * @param target root directory's project.
+     * @param rootDirPathSuffix source set, the task is applied to (usually, it's main or test).
+     */
     private static void scanRootDir(Project target, String rootDirPathSuffix) {
         final String projectPath = target.projectDir.absolutePath;
         final String rootDirPath = "${projectPath}/generated/${rootDirPathSuffix}";
@@ -100,6 +114,13 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         writer.write(protosPropertyValues)
     }
 
+    /**
+     * Extracts Proto and Java names from .proto files in path.
+     *
+     * @param rootProtoPath where all .proto files are located.
+     * @param project target, the task is applied to.
+     * @return proto-to-java names map.
+     */
     private static Map<String, String> readProtos(String rootProtoPath, Project project) {
         final def entries = new HashMap<String, String>();
         final File root = new File(rootProtoPath);
@@ -112,6 +133,12 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         return entries;
     }
 
+    /**
+     * Reads Proto and Java names from a .proto file.
+     *
+     * @param file a .proto file.
+     * @return proto-to-java names map.
+     */
     private static Map<String, String> readProtoFile(File file) {
         final List<String> lines = file.readLines();
         String javaPackage = "";
@@ -154,6 +181,13 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         return entries;
     }
 
+    /**
+     * Retrieves the name of outer Java class for proto file, if the file has java_multiple_files attribute.
+     *
+     * @param trimmedLine the line to scan for the desired attribute.
+     * @param file the file to scan.
+     * @return empty String in case of no value found, Java class name otherwise.
+     */
     private static String getCommonOuterJavaClass(String trimmedLine, File file) {
         boolean isMultipleFiles = trimmedLine.contains(JAVA_MULTIPLE_FILES_TRUE_VALUE);
         if (!isMultipleFiles) {
@@ -166,6 +200,16 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         return "";
     }
 
+    /**
+     * Adds class to Proto and Java class names lists.
+     *
+     * <p>Responds to class depth and adds necessary parent names.
+     *
+     * @param className Found proto class name.
+     * @param protoClasses List with fully qualified proto class names.
+     * @param javaClasses List with fully qualified java class names.
+     * @param nestedClassDepth Nested depth to determine the fully qualified name.
+     */
     private static void addClass(String className,
                                  List<String> protoClasses,
                                  List<String> javaClasses,
@@ -181,6 +225,11 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         javaClasses.add(javaFullClassName);
     }
 
+    /**
+     * Finds data inside the String using Pattern.
+     * @return matched String.
+     * @throws IllegalArgumentException in case of invalid data received.
+     */
     private static String findLineData(String line, Pattern pattern) {
         final Matcher matcher = pattern.matcher(line);
         if (matcher.matches()) {
