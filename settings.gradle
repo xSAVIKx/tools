@@ -1,13 +1,10 @@
 rootProject.name = 'tools'
 
 include 'protobuf-plugin'
+project(':protobuf-plugin').projectDir = "$rootDir/protobuf-plugin" as File
+
 include 'failures-gen-sample'
-include 'entity-lookup-sample'
+project(':failures-gen-sample').projectDir = "$rootDir/failures-gen-sample" as File
 
 include 'reflections-plugin'
-
-project(':protobuf-plugin').projectDir = "$rootDir/protobuf-plugin" as File
-project(':failures-gen-sample').projectDir = "$rootDir/failures-gen-sample" as File
-project(':entity-lookup-sample').projectDir = "$rootDir/entity-lookup-sample" as File
-
 project(':reflections-plugin').projectDir = "$rootDir/reflections-plugin" as File
