@@ -4,7 +4,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 
-import static org.spine3.gradle.ProtobufPlugin.ExtensionUtil.getDirsToClean
+import static org.spine3.gradle.Extension.getDirsToClean
 
 /**
  * Plugin which performs additional cleaning on clean task.

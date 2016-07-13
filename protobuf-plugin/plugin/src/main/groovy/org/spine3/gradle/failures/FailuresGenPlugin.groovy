@@ -6,7 +6,6 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto
-import static org.spine3.gradle.ProtobufPlugin.*
 import static org.spine3.gradle.util.DescriptorSetUtil.getProtoFileDescriptors
 
 /**
@@ -34,13 +33,13 @@ class FailuresGenPlugin implements Plugin<Project> {
         this.project = project
 
         final Task generateFailures = project.task("generateFailures") << {
-            final def path = ExtensionUtil.getMainDescriptorSetPath(project)
+            final def path = org.spine3.gradle.Extension.getMainDescriptorSetPath(project)
             processDescriptors(getFailureProtoFileDescriptors(path))
         }
         generateFailures.dependsOn("generateProto")
 
         final Task generateTestFailures = project.task("generateTestFailures") << {
-            final def path = ExtensionUtil.getTestDescriptorSetPath(project)
+            final def path = org.spine3.gradle.Extension.getTestDescriptorSetPath(project)
             processDescriptors(getFailureProtoFileDescriptors(path))
         }
         generateTestFailures.dependsOn("generateTestProto")
@@ -126,7 +125,7 @@ class FailuresGenPlugin implements Plugin<Project> {
     }
 
     private void generateFailures(FileDescriptorProto descriptor, Map<String, String> messageTypeMap) {
-        final String failuresRootDir = ExtensionUtil.getTargetGenFailuresRootDir(project)
+        final String failuresRootDir = org.spine3.gradle.Extension.getTargetGenFailuresRootDir(project)
         final String packageDirs = descriptor.options.javaPackage.replace(".", "/")
         final List<DescriptorProtos.DescriptorProto> failures = descriptor.messageTypeList
         failures.each { DescriptorProtos.DescriptorProto failure ->

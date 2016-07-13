@@ -30,10 +30,10 @@ import org.spine3.gradle.util.PropertiesWriter
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-import static org.spine3.gradle.ProtobufPlugin.ExtensionUtil.getMainProtoSrcDir
-import static org.spine3.gradle.ProtobufPlugin.ExtensionUtil.getMainTargetGenResourcesDir
-import static org.spine3.gradle.ProtobufPlugin.ExtensionUtil.getTestProtoSrcDir
-import static org.spine3.gradle.ProtobufPlugin.ExtensionUtil.getTestTargetGenResourcesDir
+import static org.spine3.gradle.Extension.getMainProtoSrcDir
+import static org.spine3.gradle.Extension.getMainTargetGenResourcesDir
+import static org.spine3.gradle.Extension.getTestProtoSrcDir
+import static org.spine3.gradle.Extension.getTestTargetGenResourcesDir
 
 /**
  * Plugin which performs generated Java classes (based on protobuf) search.

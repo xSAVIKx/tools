@@ -26,7 +26,6 @@ import org.gradle.api.Task
 import org.spine3.gradle.util.PropertiesWriter
 
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto
-import static org.spine3.gradle.ProtobufPlugin.*
 import static org.spine3.gradle.util.DescriptorSetUtil.getProtoFileDescriptors
 
 /**
@@ -54,14 +53,14 @@ public class EnrichmentLookupPlugin implements Plugin<Project> {
     void apply(Project project) {
         this.projectPath = project.getProjectDir().getAbsolutePath()
         final Task findEnrichmentsTask = project.task("findEnrichments") << {
-            findEnrichmentsAndWriteProps(ExtensionUtil.getMainTargetGenResourcesDir(project), ExtensionUtil.getMainDescriptorSetPath(project))
+            findEnrichmentsAndWriteProps(org.spine3.gradle.Extension.getMainTargetGenResourcesDir(project), org.spine3.gradle.Extension.getMainDescriptorSetPath(project))
         }
         findEnrichmentsTask.dependsOn("compileJava")
         final Task processResources = project.getTasks().getByPath("processResources")
         processResources.dependsOn(findEnrichmentsTask)
 
         final Task findTestEnrichmentsTask = project.task("findTestEnrichments") << {
-            findEnrichmentsAndWriteProps(ExtensionUtil.getTestTargetGenResourcesDir(project), ExtensionUtil.getTestDescriptorSetPath(project))
+            findEnrichmentsAndWriteProps(org.spine3.gradle.Extension.getTestTargetGenResourcesDir(project), org.spine3.gradle.Extension.getTestDescriptorSetPath(project))
         }
         findTestEnrichmentsTask.dependsOn("compileTestJava")
         final Task processTestResources = project.getTasks().getByPath("processTestResources")
