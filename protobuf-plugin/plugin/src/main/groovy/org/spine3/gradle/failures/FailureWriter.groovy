@@ -132,8 +132,16 @@ class FailureWriter {
         writer.write("}\n");
     }
 
+    /**
+     * Transforms Protobuf-style field name into corresponding Java-style field name.
+     *
+     * <p>For example, seat_assignment_id -> SeatAssignmentId
+     *
+     * @param protoFieldName Protobuf field name.
+     * @param capitalizeFirstLetter Indicates if we need first letter of the output to be capitalized.
+     * @return field name String.
+     */
     private static String getJavaFieldName(String protoFieldName, boolean capitalizeFirstLetter) {
-        // seat_assignment_id -> SeatAssignmentId
         def words = protoFieldName.split('_');
         String resultName = words[0];
         for (int i = 1; i < words.length; i++) {
@@ -146,6 +154,11 @@ class FailureWriter {
         return resultName;
     }
 
+    /**
+     * Reads all descriptor's fields.
+     *
+     * @return name-to-value String map.
+     */
     private Map<String, String> readFieldValues() {
         def fields = new LinkedHashMap<>();
 

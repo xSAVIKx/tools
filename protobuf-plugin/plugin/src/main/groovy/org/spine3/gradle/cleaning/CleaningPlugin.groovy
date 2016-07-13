@@ -11,6 +11,9 @@ import static org.spine3.gradle.ProtobufPlugin.getDirsToClean
  */
 class CleaningPlugin implements Plugin<Project> {
 
+    /**
+     * Adds `:preClean` task, whic is executed before `:clean` task.
+     */
     @Override
     void apply(Project project) {
         final Task preClean = project.task("preClean") << {

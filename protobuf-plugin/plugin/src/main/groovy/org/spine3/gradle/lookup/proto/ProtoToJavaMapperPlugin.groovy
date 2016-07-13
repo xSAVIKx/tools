@@ -68,6 +68,11 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
     private static final String PROTO_PACKAGE_PREFIX = "package ";
     private static final Pattern PROTO_PACKAGE_PATTERN = Pattern.compile(PROTO_PACKAGE_PREFIX + "([a-zA-Z0-9_.]*);*");
 
+    /**
+     * Adds `:scanProtos` and `:scanTestProtos` tasks
+     * which depend on the corresponding `:generateProto` tasks
+     * and executed before the corresponding `:processResources` tasks.
+     */
     @Override
     public void apply(Project project) {
         final Task scanProtosTask = project.task("scanProtos") << {
@@ -104,6 +109,13 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         writer.write(propsMap);
     }
 
+    /**
+     * Parses Protobuf type URLs and target Java class names from `.proto` files in the path.
+     *
+     * @param rootProtoPath where all `.proto` files are located
+     * @param project the target project to which the task is applied
+     * @return protoTypeUrl-to-javaClassName map
+     */
     private static Map<String, String> parseProtos(String rootProtoPath, Project project) {
         final Map<String, String> entries = new HashMap<String, String>();
         final File root = new File(rootProtoPath);
@@ -114,6 +126,11 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
             }
         }
         return entries;
+    }
+
+    private static Map<String, String> parseProtoFile(File file) {
+        final Map<String, String> result = new ProtoParser(file).parse();
+        return result;
     }
 
     /** Parses a `.proto` file and creates a map with entries for the `.properties` file. */
@@ -208,6 +225,13 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
             return result;
         }
 
+        /**
+         * Adds class to Proto and Java class names lists.
+         *
+         * <p>Responds to class depth and adds necessary parent names.
+         *
+         * @param className found proto class name
+         */
         private void addClass(String className) {
             String protoFullClassName = className;
             String javaFullClassName = className;
@@ -220,6 +244,12 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
             javaClasses.add(javaFullClassName);
         }
 
+        /**
+         * Finds data inside the String using Pattern.
+         *
+         * @return matched String
+         * @throws IllegalArgumentException in case of invalid data received
+         */
         private String findLineData(String line, Pattern pattern) {
             final Matcher matcher = pattern.matcher(line);
             if (matcher.matches()) {
