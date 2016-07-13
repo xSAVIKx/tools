@@ -23,6 +23,7 @@ import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.spine3.gradle.Extension
 import org.spine3.gradle.util.PropertiesWriter
 
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto
@@ -53,14 +54,14 @@ public class EnrichmentLookupPlugin implements Plugin<Project> {
     void apply(Project project) {
         this.projectPath = project.getProjectDir().getAbsolutePath()
         final Task findEnrichmentsTask = project.task("findEnrichments") << {
-            findEnrichmentsAndWriteProps(org.spine3.gradle.Extension.getMainTargetGenResourcesDir(project), org.spine3.gradle.Extension.getMainDescriptorSetPath(project))
+            findEnrichmentsAndWriteProps(Extension.getMainTargetGenResourcesDir(project), Extension.getMainDescriptorSetPath(project))
         }
         findEnrichmentsTask.dependsOn("compileJava")
         final Task processResources = project.getTasks().getByPath("processResources")
         processResources.dependsOn(findEnrichmentsTask)
 
         final Task findTestEnrichmentsTask = project.task("findTestEnrichments") << {
-            findEnrichmentsAndWriteProps(org.spine3.gradle.Extension.getTestTargetGenResourcesDir(project), org.spine3.gradle.Extension.getTestDescriptorSetPath(project))
+            findEnrichmentsAndWriteProps(Extension.getTestTargetGenResourcesDir(project), Extension.getTestDescriptorSetPath(project))
         }
         findTestEnrichmentsTask.dependsOn("compileTestJava")
         final Task processTestResources = project.getTasks().getByPath("processTestResources")
