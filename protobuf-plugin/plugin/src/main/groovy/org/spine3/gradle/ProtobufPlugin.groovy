@@ -1,10 +1,15 @@
 package org.spine3.gradle
+
+import com.google.common.collect.ImmutableList
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.spine3.gradle.cleaning.CleaningPlugin
 import org.spine3.gradle.failures.FailuresGenPlugin
 import org.spine3.gradle.lookup.enrichments.EnrichmentLookupPlugin
 import org.spine3.gradle.lookup.proto.ProtoToJavaMapperPlugin
+
+import static java.util.Collections.*
+
 /**
  * Root plugin, which aggregates other plugins.
  */
@@ -82,13 +87,16 @@ class ProtobufPlugin implements Plugin<Project> {
         }
     }
 
-    public static String[] getDirsToClean(Project project) {
+    public static List<String> getDirsToClean(Project project) {
         final String[] dirs = project.spineProtobuf.dirsToClean;
-        if (dirs.length == 0) {
-            return ["$project.projectDir.absolutePath/generated"];
-        } else {
-            return dirs;
+        if (dirs.length > 0) {
+            return ImmutableList.copyOf(dirs);
         }
+        final String singleDir = project.spineProtobuf.dirToClean;
+        if (singleDir != null) {
+            return singletonList(singleDir);
+        }
+        return singletonList("$project.projectDir.absolutePath/generated");
     }
 
     /**
@@ -132,7 +140,16 @@ class ProtobufPlugin implements Plugin<Project> {
         public String targetGenFailuresRootDir;
 
         /**
+         * The absolute path to directory to delete.
+         *
+         * <p>Either this property OR {@code dirsToClean} property is used.
+         */
+        public String dirToClean;
+
+        /**
          * The absolute paths to directories to delete.
+         *
+         * <p>Either this property OR {@code dirToClean} property is used.
          */
         public String[] dirsToClean = [];
     }

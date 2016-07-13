@@ -1,5 +1,5 @@
 package org.spine3.gradle.cleaning
-import com.google.common.collect.ImmutableList
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -23,9 +23,9 @@ class CleaningPlugin implements Plugin<Project> {
         tasks.getByPath("clean").dependsOn(preClean);
     }
 
-    private static void deleteDirs(String[] dirs) {
-        for (String path : ImmutableList.copyOf(dirs)) {
-            final def file = new File(path);
+    private static void deleteDirs(List<String> dirs) {
+        for (String dirPath : dirs) {
+            final def file = new File(dirPath);
             if (file.exists() && file.isDirectory()) {
                 file.deleteDir();
             }
