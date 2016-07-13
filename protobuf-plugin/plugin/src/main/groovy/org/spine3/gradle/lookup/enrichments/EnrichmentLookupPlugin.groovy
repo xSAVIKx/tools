@@ -11,8 +11,8 @@
  * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
  * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES LOSS OF USE,
+ * DATA, OR PROFITS OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
@@ -30,7 +30,7 @@ import static org.spine3.gradle.ProtobufPlugin.*
 import static org.spine3.gradle.util.DescriptorSetUtil.getProtoFileDescriptors
 
 /**
- * Finds event enrichment Protobuf definitions; creates a {@code .properties} file, which contains entries like:
+ * Finds event enrichment Protobuf definitions and creates a {@code .properties} file, which contains entries like:
  *
  * <p>{@code ENRICHMENT_TYPE_NAME=EVENT_TO_ENRICH_TYPE_NAME}
  *
@@ -46,39 +46,39 @@ public class EnrichmentLookupPlugin implements Plugin<Project> {
     /**
      * The name of the file to populate. NOTE: also change its name used in the `core-java` project on changing.
      */
-    private static final String PROPS_FILE_NAME = "enrichments.properties";
+    private static final String PROPS_FILE_NAME = "enrichments.properties"
 
-    private String projectPath;
+    private String projectPath
 
     @Override
     void apply(Project project) {
-        this.projectPath = project.getProjectDir().getAbsolutePath();
+        this.projectPath = project.getProjectDir().getAbsolutePath()
         final Task findEnrichmentsTask = project.task("findEnrichments") << {
-            findEnrichmentsAndWriteProps(ExtensionUtil.getMainTargetGenResourcesDir(project), ExtensionUtil.getMainDescriptorSetPath(project));
+            findEnrichmentsAndWriteProps(ExtensionUtil.getMainTargetGenResourcesDir(project), ExtensionUtil.getMainDescriptorSetPath(project))
         }
-        findEnrichmentsTask.dependsOn("compileJava");
-        final Task processResources = project.getTasks().getByPath("processResources");
-        processResources.dependsOn(findEnrichmentsTask);
+        findEnrichmentsTask.dependsOn("compileJava")
+        final Task processResources = project.getTasks().getByPath("processResources")
+        processResources.dependsOn(findEnrichmentsTask)
 
         final Task findTestEnrichmentsTask = project.task("findTestEnrichments") << {
-            findEnrichmentsAndWriteProps(ExtensionUtil.getTestTargetGenResourcesDir(project), ExtensionUtil.getTestDescriptorSetPath(project));
+            findEnrichmentsAndWriteProps(ExtensionUtil.getTestTargetGenResourcesDir(project), ExtensionUtil.getTestDescriptorSetPath(project))
         }
-        findTestEnrichmentsTask.dependsOn("compileTestJava");
-        final Task processTestResources = project.getTasks().getByPath("processTestResources");
-        processTestResources.dependsOn(findTestEnrichmentsTask);
+        findTestEnrichmentsTask.dependsOn("compileTestJava")
+        final Task processTestResources = project.getTasks().getByPath("processTestResources")
+        processTestResources.dependsOn(findTestEnrichmentsTask)
     }
 
     private static void findEnrichmentsAndWriteProps(String targetGeneratedResourcesDir, String descriptorSetPath) {
-        final Map<String, String> propsMap = new HashMap<>();
-        final List<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath);
+        final Map<String, String> propsMap = new HashMap<>()
+        final List<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath)
         for (FileDescriptorProto file : files) {
-            final Map<String, String> enrichments = new EnrichmentsFinder(file).findEnrichments();
-            propsMap.putAll(enrichments);
+            final Map<String, String> enrichments = new EnrichmentsFinder(file).findEnrichments()
+            propsMap.putAll(enrichments)
         }
         if (propsMap.isEmpty()) {
-            return;
+            return
         }
-        final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir, PROPS_FILE_NAME);
-        writer.write(propsMap);
+        final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir, PROPS_FILE_NAME)
+        writer.write(propsMap)
     }
 }

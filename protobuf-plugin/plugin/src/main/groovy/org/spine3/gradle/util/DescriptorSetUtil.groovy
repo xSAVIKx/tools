@@ -11,21 +11,21 @@
  * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
  * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES LOSS OF USE,
+ * DATA, OR PROFITS OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.util;
+package org.spine3.gradle.util
 
 import com.google.common.base.Predicate
-import com.google.common.base.Predicates;
-import groovy.util.logging.Slf4j;
+import com.google.common.base.Predicates
+import groovy.util.logging.Slf4j
 
-import static com.google.protobuf.DescriptorProtos.FileDescriptorProto;
-import static com.google.protobuf.DescriptorProtos.FileDescriptorSet;
+import static com.google.protobuf.DescriptorProtos.FileDescriptorProto
+import static com.google.protobuf.DescriptorProtos.FileDescriptorSet
 
 /**
  * A utility class for working with Protobuf file descriptors.
@@ -37,7 +37,7 @@ public class DescriptorSetUtil {
 
     private static final String MSG_ENABLE_DESCRIPTOR_SET_GENERATION =
             "Please enable descriptor set generation. See an appropriate section at " +
-            "https://github.com/google/protobuf-gradle-plugin/blob/master/README.md#customize-code-generation-tasks";
+            "https://github.com/google/protobuf-gradle-plugin/blob/master/README.md#customize-code-generation-tasks"
 
     /**
      * Returns the `.proto` file descriptors.
@@ -47,7 +47,7 @@ public class DescriptorSetUtil {
      * @return a list of descriptors
      */
     public static List<FileDescriptorProto> getProtoFileDescriptors(String descriptorSetFilePath) {
-        return getProtoFileDescriptors(descriptorSetFilePath, Predicates.alwaysTrue());
+        return getProtoFileDescriptors(descriptorSetFilePath, Predicates.alwaysTrue())
     }
 
     /**
@@ -61,18 +61,18 @@ public class DescriptorSetUtil {
     public static List<FileDescriptorProto> getProtoFileDescriptors(String descriptorSetFilePath,
                                                                     Predicate<FileDescriptorProto> filter) {
         if (!new File(descriptorSetFilePath).exists()) {
-            log.warn(MSG_ENABLE_DESCRIPTOR_SET_GENERATION);
-            return Collections.emptyList();
+            log.warn(MSG_ENABLE_DESCRIPTOR_SET_GENERATION)
+            return Collections.emptyList()
         }
-        final List<FileDescriptorProto> fileDescriptors = new LinkedList<>();
+        final List<FileDescriptorProto> fileDescriptors = new LinkedList<>()
         new FileInputStream(descriptorSetFilePath).withStream {
-            final FileDescriptorSet descriptorSet = FileDescriptorSet.parseFrom(it);
+            final FileDescriptorSet descriptorSet = FileDescriptorSet.parseFrom(it)
             descriptorSet.fileList.each { FileDescriptorProto descriptor ->
                 if (filter.apply(descriptor)) {
-                    fileDescriptors.add(descriptor);
+                    fileDescriptors.add(descriptor)
                 }
             }
         }
-        return fileDescriptors;
+        return fileDescriptors
     }
 }

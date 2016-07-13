@@ -11,25 +11,25 @@
  * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
  * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES LOSS OF USE,
+ * DATA, OR PROFITS OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.lookup.enrichments;
+package org.spine3.gradle.lookup.enrichments
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
-import groovy.util.logging.Slf4j;
+import com.google.common.base.Joiner
+import com.google.common.collect.ImmutableMap
+import groovy.util.logging.Slf4j
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
-import static com.google.common.collect.Lists.*;
-import static com.google.protobuf.DescriptorProtos.*;
-import static java.util.AbstractMap.SimpleEntry;
+import static com.google.common.collect.Lists.*
+import static com.google.protobuf.DescriptorProtos.*
+import static java.util.AbstractMap.SimpleEntry
 
 /**
  * Finds event enrichment Protobuf definitions.
@@ -40,30 +40,30 @@ import static java.util.AbstractMap.SimpleEntry;
 @SuppressWarnings("UnnecessaryQualifiedReference")
 public class EnrichmentsFinder {
 
-    private static final String MSG_FQN_REGEX = /[a-zA-Z0-9._]+/;
+    private static final String MSG_FQN_REGEX = /[a-zA-Z0-9._]+/
 
     /**
      * The field number of the field option `by` defined in `Spine/core-java`.
      */
-    private static final String OPTION_FIELD_NUMBER_ENRICH_BY = "57125";
+    private static final String OPTION_FIELD_NUMBER_ENRICH_BY = "57125"
 
     private static final Pattern OPTION_PATTERN_ENRICH_BY =
-            Pattern.compile(/$OPTION_FIELD_NUMBER_ENRICH_BY: "($MSG_FQN_REGEX)"/);
+            Pattern.compile(/$OPTION_FIELD_NUMBER_ENRICH_BY: "($MSG_FQN_REGEX)"/)
 
     /**
      * The field number of the message option `enrichment_for` defined in `Spine/core-java`.
      */
-    private static final String OPTION_FIELD_NUMBER_ENRICHMENT_FOR = "57124";
+    private static final String OPTION_FIELD_NUMBER_ENRICHMENT_FOR = "57124"
 
-    private static final Pattern PATTERN_SPACE = Pattern.compile(" ");
-    private static final Pattern PATTERN_QUOTE = Pattern.compile("\"");
+    private static final Pattern PATTERN_SPACE = Pattern.compile(" ")
+    private static final Pattern PATTERN_QUOTE = Pattern.compile("\"")
 
-    private static final String PROTO_TYPE_SEPARATOR = ".";
-    private static final String EVENT_NAME_SEPARATOR = ",";
-    private static final String COLON = ":";
+    private static final String PROTO_TYPE_SEPARATOR = "."
+    private static final String EVENT_NAME_SEPARATOR = ","
+    private static final String COLON = ":"
 
-    private final FileDescriptorProto file;
-    private final String packagePrefix;
+    private final FileDescriptorProto file
+    private final String packagePrefix
 
     /**
      * Creates a new instance.
@@ -71,8 +71,8 @@ public class EnrichmentsFinder {
      * @param file a file to search enrichments in
      */
     public EnrichmentsFinder(FileDescriptorProto file) {
-        this.file = file;
-        this.packagePrefix = file.getPackage() + PROTO_TYPE_SEPARATOR;
+        this.file = file
+        this.packagePrefix = file.getPackage() + PROTO_TYPE_SEPARATOR
     }
 
     /**
@@ -82,126 +82,126 @@ public class EnrichmentsFinder {
      */
     public Map<String, String> findEnrichments() {
         // Do not name this method "find" to avoid a confusion with "DefaultGroovyMethods.find()".
-        final ImmutableMap.Builder<String, String> result = ImmutableMap.builder();
-        final List<DescriptorProto> messages = file.getMessageTypeList();
+        final ImmutableMap.Builder<String, String> result = ImmutableMap.builder()
+        final List<DescriptorProto> messages = file.getMessageTypeList()
         for (DescriptorProto msg : messages) {
             putEntry(result, msg)
         }
-        return result.build();
+        return result.build()
     }
 
     private void putEntry(ImmutableMap.Builder<String, String> mapBuilder, DescriptorProto msg) {
-        final Map.Entry entry = scanMsg(msg);
+        final Map.Entry entry = scanMsg(msg)
         if (entry != null) {
-            put(entry, mapBuilder);
-            return;
+            put(entry, mapBuilder)
+            return
         }
-        final Map.Entry entryFromField = scanFields(msg);
+        final Map.Entry entryFromField = scanFields(msg)
         if (entryFromField != null) {
-            put(entryFromField, mapBuilder);
-            return;
+            put(entryFromField, mapBuilder)
+            return
         }
-        final Map.Entry entryFromInnerMsg = scanInnerMessages(msg);
+        final Map.Entry entryFromInnerMsg = scanInnerMessages(msg)
         if (entryFromInnerMsg != null) {
-            put(entryFromInnerMsg, mapBuilder);
+            put(entryFromInnerMsg, mapBuilder)
         }
     }
 
     private Map.Entry<String, String> scanMsg(DescriptorProto msg) {
-        final String eventNames = parseEventNamesFromMsgOption(msg);
+        final String eventNames = parseEventNamesFromMsgOption(msg)
         if (eventNames == null) {
-            return null;
+            return null
         }
-        final String enrichmentName = packagePrefix + msg.getName();
-        return new SimpleEntry<>(enrichmentName, eventNames);
+        final String enrichmentName = packagePrefix + msg.getName()
+        return new SimpleEntry<>(enrichmentName, eventNames)
     }
 
     private Map.Entry<String, String> scanFields(DescriptorProto msg) {
-        final String msgName = msg.getName();
+        final String msgName = msg.getName()
         for (FieldDescriptorProto field : msg.getFieldList()) {
             if (hasOptionEnrichBy(field)) {
-                final String eventNameFromBy = parseEventNameFromOptBy(field);
+                final String eventNameFromBy = parseEventNameFromOptBy(field)
                 if (eventNameFromBy == null) {
-                    throw invalidByOptionValue(msgName);
+                    throw invalidByOptionValue(msgName)
                 }
-                final String enrichmentName = packagePrefix + msgName;
-                return new SimpleEntry<>(enrichmentName, eventNameFromBy);
+                final String enrichmentName = packagePrefix + msgName
+                return new SimpleEntry<>(enrichmentName, eventNameFromBy)
             }
         }
-        return null;
+        return null
     }
 
     private Map.Entry<String, String> scanInnerMessages(DescriptorProto msg) {
         for (DescriptorProto innerMsg : msg.getNestedTypeList()) {
             for (FieldDescriptorProto field : innerMsg.getFieldList()) {
                 if (hasOptionEnrichBy(field)) {
-                    final String outerEventName = packagePrefix + msg.getName();
-                    final String enrichmentName = outerEventName + PROTO_TYPE_SEPARATOR + innerMsg.getName();
-                    return new SimpleEntry<>(enrichmentName, outerEventName);
+                    final String outerEventName = packagePrefix + msg.getName()
+                    final String enrichmentName = outerEventName + PROTO_TYPE_SEPARATOR + innerMsg.getName()
+                    return new SimpleEntry<>(enrichmentName, outerEventName)
                 }
             }
         }
-        return null;
+        return null
     }
 
     private String parseEventNamesFromMsgOption(DescriptorProto msg) {
         // This needed option is "unknown" and serialized, but it is possible to print option field numbers and values.
-        final String optionsStr = msg.getOptions().getUnknownFields().toString().trim();
+        final String optionsStr = msg.getOptions().getUnknownFields().toString().trim()
         if (!optionsStr.contains(OPTION_FIELD_NUMBER_ENRICHMENT_FOR)) {
-            return null;
+            return null
         }
         final List<String> eventNamesPrimary = parseEventNames(optionsStr)
-        final List<String> eventNamesResult = newLinkedList();
+        final List<String> eventNamesResult = newLinkedList()
         for (String eventName : eventNamesPrimary) {
-            final boolean isFqn = eventName.contains(PROTO_TYPE_SEPARATOR);
+            final boolean isFqn = eventName.contains(PROTO_TYPE_SEPARATOR)
             if (isFqn) {
-                eventNamesResult.add(eventName);
+                eventNamesResult.add(eventName)
             } else {
-                eventNamesResult.add(packagePrefix + eventName);
+                eventNamesResult.add(packagePrefix + eventName)
             }
         }
-        final String result = Joiner.on(EVENT_NAME_SEPARATOR).join(eventNamesResult);
-        return result;
+        final String result = Joiner.on(EVENT_NAME_SEPARATOR).join(eventNamesResult)
+        return result
     }
 
     private static List<String> parseEventNames(String optionsStr) {
-        final int colonIndex = optionsStr.indexOf(COLON);
-        optionsStr = optionsStr.substring(colonIndex + 1);
-        optionsStr = PATTERN_SPACE.matcher(optionsStr).replaceAll("");
-        optionsStr = PATTERN_QUOTE.matcher(optionsStr).replaceAll("");
-        final List<String> eventNames = newArrayList(optionsStr.split(EVENT_NAME_SEPARATOR));
-        return eventNames;
+        final int colonIndex = optionsStr.indexOf(COLON)
+        optionsStr = optionsStr.substring(colonIndex + 1)
+        optionsStr = PATTERN_SPACE.matcher(optionsStr).replaceAll("")
+        optionsStr = PATTERN_QUOTE.matcher(optionsStr).replaceAll("")
+        final List<String> eventNames = newArrayList(optionsStr.split(EVENT_NAME_SEPARATOR))
+        return eventNames
     }
 
     private static boolean hasOptionEnrichBy(FieldDescriptorProto field) {
-        final String optionsStr = getOptionsString(field);
-        final boolean result = optionsStr.contains(OPTION_FIELD_NUMBER_ENRICH_BY);
-        return result;
+        final String optionsStr = getOptionsString(field)
+        final boolean result = optionsStr.contains(OPTION_FIELD_NUMBER_ENRICH_BY)
+        return result
     }
 
     private static String parseEventNameFromOptBy(FieldDescriptorProto field) {
-        final String optionsStr = getOptionsString(field);
-        final Matcher matcher = OPTION_PATTERN_ENRICH_BY.matcher(optionsStr);
+        final String optionsStr = getOptionsString(field)
+        final Matcher matcher = OPTION_PATTERN_ENRICH_BY.matcher(optionsStr)
         if (!matcher.matches()) {
-            return null;
+            return null
         }
-        final String fieldFqn = matcher.group(1);
-        final int index = fieldFqn.lastIndexOf(PROTO_TYPE_SEPARATOR);
+        final String fieldFqn = matcher.group(1)
+        final int index = fieldFqn.lastIndexOf(PROTO_TYPE_SEPARATOR)
         if (index < 0) {
-            return null;
+            return null
         }
-        final String eventName = fieldFqn.substring(0, index);
-        return eventName;
+        final String eventName = fieldFqn.substring(0, index)
+        return eventName
     }
 
     private static String getOptionsString(FieldDescriptorProto field) {
         // This needed option is "unknown" and serialized, but it is possible to print option field numbers and values.
-        final String optionsStr = field.getOptions().getUnknownFields().toString().trim();
-        return optionsStr;
+        final String optionsStr = field.getOptions().getUnknownFields().toString().trim()
+        return optionsStr
     }
 
     private static void put(Map.Entry<String, String> entry, ImmutableMap.Builder<String, String> mapBuilder) {
-        mapBuilder.put(entry.getKey(), entry.getValue());
+        mapBuilder.put(entry.getKey(), entry.getValue())
     }
 
     private static RuntimeException invalidByOptionValue(String msgName) {
