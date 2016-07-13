@@ -1,14 +1,14 @@
-package org.spine3.gradle
+package org.spine3.gradle;
 
-import com.google.common.collect.ImmutableList
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.spine3.gradle.cleaning.CleaningPlugin
-import org.spine3.gradle.failures.FailuresGenPlugin
-import org.spine3.gradle.lookup.enrichments.EnrichmentLookupPlugin
-import org.spine3.gradle.lookup.proto.ProtoToJavaMapperPlugin
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.spine3.gradle.cleaning.CleaningPlugin;
+import org.spine3.gradle.failures.FailuresGenPlugin;
+import org.spine3.gradle.lookup.enrichments.EnrichmentLookupPlugin;
+import org.spine3.gradle.lookup.proto.ProtoToJavaMapperPlugin;
 
-import static java.util.Collections.*
+import static java.util.Collections.*;
 
 /**
  * Root plugin, which aggregates other plugins.

@@ -1,10 +1,10 @@
-package org.spine3.gradle.cleaning
+package org.spine3.gradle.cleaning;
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.Task
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 
-import static org.spine3.gradle.ProtobufPlugin.getDirsToClean
+import static org.spine3.gradle.ProtobufPlugin.getDirsToClean;
 
 /**
  * Plugin which performs additional cleaning on clean task.
@@ -12,14 +12,14 @@ import static org.spine3.gradle.ProtobufPlugin.getDirsToClean
 class CleaningPlugin implements Plugin<Project> {
 
     /**
-     * Adds `:preClean` task, whic is executed before `:clean` task.
+     * Adds `:preClean` task, which is executed before `:clean` task.
      */
     @Override
     void apply(Project project) {
         final Task preClean = project.task("preClean") << {
             deleteDirs(getDirsToClean(project));
         }
-        final def tasks = project.getTasks()
+        final def tasks = project.getTasks();
         tasks.getByPath("clean").dependsOn(preClean);
     }
 
