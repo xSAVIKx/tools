@@ -24,81 +24,6 @@ class ProtobufPlugin implements Plugin<Project> {
         new FailuresGenPlugin().apply(project);
     }
 
-    public static String getMainTargetGenResourcesDir(Project project) {
-        final String path = project.spineProtobuf.mainTargetGenResourcesDir;
-        if (path == null) {
-            return "$project.projectDir.absolutePath/generated/main/resources";
-        } else {
-            return path;
-        }
-    }
-
-    public static String getTestTargetGenResourcesDir(Project project) {
-        final String path = project.spineProtobuf.testTargetGenResourcesDir;
-        if (path == null) {
-            return "$project.projectDir.absolutePath/generated/test/resources";
-        } else {
-            return path;
-        }
-    }
-
-    public static String getMainProtoSrcDir(Project project) {
-        def path = project.spineProtobuf.mainProtoSrcDir;
-        if (path == null) {
-            return "$project.projectDir.absolutePath/src/main/proto";
-        } else {
-            return path;
-        }
-    }
-
-    public static String getTestProtoSrcDir(Project project) {
-        final String path = project.spineProtobuf.testProtoSrcDir;
-        if (path == null) {
-            return "$project.projectDir.absolutePath/src/test/proto";
-        } else {
-            return path;
-        }
-    }
-
-    public static String getMainDescriptorSetPath(Project project) {
-        final String path = project.spineProtobuf.mainDescriptorSetPath;
-        if (path == null) {
-            return "$project.projectDir.absolutePath/build/descriptors/main.desc";
-        } else {
-            return path;
-        }
-    }
-
-    public static String getTestDescriptorSetPath(Project project) {
-        final String path = project.spineProtobuf.testDescriptorSetPath;
-        if (path == null) {
-            return "$project.projectDir.absolutePath/build/descriptors/test.desc";
-        } else {
-            return path;
-        }
-    }
-
-    public static String getTargetGenFailuresRootDir(Project project) {
-        final String path = project.spineProtobuf.targetGenFailuresRootDir;
-        if (path == null) {
-            return "$project.projectDir.absolutePath/generated/main/spine";
-        } else {
-            return path;
-        }
-    }
-
-    public static List<String> getDirsToClean(Project project) {
-        final String[] dirs = project.spineProtobuf.dirsToClean;
-        if (dirs.length > 0) {
-            return ImmutableList.copyOf(dirs);
-        }
-        final String singleDir = project.spineProtobuf.dirToClean;
-        if (singleDir != null) {
-            return singletonList(singleDir);
-        }
-        return singletonList("$project.projectDir.absolutePath/generated");
-    }
-
     /**
      * A config for the plugin.
      */
@@ -152,5 +77,86 @@ class ProtobufPlugin implements Plugin<Project> {
          * <p>Either this property OR {@code dirToClean} property is used.
          */
         public String[] dirsToClean = [];
+    }
+
+    /**
+     * A utility class for obtaining the configuration for the plugin.
+     */
+    public static class ExtensionUtil {
+
+        public static String getMainTargetGenResourcesDir(Project project) {
+            final String path = project.spineProtobuf.mainTargetGenResourcesDir;
+            if (path == null) {
+                return "$project.projectDir.absolutePath/generated/main/resources";
+            } else {
+                return path;
+            }
+        }
+
+        public static String getTestTargetGenResourcesDir(Project project) {
+            final String path = project.spineProtobuf.testTargetGenResourcesDir;
+            if (path == null) {
+                return "$project.projectDir.absolutePath/generated/test/resources";
+            } else {
+                return path;
+            }
+        }
+
+        public static String getMainProtoSrcDir(Project project) {
+            def path = project.spineProtobuf.mainProtoSrcDir;
+            if (path == null) {
+                return "$project.projectDir.absolutePath/src/main/proto";
+            } else {
+                return path;
+            }
+        }
+
+        public static String getTestProtoSrcDir(Project project) {
+            final String path = project.spineProtobuf.testProtoSrcDir;
+            if (path == null) {
+                return "$project.projectDir.absolutePath/src/test/proto";
+            } else {
+                return path;
+            }
+        }
+
+        public static String getMainDescriptorSetPath(Project project) {
+            final String path = project.spineProtobuf.mainDescriptorSetPath;
+            if (path == null) {
+                return "$project.projectDir.absolutePath/build/descriptors/main.desc";
+            } else {
+                return path;
+            }
+        }
+
+        public static String getTestDescriptorSetPath(Project project) {
+            final String path = project.spineProtobuf.testDescriptorSetPath;
+            if (path == null) {
+                return "$project.projectDir.absolutePath/build/descriptors/test.desc";
+            } else {
+                return path;
+            }
+        }
+
+        public static String getTargetGenFailuresRootDir(Project project) {
+            final String path = project.spineProtobuf.targetGenFailuresRootDir;
+            if (path == null) {
+                return "$project.projectDir.absolutePath/generated/main/spine";
+            } else {
+                return path;
+            }
+        }
+
+        public static List<String> getDirsToClean(Project project) {
+            final String[] dirs = project.spineProtobuf.dirsToClean;
+            if (dirs.length > 0) {
+                return ImmutableList.copyOf(dirs);
+            }
+            final String singleDir = project.spineProtobuf.dirToClean;
+            if (singleDir != null) {
+                return singletonList(singleDir);
+            }
+            return singletonList("$project.projectDir.absolutePath/generated");
+        }
     }
 }

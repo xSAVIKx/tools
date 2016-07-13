@@ -33,13 +33,13 @@ class FailuresGenPlugin implements Plugin<Project> {
         this.project = project;
 
         final Task generateFailures = project.task("generateFailures") << {
-            final def path = getMainDescriptorSetPath(project)
+            final def path = ExtensionUtil.getMainDescriptorSetPath(project)
             processDescriptors(getFailureProtoFileDescriptors(path));
         };
         generateFailures.dependsOn("generateProto");
 
         final Task generateTestFailures = project.task("generateTestFailures") << {
-            final def path = getTestDescriptorSetPath(project)
+            final def path = ExtensionUtil.getTestDescriptorSetPath(project)
             processDescriptors(getFailureProtoFileDescriptors(path));
         };
         generateTestFailures.dependsOn("generateTestProto");
@@ -124,7 +124,7 @@ class FailuresGenPlugin implements Plugin<Project> {
     }
 
     private void generateFailures(FileDescriptorProto descriptor, Map<String, String> messageTypeMap) {
-        final String failuresRootDir = getTargetGenFailuresRootDir(project);
+        final String failuresRootDir = ExtensionUtil.getTargetGenFailuresRootDir(project);
         final String packageDirs = descriptor.options.javaPackage.replace(".", "/");
         final List<DescriptorProtos.DescriptorProto> failures = descriptor.messageTypeList;
         failures.each { DescriptorProtos.DescriptorProto failure ->
