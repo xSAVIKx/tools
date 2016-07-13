@@ -25,10 +25,15 @@ import groovy.util.logging.Slf4j;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.spine3.gradle.lookup.PropertiesWriter;
+import org.spine3.gradle.util.PropertiesWriter;
 
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.regex.Pattern
+
+import static org.spine3.gradle.ProtobufPlugin.getMainProtoSrcDir
+import static org.spine3.gradle.ProtobufPlugin.getMainTargetGenResourcesDir
+import static org.spine3.gradle.ProtobufPlugin.getTestProtoSrcDir
+import static org.spine3.gradle.ProtobufPlugin.getTestTargetGenResourcesDir;
 
 /**
  * Plugin which performs generated Java classes (based on protobuf) search.
@@ -40,12 +45,10 @@ import java.util.regex.Pattern;
 @Slf4j
 class ProtoToJavaMapperPlugin implements Plugin<Project> {
 
-    private static final String PROPERTIES_PATH_SUFFIX = "resources";
-
     /**
      * The name of the file to populate. NOTE: also change its name used in the `core-java` project on changing.
      */
-    private static final String PROPERTIES_PATH_FILE_NAME = "known_types.properties";
+    private static final String PROPERTIES_FILE_NAME = "known_types.properties";
 
     private static final String PROTO_FILE_NAME_SUFFIX = ".proto";
 
@@ -68,11 +71,11 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         final Task scanProtosTask = project.task("scanProtos") << {
-            scanRootDir(project, "main");
+            scanProtos(project);
         };
         scanProtosTask.dependsOn("generateProto");
         final Task scanTestProtosTask = project.task("scanTestProtos") << {
-            scanRootDir(project, "test");
+            scanTestProtos(project);
         };
         scanTestProtosTask.dependsOn("generateTestProto");
         final def tasks = project.getTasks()
@@ -82,20 +85,23 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         processTestResources.dependsOn(scanTestProtosTask);
     }
 
-    private static void scanRootDir(Project target, String rootDirPathSuffix) {
-        final String projectPath = target.projectDir.absolutePath;
-        final String rootDirPath = "${projectPath}/generated/${rootDirPathSuffix}";
-        final String protoFilesPath = "${projectPath}/src/${rootDirPathSuffix}/proto";
-        final String srcFolder = "${rootDirPath}/java";
-        final File rootDir = new File(srcFolder);
-        if (!rootDir.exists()) {
-            log.debug("${ProtoToJavaMapperPlugin.class.getSimpleName()}: no ${rootDirPath}");
+    private static void scanProtos(Project project) {
+        parseProtosAndWriteProps(project, getMainTargetGenResourcesDir(project), getMainProtoSrcDir(project));
+    }
+
+    private static void scanTestProtos(Project project) {
+        parseProtosAndWriteProps(project, getTestTargetGenResourcesDir(project), getTestProtoSrcDir(project));
+    }
+
+    private static void parseProtosAndWriteProps(Project project,
+                                                 String targetGeneratedResourcesDir,
+                                                 String protoSrcDir) {
+        final Map<String, String> propsMap = parseProtos(protoSrcDir, project);
+        if (propsMap.isEmpty()) {
             return;
         }
-        final def protosPropertyValues = parseProtos(protoFilesPath, target);
-        final def propsFolderPath = rootDirPath + "/" + PROPERTIES_PATH_SUFFIX;
-        def writer = new PropertiesWriter(propsFolderPath, PROPERTIES_PATH_FILE_NAME);
-        writer.write(protosPropertyValues)
+        final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir, PROPERTIES_FILE_NAME);
+        writer.write(propsMap);
     }
 
     private static Map<String, String> parseProtos(String rootProtoPath, Project project) {
