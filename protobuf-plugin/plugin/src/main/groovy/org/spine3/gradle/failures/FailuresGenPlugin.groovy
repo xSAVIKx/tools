@@ -8,6 +8,7 @@ import org.gradle.api.Task
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto
 import static org.spine3.gradle.ProtobufPlugin.*
 import static org.spine3.gradle.util.DescriptorSetUtil.getProtoFileDescriptors
+
 /**
  * Plugin which generates Failures, based on failures.proto files.
  *
@@ -102,7 +103,8 @@ class FailuresGenPlugin implements Plugin<Project> {
             return classname;
         }
         classname = descriptor.name.substring(descriptor.name.lastIndexOf('/') + 1, descriptor.name.lastIndexOf(".proto"));
-        return "${classname.charAt(0).toUpperCase()}${classname.substring(1)}";
+        final def result = "${classname.charAt(0).toUpperCase()}${classname.substring(1)}"
+        return result;
     }
 
     private void cacheEnumType(DescriptorProtos.EnumDescriptorProto descriptor, String protoPrefix, String javaPrefix) {
@@ -112,8 +114,8 @@ class FailuresGenPlugin implements Plugin<Project> {
     private void cacheFieldType(DescriptorProtos.DescriptorProto descriptor, String protoPrefix, String javaPrefix) {
         cachedMessageTypes.put("${protoPrefix}${descriptor.name}", "${javaPrefix}${descriptor.name}");
         if (descriptor.nestedTypeCount > 0 || descriptor.enumTypeCount > 0) {
-            def nestedProtoPrefix = "${protoPrefix}${descriptor.name}.";
-            def nestedJavaPrefix = "${javaPrefix}${descriptor.name}.";
+            final def nestedProtoPrefix = "${protoPrefix}${descriptor.name}.";
+            final def nestedJavaPrefix = "${javaPrefix}${descriptor.name}.";
             for (def nestedDescriptor : descriptor.nestedTypeList) {
                 cacheFieldType(nestedDescriptor, nestedProtoPrefix, nestedJavaPrefix);
             }
