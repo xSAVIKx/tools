@@ -1,62 +1,54 @@
+/*
+ * Copyright 2016, TeamDev Ltd. All rights reserved.
+ *
+ * Redistribution and use in source and/or binary forms, with or without
+ * modification, must retain the above copyright notice and the following
+ * disclaimer.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package org.spine3.gradle.cleaning
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 
+import static org.spine3.gradle.Extension.getDirsToClean
+
 /**
  * Plugin which performs additional cleaning on clean task.
- *
- * <p>Currently removes generated files directory. To clean additional directories,
- * we need to extend this plugin's functionality with adding configurable closure
- * or add these directories to {@code defaultDirsToClean}.
  */
 class CleaningPlugin implements Plugin<Project> {
 
-    private String projectPath;
-
-    private def defaultDirsToClean = ["generated"];
-
     /**
-     * Applied to project.
-     *
-     * <p>Adds :preClean task.
-     * <p>Is executed before :clean task.
+     * Adds `:preClean` task, which is executed before `:clean` task.
      */
     @Override
-    void apply(Project target) {
-        projectPath = target.projectDir.absolutePath;
-
-        final Task preClean = target.task("preClean") << {
-            def dirsToClean = collectDirs();
-            cleanDirs(dirsToClean);
+    void apply(Project project) {
+        final Task preClean = project.task("preClean") << {
+            deleteDirs(getDirsToClean(project))
         }
-
-        final def targetTasks = target.getTasks()
-        targetTasks.getByPath("clean").dependsOn(preClean);
+        final def tasks = project.getTasks()
+        tasks.getByPath("clean").dependsOn(preClean)
     }
 
-    private List<String> collectDirs() {
-
-        final def dirs = new ArrayList<String>();
-
-        for (String dir : defaultDirsToClean) {
-            dirs.add(getAbsolutePath(dir));
-        }
-
-        return dirs;
-    }
-
-    private static void cleanDirs(List<String> paths) {
-        for (String path : paths) {
-            final def file = new File(path);
+    private static void deleteDirs(List<String> dirs) {
+        for (String dirPath : dirs) {
+            final def file = new File(dirPath)
             if (file.exists() && file.isDirectory()) {
-                file.deleteDir();
+                file.deleteDir()
             }
         }
-    }
-
-    private String getAbsolutePath(String dirRelativePath) {
-        return projectPath + "/" + dirRelativePath;
     }
 }

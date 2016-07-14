@@ -1,5 +1,5 @@
 group 'org.spine3.tools'
-version '1.4.7'
+version '1.4.8'
 
 apply plugin: 'maven'
 apply plugin: 'groovy'

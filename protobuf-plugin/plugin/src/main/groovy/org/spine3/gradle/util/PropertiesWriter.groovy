@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, TeamDev Ltd. All rights reserved.
+ * Copyright 2016, TeamDev Ltd. All rights reserved.
  *
  * Redistribution and use in source and/or binary forms, with or without
  * modification, must retain the above copyright notice and the following
@@ -18,9 +18,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.lookup;
+package org.spine3.gradle.util
 
-import static java.util.Map.Entry;
+import static java.util.Map.Entry
 
 /**
  * A utility class for writing to {@code .properties} file.
@@ -29,8 +29,8 @@ import static java.util.Map.Entry;
  */
 public class PropertiesWriter {
 
-    private final String propsFilePath;
-    private final String rootDirPath;
+    private final String propsFilePath
+    private final String rootDirPath
 
     /**
      * Creates a new instance.
@@ -39,7 +39,7 @@ public class PropertiesWriter {
      * @param propsFileName a name of the {@code .properties} file to write to (can be non-existing)
      */
     public PropertiesWriter(String rootDirPath, String propsFileName) {
-        this.rootDirPath = rootDirPath;
+        this.rootDirPath = rootDirPath
         this.propsFilePath = rootDirPath + "/" + propsFileName;
     }
 
@@ -49,34 +49,34 @@ public class PropertiesWriter {
      * @param propertiesMap a map containing properties to write to the file
      */
     public void write(Map<?, ?> propertiesMap) {
-        final File rootDir = new File(rootDirPath);
+        final File rootDir = new File(rootDirPath)
         if (!rootDir.exists()) {
-            rootDir.mkdirs();
+            rootDir.mkdirs()
         }
-        final Properties props = obtainSortedProperties();
-        File file = null;
+        final Properties props = obtainSortedProperties()
+        File file = null
         try {
-            file = new File(propsFilePath);
+            file = new File(propsFilePath)
         } catch (FileNotFoundException ignored) {}
         if (file.exists()) {
-            props.load(file.newDataInputStream());
-            final Set<String> names = props.stringPropertyNames();
+            props.load(file.newDataInputStream())
+            final Set<String> names = props.stringPropertyNames()
             for (Iterator<String> i = names.iterator(); i.hasNext();) {
-                final String propName = i.next();
-                props.setProperty(propName, props.getProperty(propName));
+                final String propName = i.next()
+                props.setProperty(propName, props.getProperty(propName))
             }
         } else {
-            file.parentFile.mkdirs();
-            file.createNewFile();
+            file.parentFile.mkdirs()
+            file.createNewFile()
         }
         for (Entry entry : propertiesMap.entrySet()) {
-            final String keyStr = entry.getKey().toString();
-            final String valueStr = entry.getValue().toString();
-            props.setProperty(keyStr, valueStr);
+            final String keyStr = entry.getKey().toString()
+            final String valueStr = entry.getValue().toString()
+            props.setProperty(keyStr, valueStr)
         }
-        final BufferedWriter writer = file.newWriter();
-        props.store(writer, /*comments=*/null);
-        writer.close();
+        final BufferedWriter writer = file.newWriter()
+        props.store(writer, /*comments=*/null)
+        writer.close()
     }
 
     /**
@@ -86,9 +86,9 @@ public class PropertiesWriter {
         final Properties props = new Properties() {
             @Override
             public synchronized Enumeration<Object> keys() {
-                return Collections.enumeration(new TreeSet<Object>(super.keySet()));
+                return Collections.enumeration(new TreeSet<Object>(super.keySet()))
             }
-        };
-        return props;
+        }
+        return props
     }
 }

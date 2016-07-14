@@ -18,19 +18,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.lookup.enrichments;
+package org.spine3.gradle.lookup.enrichments
+import groovy.util.logging.Slf4j
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.Task
+import org.spine3.gradle.Extension
+import org.spine3.gradle.util.PropertiesWriter
 
-import groovy.util.logging.Slf4j;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.spine3.gradle.lookup.PropertiesWriter;
-
-import static com.google.protobuf.DescriptorProtos.FileDescriptorProto;
-import static com.google.protobuf.DescriptorProtos.FileDescriptorSet;
+import static com.google.protobuf.DescriptorProtos.FileDescriptorProto
+import static org.spine3.gradle.util.DescriptorSetUtil.getProtoFileDescriptors
 
 /**
- * Finds event enrichment Protobuf definitions; creates a {@code .properties} file, which contains entries like:
+ * Finds event enrichment Protobuf definitions and creates a {@code .properties} file, which contains entries like:
  *
  * <p>{@code ENRICHMENT_TYPE_NAME=EVENT_TO_ENRICH_TYPE_NAME}
  *
@@ -46,65 +46,39 @@ public class EnrichmentLookupPlugin implements Plugin<Project> {
     /**
      * The name of the file to populate. NOTE: also change its name used in the `core-java` project on changing.
      */
-    private static final String PROPS_FILE_NAME = "enrichments.properties";
+    private static final String PROPS_FILE_NAME = "enrichments.properties"
 
-    public static final String MSG_ENABLE_DESCRIPTOR_SET_GENERATION =
-            "Please enable descriptor set generation. See an appropriate section at " +
-            "https://github.com/google/protobuf-gradle-plugin/blob/master/README.md#customize-code-generation-tasks"
-
-    private Project project;
-    private String projectPath;
+    private String projectPath
 
     @Override
     void apply(Project project) {
-        this.project = project;
-        this.projectPath = project.getProjectDir().getAbsolutePath();
+        this.projectPath = project.getProjectDir().getAbsolutePath()
         final Task findEnrichmentsTask = project.task("findEnrichments") << {
-            findEnrichmentsAndWriteProps("main", true);
+            findEnrichmentsAndWriteProps(Extension.getMainTargetGenResourcesDir(project), Extension.getMainDescriptorSetPath(project))
         }
-        findEnrichmentsTask.dependsOn("compileJava");
-        final Task processResources = project.getTasks().getByPath("processResources");
-        processResources.dependsOn(findEnrichmentsTask);
+        findEnrichmentsTask.dependsOn("compileJava")
+        final Task processResources = project.getTasks().getByPath("processResources")
+        processResources.dependsOn(findEnrichmentsTask)
 
         final Task findTestEnrichmentsTask = project.task("findTestEnrichments") << {
-            findEnrichmentsAndWriteProps("test", false);
+            findEnrichmentsAndWriteProps(Extension.getTestTargetGenResourcesDir(project), Extension.getTestDescriptorSetPath(project))
         }
-        findTestEnrichmentsTask.dependsOn("compileTestJava");
-        final Task processTestResources = project.getTasks().getByPath("processTestResources");
-        processTestResources.dependsOn(findTestEnrichmentsTask);
+        findTestEnrichmentsTask.dependsOn("compileTestJava")
+        final Task processTestResources = project.getTasks().getByPath("processTestResources")
+        processTestResources.dependsOn(findTestEnrichmentsTask)
     }
 
-    private void findEnrichmentsAndWriteProps(String mainOrTest, boolean enableWarn) {
-        final Map<String, String> propsMap = new HashMap<>();
-        final List<FileDescriptorProto> files = getFileDescriptors(mainOrTest, enableWarn);
+    private static void findEnrichmentsAndWriteProps(String targetGeneratedResourcesDir, String descriptorSetPath) {
+        final Map<String, String> propsMap = new HashMap<>()
+        final List<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath)
         for (FileDescriptorProto file : files) {
-            final Map<String, String> enrichments = new EnrichmentsFinder(file).findEnrichments();
-            propsMap.putAll(enrichments);
+            final Map<String, String> enrichments = new EnrichmentsFinder(file).findEnrichments()
+            propsMap.putAll(enrichments)
         }
         if (propsMap.isEmpty()) {
-            return;
+            return
         }
-        final PropertiesWriter writer = new PropertiesWriter(
-                "${projectPath}/generated/${mainOrTest}/resources",
-                PROPS_FILE_NAME);
-        writer.write(propsMap);
-    }
-
-    private List<FileDescriptorProto> getFileDescriptors(String mainOrTest, boolean enableWarn) {
-        final String descFilePath = "${projectPath}/build/descriptors/${mainOrTest}.desc";
-        if (!new File(descFilePath).exists()) {
-            if (enableWarn) {
-                log.warn(MSG_ENABLE_DESCRIPTOR_SET_GENERATION);
-            }
-            return Collections.emptyList();
-        }
-        final List<FileDescriptorProto> fileDescriptors = new LinkedList<>();
-        new FileInputStream(descFilePath).withStream {
-            final FileDescriptorSet descriptorSet = FileDescriptorSet.parseFrom(it);
-            descriptorSet.fileList.each { FileDescriptorProto descriptor ->
-                fileDescriptors.add(descriptor);
-            }
-        }
-        return fileDescriptors;
+        final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir, PROPS_FILE_NAME)
+        writer.write(propsMap)
     }
 }
