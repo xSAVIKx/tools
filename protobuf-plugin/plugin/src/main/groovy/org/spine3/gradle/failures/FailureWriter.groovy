@@ -37,10 +37,11 @@ class FailureWriter {
 
     private String className
 
-    private Map<String, String> messageTypeMap
+    /** A map from Protobuf type name to Java class FQN. */
+    private Map<GString, GString> messageTypeMap
 
     // https://developers.google.com/protocol-buffers/docs/proto3#scalar
-    private static final def commonProtoTypes = [
+    private static final Map<String, String> commonProtoTypes = [
             (FieldDescriptorProto.Type.TYPE_DOUBLE.name())  : "double",
             (FieldDescriptorProto.Type.TYPE_FLOAT.name())   : "float",
             (FieldDescriptorProto.Type.TYPE_INT64.name())   : "long",
@@ -70,7 +71,7 @@ class FailureWriter {
     FailureWriter(DescriptorProto failureDescriptor,
                   File outputFile,
                   String javaPackage,
-                  Map<String, String> messageTypeMap) {
+                  Map<GString, GString> messageTypeMap) {
         this.failureDescriptor = failureDescriptor
         this.outputFile = outputFile
         this.javaPackage = javaPackage
@@ -86,8 +87,7 @@ class FailureWriter {
 
         new FileOutputStream(outputFile).withStream {
             new OutputStreamWriter(it).withWriter {
-                def writer = it as OutputStreamWriter
-
+                final Writer writer = it as OutputStreamWriter
                 writePackage(writer)
                 readFieldValues()
                 writeImports(writer)
@@ -95,7 +95,6 @@ class FailureWriter {
                 writeConstructor(writer)
                 writeGetFailure(writer)
                 writeEnding(writer)
-
                 writer.flush()
             }
         }
@@ -129,18 +128,17 @@ class FailureWriter {
         writer.write("\tpublic $className(")
         final Set<Map.Entry<String, String>> fieldsEntries = readFieldValues().entrySet()
         for (int i = 0; i < fieldsEntries.size(); i++) {
-            Map.Entry<String, String> field = fieldsEntries.getAt(i)
-
+            final Map.Entry<String, String> field = fieldsEntries.getAt(i)
             writer.write("${field.value} ${getJavaFieldName(field.key, false)}")
-
-            if (i != fieldsEntries.size() - 1) {
+            final boolean isNotLast = i != fieldsEntries.size() - 1
+            if (isNotLast) {
                 writer.write(", ");
             }
         }
         writer.write(") {\n")
         writer.write("\t\tsuper(Failures.${className}.newBuilder()")
-        for (def field : fieldsEntries) {
-            def upperCaseName = getJavaFieldName(field.key, true)
+        for (Map.Entry<String, String> field : fieldsEntries) {
+            final String upperCaseName = getJavaFieldName(field.key, true)
             writer.write(".set${upperCaseName}(${getJavaFieldName(field.key, false)})")
         }
         writer.write(".build());\n")
@@ -162,10 +160,10 @@ class FailureWriter {
      * @return field name String.
      */
     private static String getJavaFieldName(String protoFieldName, boolean capitalizeFirstLetter) {
-        def words = protoFieldName.split('_')
+        final String[] words = protoFieldName.split('_')
         String resultName = words[0]
         for (int i = 1; i < words.length; i++) {
-            def word = words[i]
+            final String word = words[i]
             resultName = "${resultName}${word.charAt(0).toUpperCase()}${word.substring(1)}"
         }
         if (capitalizeFirstLetter) {
@@ -175,28 +173,27 @@ class FailureWriter {
     }
 
     /**
-     * Reads all descriptor's fields.
+     * Reads all descriptor fields.
      *
      * @return name-to-value String map.
      */
     private Map<String, String> readFieldValues() {
-        def fields = new LinkedHashMap<>()
+        final Map<String, String> result = new LinkedHashMap<>()
         failureDescriptor.fieldList.each { FieldDescriptorProto field ->
-            def name = field.name
-            String value
+            final String value
             if (field.type == FieldDescriptorProto.Type.TYPE_MESSAGE ||
-                    field.type == FieldDescriptorProto.Type.TYPE_ENUM) {
-                def fieldTypeName = field.typeName
-                // Somewhy it has a dot in the beginning
-                if (fieldTypeName.startsWith(".")) {
-                    fieldTypeName = "${fieldTypeName.substring(1)}"
+                field.type == FieldDescriptorProto.Type.TYPE_ENUM) {
+                GString typeName = "$field.typeName"
+                // it has a redundant dot in the beginning
+                if (typeName.startsWith(".")) {
+                    typeName = "${typeName.substring(1)}"
                 }
-                value = messageTypeMap.get(fieldTypeName)
+                value = messageTypeMap.get(typeName)
             } else {
                 value = commonProtoTypes.get(field.type.name())
             }
-            fields.put(name, value)
+            result.put(field.name, value)
         }
-        return fields
+        return result
     }
 }

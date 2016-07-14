@@ -29,6 +29,7 @@ import org.gradle.api.tasks.TaskContainer
 import static com.google.protobuf.DescriptorProtos.*
 import static org.spine3.gradle.Extension.*
 import static org.spine3.gradle.util.DescriptorSetUtil.getProtoFileDescriptors
+
 /**
  * Plugin which generates Failures, based on failures.proto files.
  *
@@ -40,7 +41,8 @@ class FailuresGenPlugin implements Plugin<Project> {
 
     private Project project
 
-    private Map<String, String> cachedMessageTypes = new HashMap<>()
+    /** A map from Protobuf type name to Java class FQN. */
+    private Map<GString, GString> cachedMessageTypes = new HashMap<>()
 
     /**
      * Applied to project.
@@ -71,11 +73,11 @@ class FailuresGenPlugin implements Plugin<Project> {
     }
 
     private void processDescriptors(List<FileDescriptorProto> descriptors) {
-        descriptors.each { FileDescriptorProto descriptor ->
-            if (validateFailures(descriptor)) {
-                generateFailures(descriptor, cachedMessageTypes)
+        descriptors.each { FileDescriptorProto file ->
+            if (validateFailures(file)) {
+                generateFailures(file, cachedMessageTypes)
             } else {
-                log.error("Invalid failures file")
+                log.error("Invalid failures file: $file.name")
             }
         }
     }
@@ -95,10 +97,8 @@ class FailuresGenPlugin implements Plugin<Project> {
     private static boolean validateFailures(FileDescriptorProto descriptor) {
         final boolean javaMultipleFiles = descriptor.options.javaMultipleFiles
         final String javaOuterClassName = descriptor.options.javaOuterClassname
-        final def javaOuterClassNameNotEmpty = javaOuterClassName != null && !javaOuterClassName.isEmpty()
-        final boolean result =
-                !(javaMultipleFiles ||
-                 (javaOuterClassNameNotEmpty && javaOuterClassName != "Failures"))
+        final boolean result = !(javaMultipleFiles ||
+                (javaOuterClassName && javaOuterClassName != "Failures"))
         return result
     }
 
@@ -145,19 +145,14 @@ class FailuresGenPlugin implements Plugin<Project> {
         }
     }
 
-    private void generateFailures(FileDescriptorProto descriptor, Map<String, String> messageTypeMap) {
+    private void generateFailures(FileDescriptorProto descriptor, Map<GString, GString> messageTypeMap) {
         final String failuresRootDir = getTargetGenFailuresRootDir(project)
         final String packageDirs = descriptor.options.javaPackage.replace(".", "/")
         final List<DescriptorProto> failures = descriptor.messageTypeList
         failures.each { DescriptorProto failure ->
             final String failureJavaPath = "$failuresRootDir/$packageDirs/${failure.name}.java"
             final File outputFile = new File(failureJavaPath)
-            writeFailureIntoFile(failure, outputFile, descriptor.options.javaPackage, messageTypeMap)
+            new FailureWriter(failure, outputFile, descriptor.options.javaPackage, messageTypeMap).write()
         }
-    }
-
-    private static void writeFailureIntoFile(DescriptorProto failure, File file, String javaPackage,
-                                             Map<String, String> messageTypeMap) {
-        new FailureWriter(failure, file, javaPackage, messageTypeMap).write()
     }
 }
