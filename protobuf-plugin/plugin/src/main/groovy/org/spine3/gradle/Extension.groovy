@@ -28,56 +28,56 @@ import static java.util.Collections.singletonList
 /**
  * A config for the {@link ProtobufPlugin}.
  */
-public class Extension {
+class Extension {
 
     /**
      * The absolute path to the main target generated resources directory.
      */
-    public String mainTargetGenResourcesDir
+    String mainTargetGenResourcesDir
 
     /**
      * The absolute path to the test target generated resources directory.
      */
-    public String testTargetGenResourcesDir
+    String testTargetGenResourcesDir
 
     /**
      * The absolute path to the main Protobuf sources directory.
      */
-    public String mainProtoSrcDir
+    String mainProtoSrcDir
 
     /**
      * The absolute path to the test Protobuf sources directory.
      */
-    public String testProtoSrcDir
+    String testProtoSrcDir
 
     /**
      * The absolute path to the main Protobuf descriptor set file.
      */
-    public String mainDescriptorSetPath
+    String mainDescriptorSetPath
 
     /**
      * The absolute path to the test Protobuf descriptor set file.
      */
-    public String testDescriptorSetPath
+    String testDescriptorSetPath
 
     /**
      * The absolute path to the main target generated failures root directory.
      */
-    public String targetGenFailuresRootDir
+    String targetGenFailuresRootDir
 
     /**
      * The absolute path to directory to delete.
      *
      * <p>Either this property OR {@code dirsToClean} property is used.
      */
-    public String dirToClean
+    String dirToClean
 
     /**
      * The absolute paths to directories to delete.
      *
      * <p>Either this property OR {@code dirToClean} property is used.
      */
-    public String[] dirsToClean = []
+    String[] dirsToClean = []
 
     public static String getMainTargetGenResourcesDir(Project project) {
         final String path = project.spineProtobuf.mainTargetGenResourcesDir
@@ -98,7 +98,7 @@ public class Extension {
     }
 
     public static String getMainProtoSrcDir(Project project) {
-        def path = project.spineProtobuf.mainProtoSrcDir
+        final String path = project.spineProtobuf.mainProtoSrcDir
         if (path == null) {
             return "$project.projectDir.absolutePath/src/main/proto"
         } else {

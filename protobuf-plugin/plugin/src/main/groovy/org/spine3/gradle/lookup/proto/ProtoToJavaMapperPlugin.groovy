@@ -25,6 +25,7 @@ import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.TaskContainer
 import org.spine3.gradle.util.PropertiesWriter
 
 import java.util.regex.Matcher
@@ -83,7 +84,7 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
             scanTestProtos(project)
         }
         scanTestProtosTask.dependsOn("generateTestProto")
-        final def tasks = project.getTasks()
+        final TaskContainer tasks = project.getTasks()
         final Task processResources = tasks.getByPath("processResources")
         processResources.dependsOn(scanProtosTask)
         final Task processTestResources = tasks.getByPath("processTestResources")

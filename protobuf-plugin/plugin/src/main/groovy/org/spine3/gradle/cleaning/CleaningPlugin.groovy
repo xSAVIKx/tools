@@ -23,6 +23,7 @@ package org.spine3.gradle.cleaning
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.TaskContainer
 
 import static org.spine3.gradle.Extension.getDirsToClean
 
@@ -39,13 +40,13 @@ class CleaningPlugin implements Plugin<Project> {
         final Task preClean = project.task("preClean") << {
             deleteDirs(getDirsToClean(project))
         }
-        final def tasks = project.getTasks()
+        final TaskContainer tasks = project.getTasks()
         tasks.getByPath("clean").dependsOn(preClean)
     }
 
     private static void deleteDirs(List<String> dirs) {
         for (String dirPath : dirs) {
-            final def file = new File(dirPath)
+            final File file = new File(dirPath)
             if (file.exists() && file.isDirectory()) {
                 file.deleteDir()
             }

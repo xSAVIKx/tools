@@ -19,15 +19,16 @@
  */
 
 package org.spine3.gradle.failures
-import com.google.protobuf.DescriptorProtos
+
 import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.TaskContainer
 
-import static com.google.protobuf.DescriptorProtos.FileDescriptorProto
+import static com.google.protobuf.DescriptorProtos.*
+import static org.spine3.gradle.Extension.*
 import static org.spine3.gradle.util.DescriptorSetUtil.getProtoFileDescriptors
-
 /**
  * Plugin which generates Failures, based on failures.proto files.
  *
@@ -53,24 +54,24 @@ class FailuresGenPlugin implements Plugin<Project> {
         this.project = project
 
         final Task generateFailures = project.task("generateFailures") << {
-            final def path = org.spine3.gradle.Extension.getMainDescriptorSetPath(project)
+            final String path = getMainDescriptorSetPath(project)
             processDescriptors(getFailureProtoFileDescriptors(path))
         }
         generateFailures.dependsOn("generateProto")
 
         final Task generateTestFailures = project.task("generateTestFailures") << {
-            final def path = org.spine3.gradle.Extension.getTestDescriptorSetPath(project)
+            final String path = getTestDescriptorSetPath(project)
             processDescriptors(getFailureProtoFileDescriptors(path))
         }
         generateTestFailures.dependsOn("generateTestProto")
 
-        final def targetTasks = project.getTasks()
+        final TaskContainer targetTasks = project.getTasks()
         targetTasks.getByPath("compileJava").dependsOn(generateFailures)
         targetTasks.getByPath("compileTestJava").dependsOn(generateTestFailures)
     }
 
     private void processDescriptors(List<FileDescriptorProto> descriptors) {
-        descriptors.each { def descriptor ->
+        descriptors.each { FileDescriptorProto descriptor ->
             if (validateFailures(descriptor)) {
                 generateFailures(descriptor, cachedMessageTypes)
             } else {
@@ -81,81 +82,81 @@ class FailuresGenPlugin implements Plugin<Project> {
 
     private List<FileDescriptorProto> getFailureProtoFileDescriptors(String descFilePath) {
         final List<FileDescriptorProto> failureDescriptors = new LinkedList<>()
-        def allDescriptors = getProtoFileDescriptors(descFilePath)
+        final List<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath)
         for (FileDescriptorProto file : allDescriptors) {
             if (file.getName().endsWith("/failures.proto")) {
                 failureDescriptors.add(file)
             }
-            cacheFieldTypes(file)
+            cacheTypes(file)
         }
         return failureDescriptors
     }
 
     private static boolean validateFailures(FileDescriptorProto descriptor) {
-        final def javaMultipleFiles = descriptor.options.javaMultipleFiles
-        final def javaOuterClassName = descriptor.options.javaOuterClassname
+        final boolean javaMultipleFiles = descriptor.options.javaMultipleFiles
+        final String javaOuterClassName = descriptor.options.javaOuterClassname
         final def javaOuterClassNameNotEmpty = javaOuterClassName != null && !javaOuterClassName.isEmpty()
-        final def result =
+        final boolean result =
                 !(javaMultipleFiles ||
-                 (javaOuterClassNameNotEmpty && !javaOuterClassName.equals("Failures")))
+                 (javaOuterClassNameNotEmpty && javaOuterClassName != "Failures"))
         return result
     }
 
-    private void cacheFieldTypes(FileDescriptorProto fileDescriptor) {
-        def protoPrefix = !fileDescriptor.package.isEmpty() ? "${fileDescriptor.package}." : ""
-        def javaPrefix = !fileDescriptor.options.javaPackage.isEmpty() ? "${fileDescriptor.options.javaPackage}." : ""
+    private void cacheTypes(FileDescriptorProto fileDescriptor) {
+        final String protoPrefix = !fileDescriptor.package.isEmpty() ? "${fileDescriptor.package}." : ""
+        String javaPrefix = !fileDescriptor.options.javaPackage.isEmpty() ? "${fileDescriptor.options.javaPackage}." : ""
         if (!fileDescriptor.options.javaMultipleFiles) {
-            def singleFileSuffix = getOuterClassName(fileDescriptor)
+            final String singleFileSuffix = getOuterClassName(fileDescriptor)
             javaPrefix = "${javaPrefix}${singleFileSuffix}."
         }
-        fileDescriptor.messageTypeList.each { def field ->
-            cacheFieldType(field, protoPrefix, javaPrefix)
+        fileDescriptor.messageTypeList.each { DescriptorProto msg ->
+            cacheMessageType(msg, protoPrefix, javaPrefix)
         }
-        fileDescriptor.enumTypeList.each { def enumType ->
+        fileDescriptor.enumTypeList.each { EnumDescriptorProto enumType ->
             cacheEnumType(enumType, protoPrefix, javaPrefix)
         }
     }
 
     private static String getOuterClassName(FileDescriptorProto descriptor) {
-        def classname = descriptor.options.javaOuterClassname
+        String classname = descriptor.options.javaOuterClassname
         if (!classname.isEmpty()) {
             return classname
         }
         classname = descriptor.name.substring(descriptor.name.lastIndexOf('/') + 1, descriptor.name.lastIndexOf(".proto"))
-        final def result = "${classname.charAt(0).toUpperCase()}${classname.substring(1)}"
+        final String result = "${classname.charAt(0).toUpperCase()}${classname.substring(1)}"
         return result
     }
 
-    private void cacheEnumType(DescriptorProtos.EnumDescriptorProto descriptor, String protoPrefix, String javaPrefix) {
+    private void cacheEnumType(EnumDescriptorProto descriptor, String protoPrefix, String javaPrefix) {
         cachedMessageTypes.put("${protoPrefix}${descriptor.name}", "${javaPrefix}${descriptor.name}")
     }
 
-    private void cacheFieldType(DescriptorProtos.DescriptorProto descriptor, String protoPrefix, String javaPrefix) {
-        cachedMessageTypes.put("${protoPrefix}${descriptor.name}", "${javaPrefix}${descriptor.name}")
-        if (descriptor.nestedTypeCount > 0 || descriptor.enumTypeCount > 0) {
-            final def nestedProtoPrefix = "${protoPrefix}${descriptor.name}."
-            final def nestedJavaPrefix = "${javaPrefix}${descriptor.name}."
-            for (def nestedDescriptor : descriptor.nestedTypeList) {
-                cacheFieldType(nestedDescriptor, nestedProtoPrefix, nestedJavaPrefix)
+    private void cacheMessageType(DescriptorProto msg, String protoPrefix, String javaPrefix) {
+        cachedMessageTypes.put("${protoPrefix}${msg.name}", "${javaPrefix}${msg.name}")
+        if (msg.nestedTypeCount > 0 || msg.enumTypeCount > 0) {
+            final String nestedProtoPrefix = "${protoPrefix}${msg.name}."
+            final String nestedJavaPrefix = "${javaPrefix}${msg.name}."
+            for (DescriptorProto nestedMsg : msg.nestedTypeList) {
+                cacheMessageType(nestedMsg, nestedProtoPrefix, nestedJavaPrefix)
             }
-            for (def enumType : descriptor.enumTypeList) {
+            for (EnumDescriptorProto enumType : msg.enumTypeList) {
                 cacheEnumType(enumType, nestedProtoPrefix, nestedJavaPrefix)
             }
         }
     }
 
     private void generateFailures(FileDescriptorProto descriptor, Map<String, String> messageTypeMap) {
-        final String failuresRootDir = org.spine3.gradle.Extension.getTargetGenFailuresRootDir(project)
+        final String failuresRootDir = getTargetGenFailuresRootDir(project)
         final String packageDirs = descriptor.options.javaPackage.replace(".", "/")
-        final List<DescriptorProtos.DescriptorProto> failures = descriptor.messageTypeList
-        failures.each { DescriptorProtos.DescriptorProto failure ->
+        final List<DescriptorProto> failures = descriptor.messageTypeList
+        failures.each { DescriptorProto failure ->
             final String failureJavaPath = "$failuresRootDir/$packageDirs/${failure.name}.java"
             final File outputFile = new File(failureJavaPath)
             writeFailureIntoFile(failure, outputFile, descriptor.options.javaPackage, messageTypeMap)
         }
     }
 
-    private static void writeFailureIntoFile(DescriptorProtos.DescriptorProto failure, File file, String javaPackage,
+    private static void writeFailureIntoFile(DescriptorProto failure, File file, String javaPackage,
                                              Map<String, String> messageTypeMap) {
         new FailureWriter(failure, file, javaPackage, messageTypeMap).write()
     }
