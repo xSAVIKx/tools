@@ -56,13 +56,13 @@ class FailuresGenPlugin implements Plugin<Project> {
         this.project = project
 
         final Task generateFailures = project.task("generateFailures") << {
-            final String path = getMainDescriptorSetPath(project)
+            final GString path = getMainDescriptorSetPath(project)
             processDescriptors(getFailureProtoFileDescriptors(path))
         }
         generateFailures.dependsOn("generateProto")
 
         final Task generateTestFailures = project.task("generateTestFailures") << {
-            final String path = getTestDescriptorSetPath(project)
+            final GString path = getTestDescriptorSetPath(project)
             processDescriptors(getFailureProtoFileDescriptors(path))
         }
         generateTestFailures.dependsOn("generateTestProto")
@@ -96,17 +96,17 @@ class FailuresGenPlugin implements Plugin<Project> {
 
     private static boolean validateFailures(FileDescriptorProto descriptor) {
         final boolean javaMultipleFiles = descriptor.options.javaMultipleFiles
-        final String javaOuterClassName = descriptor.options.javaOuterClassname
+        final GString javaOuterClassName = "$descriptor.options.javaOuterClassname"
         final boolean result = !(javaMultipleFiles ||
                 (javaOuterClassName && javaOuterClassName != "Failures"))
         return result
     }
 
     private void cacheTypes(FileDescriptorProto fileDescriptor) {
-        final String protoPrefix = !fileDescriptor.package.isEmpty() ? "${fileDescriptor.package}." : ""
-        String javaPrefix = !fileDescriptor.options.javaPackage.isEmpty() ? "${fileDescriptor.options.javaPackage}." : ""
+        final GString protoPrefix = !fileDescriptor.package.isEmpty() ? "${fileDescriptor.package}." : GString.EMPTY
+        GString javaPrefix = !fileDescriptor.options.javaPackage.isEmpty() ? "${fileDescriptor.options.javaPackage}." : GString.EMPTY
         if (!fileDescriptor.options.javaMultipleFiles) {
-            final String singleFileSuffix = getOuterClassName(fileDescriptor)
+            final GString singleFileSuffix = getOuterClassName(fileDescriptor)
             javaPrefix = "${javaPrefix}${singleFileSuffix}."
         }
         fileDescriptor.messageTypeList.each { DescriptorProto msg ->
@@ -117,25 +117,25 @@ class FailuresGenPlugin implements Plugin<Project> {
         }
     }
 
-    private static String getOuterClassName(FileDescriptorProto descriptor) {
-        String classname = descriptor.options.javaOuterClassname
+    private static GString getOuterClassName(FileDescriptorProto descriptor) {
+        GString classname = "$descriptor.options.javaOuterClassname"
         if (!classname.isEmpty()) {
-            return classname
+            return "$classname"
         }
-        classname = descriptor.name.substring(descriptor.name.lastIndexOf('/') + 1, descriptor.name.lastIndexOf(".proto"))
-        final String result = "${classname.charAt(0).toUpperCase()}${classname.substring(1)}"
+        classname = "${descriptor.name.substring(descriptor.name.lastIndexOf('/') + 1, descriptor.name.lastIndexOf(".proto"))}"
+        final GString result = "${classname.charAt(0).toUpperCase()}${classname.substring(1)}"
         return result
     }
 
-    private void cacheEnumType(EnumDescriptorProto descriptor, String protoPrefix, String javaPrefix) {
+    private void cacheEnumType(EnumDescriptorProto descriptor, GString protoPrefix, GString javaPrefix) {
         cachedMessageTypes.put("${protoPrefix}${descriptor.name}", "${javaPrefix}${descriptor.name}")
     }
 
-    private void cacheMessageType(DescriptorProto msg, String protoPrefix, String javaPrefix) {
+    private void cacheMessageType(DescriptorProto msg, GString protoPrefix, GString javaPrefix) {
         cachedMessageTypes.put("${protoPrefix}${msg.name}", "${javaPrefix}${msg.name}")
         if (msg.nestedTypeCount > 0 || msg.enumTypeCount > 0) {
-            final String nestedProtoPrefix = "${protoPrefix}${msg.name}."
-            final String nestedJavaPrefix = "${javaPrefix}${msg.name}."
+            final GString nestedProtoPrefix = "${protoPrefix}${msg.name}."
+            final GString nestedJavaPrefix = "${javaPrefix}${msg.name}."
             for (DescriptorProto nestedMsg : msg.nestedTypeList) {
                 cacheMessageType(nestedMsg, nestedProtoPrefix, nestedJavaPrefix)
             }
@@ -146,13 +146,14 @@ class FailuresGenPlugin implements Plugin<Project> {
     }
 
     private void generateFailures(FileDescriptorProto descriptor, Map<GString, GString> messageTypeMap) {
-        final String failuresRootDir = getTargetGenFailuresRootDir(project)
-        final String packageDirs = descriptor.options.javaPackage.replace(".", "/")
+        final GString failuresRootDir = getTargetGenFailuresRootDir(project)
+        final GString javaPackage = "$descriptor.options.javaPackage"
+        final GString packageDirs = "${javaPackage.replace(".", "/")}"
         final List<DescriptorProto> failures = descriptor.messageTypeList
         failures.each { DescriptorProto failure ->
-            final String failureJavaPath = "$failuresRootDir/$packageDirs/${failure.name}.java"
+            final GString failureJavaPath = "$failuresRootDir/$packageDirs/${failure.name}.java"
             final File outputFile = new File(failureJavaPath)
-            new FailureWriter(failure, outputFile, descriptor.options.javaPackage, messageTypeMap).write()
+            new FailureWriter(failure, outputFile, javaPackage, messageTypeMap).write()
         }
     }
 }

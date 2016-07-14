@@ -29,8 +29,8 @@ import static java.util.Map.Entry
  */
 public class PropertiesWriter {
 
-    private final String propsFilePath
-    private final String rootDirPath
+    private final GString propsFilePath
+    private final GString rootDirPath
 
     /**
      * Creates a new instance.
@@ -38,9 +38,9 @@ public class PropertiesWriter {
      * @param rootDirPath a path to a directory where the {@code .properties} file is (or will be) located
      * @param propsFileName a name of the {@code .properties} file to write to (can be non-existing)
      */
-    public PropertiesWriter(String rootDirPath, String propsFileName) {
+    public PropertiesWriter(GString rootDirPath, String propsFileName) {
         this.rootDirPath = rootDirPath
-        this.propsFilePath = rootDirPath + "/" + propsFileName;
+        this.propsFilePath = "$rootDirPath/$propsFileName"
     }
 
     /**

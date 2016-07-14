@@ -33,122 +33,123 @@ class Extension {
     /**
      * The absolute path to the main target generated resources directory.
      */
-    String mainTargetGenResourcesDir
+    GString mainTargetGenResourcesDir
 
     /**
      * The absolute path to the test target generated resources directory.
      */
-    String testTargetGenResourcesDir
+    GString testTargetGenResourcesDir
 
     /**
      * The absolute path to the main Protobuf sources directory.
      */
-    String mainProtoSrcDir
+    GString mainProtoSrcDir
 
     /**
      * The absolute path to the test Protobuf sources directory.
      */
-    String testProtoSrcDir
+    GString testProtoSrcDir
 
     /**
      * The absolute path to the main Protobuf descriptor set file.
      */
-    String mainDescriptorSetPath
+    GString mainDescriptorSetPath
 
     /**
      * The absolute path to the test Protobuf descriptor set file.
      */
-    String testDescriptorSetPath
+    GString testDescriptorSetPath
 
     /**
      * The absolute path to the main target generated failures root directory.
      */
-    String targetGenFailuresRootDir
+    GString targetGenFailuresRootDir
 
     /**
      * The absolute path to directory to delete.
      *
      * <p>Either this property OR {@code dirsToClean} property is used.
      */
-    String dirToClean
+    GString dirToClean
 
     /**
      * The absolute paths to directories to delete.
      *
      * <p>Either this property OR {@code dirToClean} property is used.
      */
-    String[] dirsToClean = []
+    GString[] dirsToClean = []
 
-    public static String getMainTargetGenResourcesDir(Project project) {
-        final String path = project.spineProtobuf.mainTargetGenResourcesDir
-        if (path == null) {
+
+    public static GString getMainTargetGenResourcesDir(Project project) {
+        final GString path = project.spineProtobuf.mainTargetGenResourcesDir
+        if (!path) {
             return "$project.projectDir.absolutePath/generated/main/resources"
         } else {
             return path
         }
     }
 
-    public static String getTestTargetGenResourcesDir(Project project) {
-        final String path = project.spineProtobuf.testTargetGenResourcesDir
-        if (path == null) {
+    public static GString getTestTargetGenResourcesDir(Project project) {
+        final GString path = project.spineProtobuf.testTargetGenResourcesDir
+        if (!path) {
             return "$project.projectDir.absolutePath/generated/test/resources"
         } else {
             return path
         }
     }
 
-    public static String getMainProtoSrcDir(Project project) {
-        final String path = project.spineProtobuf.mainProtoSrcDir
-        if (path == null) {
+    public static GString getMainProtoSrcDir(Project project) {
+        final GString path = project.spineProtobuf.mainProtoSrcDir
+        if (!path) {
             return "$project.projectDir.absolutePath/src/main/proto"
         } else {
             return path
         }
     }
 
-    public static String getTestProtoSrcDir(Project project) {
-        final String path = project.spineProtobuf.testProtoSrcDir
-        if (path == null) {
+    public static GString getTestProtoSrcDir(Project project) {
+        final GString path = project.spineProtobuf.testProtoSrcDir
+        if (!path) {
             return "$project.projectDir.absolutePath/src/test/proto"
         } else {
             return path
         }
     }
 
-    public static String getMainDescriptorSetPath(Project project) {
-        final String path = project.spineProtobuf.mainDescriptorSetPath
-        if (path == null) {
+    public static GString getMainDescriptorSetPath(Project project) {
+        final GString path = project.spineProtobuf.mainDescriptorSetPath
+        if (!path) {
             return "$project.projectDir.absolutePath/build/descriptors/main.desc"
         } else {
             return path
         }
     }
 
-    public static String getTestDescriptorSetPath(Project project) {
-        final String path = project.spineProtobuf.testDescriptorSetPath
-        if (path == null) {
+    public static GString getTestDescriptorSetPath(Project project) {
+        final GString path = project.spineProtobuf.testDescriptorSetPath
+        if (!path) {
             return "$project.projectDir.absolutePath/build/descriptors/test.desc"
         } else {
             return path
         }
     }
 
-    public static String getTargetGenFailuresRootDir(Project project) {
-        final String path = project.spineProtobuf.targetGenFailuresRootDir
-        if (path == null) {
+    public static GString getTargetGenFailuresRootDir(Project project) {
+        final GString path = project.spineProtobuf.targetGenFailuresRootDir
+        if (!path) {
             return "$project.projectDir.absolutePath/generated/main/spine"
         } else {
             return path
         }
     }
 
-    public static List<String> getDirsToClean(Project project) {
-        final String[] dirs = project.spineProtobuf.dirsToClean
+    public static List<GString> getDirsToClean(Project project) {
+        final GString[] dirs = project.spineProtobuf.dirsToClean
         if (dirs.length > 0) {
             return ImmutableList.copyOf(dirs)
         }
-        final String singleDir = project.spineProtobuf.dirToClean
-        if (singleDir != null) {
+        final GString singleDir = project.spineProtobuf.dirToClean
+        if (singleDir) {
             return singletonList(singleDir)
         }
         return singletonList("$project.projectDir.absolutePath/generated")

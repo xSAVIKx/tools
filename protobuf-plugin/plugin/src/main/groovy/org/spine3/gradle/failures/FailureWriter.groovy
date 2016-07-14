@@ -33,7 +33,7 @@ class FailureWriter {
 
     private final DescriptorProto failureDescriptor
     private final File outputFile
-    private final String javaPackage
+    private final GString javaPackage
 
     private String className
 
@@ -41,7 +41,7 @@ class FailureWriter {
     private Map<GString, GString> messageTypeMap
 
     // https://developers.google.com/protocol-buffers/docs/proto3#scalar
-    private static final Map<String, String> commonProtoTypes = [
+    private static final Map<String, String> protoFieldTypes = [
             (FieldDescriptorProto.Type.TYPE_DOUBLE.name())  : "double",
             (FieldDescriptorProto.Type.TYPE_FLOAT.name())   : "float",
             (FieldDescriptorProto.Type.TYPE_INT64.name())   : "long",
@@ -70,7 +70,7 @@ class FailureWriter {
      */
     FailureWriter(DescriptorProto failureDescriptor,
                   File outputFile,
-                  String javaPackage,
+                  GString javaPackage,
                   Map<GString, GString> messageTypeMap) {
         this.failureDescriptor = failureDescriptor
         this.outputFile = outputFile
@@ -110,7 +110,7 @@ class FailureWriter {
     }
 
     private void writeClassName(OutputStreamWriter writer) {
-        className = failureDescriptor.name
+        this.className = failureDescriptor.name
 
         writer.write("@javax.annotation.Generated(\"by Spine compiler\")\n")
         writer.write("public class $className extends FailureThrowable {\n\n")
@@ -126,9 +126,9 @@ class FailureWriter {
 
     private void writeConstructor(OutputStreamWriter writer) {
         writer.write("\tpublic $className(")
-        final Set<Map.Entry<String, String>> fieldsEntries = readFieldValues().entrySet()
+        final Set<Map.Entry<GString, GString>> fieldsEntries = readFieldValues().entrySet()
         for (int i = 0; i < fieldsEntries.size(); i++) {
-            final Map.Entry<String, String> field = fieldsEntries.getAt(i)
+            final Map.Entry<GString, GString> field = fieldsEntries.getAt(i)
             writer.write("${field.value} ${getJavaFieldName(field.key, false)}")
             final boolean isNotLast = i != fieldsEntries.size() - 1
             if (isNotLast) {
@@ -137,8 +137,8 @@ class FailureWriter {
         }
         writer.write(") {\n")
         writer.write("\t\tsuper(Failures.${className}.newBuilder()")
-        for (Map.Entry<String, String> field : fieldsEntries) {
-            final String upperCaseName = getJavaFieldName(field.key, true)
+        for (Map.Entry<GString, GString> field : fieldsEntries) {
+            final GString upperCaseName = getJavaFieldName(field.key, true)
             writer.write(".set${upperCaseName}(${getJavaFieldName(field.key, false)})")
         }
         writer.write(".build());\n")
@@ -157,13 +157,13 @@ class FailureWriter {
      *
      * @param protoFieldName Protobuf field name.
      * @param capitalizeFirstLetter Indicates if we need first letter of the output to be capitalized.
-     * @return field name String.
+     * @return a field name
      */
-    private static String getJavaFieldName(String protoFieldName, boolean capitalizeFirstLetter) {
+    private static GString getJavaFieldName(String protoFieldName, boolean capitalizeFirstLetter) {
         final String[] words = protoFieldName.split('_')
-        String resultName = words[0]
+        GString resultName = "${words[0]}"
         for (int i = 1; i < words.length; i++) {
-            final String word = words[i]
+            final GString word = "${words[i]}"
             resultName = "${resultName}${word.charAt(0).toUpperCase()}${word.substring(1)}"
         }
         if (capitalizeFirstLetter) {
@@ -175,12 +175,12 @@ class FailureWriter {
     /**
      * Reads all descriptor fields.
      *
-     * @return name-to-value String map.
+     * @return name-to-value GString map
      */
-    private Map<String, String> readFieldValues() {
-        final Map<String, String> result = new LinkedHashMap<>()
+    private Map<GString, GString> readFieldValues() {
+        final Map<GString, GString> result = new LinkedHashMap<>()
         failureDescriptor.fieldList.each { FieldDescriptorProto field ->
-            final String value
+            final GString value
             if (field.type == FieldDescriptorProto.Type.TYPE_MESSAGE ||
                 field.type == FieldDescriptorProto.Type.TYPE_ENUM) {
                 GString typeName = "$field.typeName"
@@ -190,9 +190,9 @@ class FailureWriter {
                 }
                 value = messageTypeMap.get(typeName)
             } else {
-                value = commonProtoTypes.get(field.type.name())
+                value = "${protoFieldTypes.get(field.type.name())}"
             }
-            result.put(field.name, value)
+            result.put("$field.name", value)
         }
         return result
     }
