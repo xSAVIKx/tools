@@ -137,7 +137,7 @@ class EnrichmentsFinder {
             for (FieldDescriptorProto field : innerMsg.getFieldList()) {
                 if (hasOptionEnrichBy(field)) {
                     final GString outerEventName = "$packagePrefix${msg.getName()}"
-                    final GString enrichmentName = "$outerEventName + PROTO_TYPE_SEPARATOR + innerMsg.getName()"
+                    final GString enrichmentName = "$outerEventName$PROTO_TYPE_SEPARATOR${innerMsg.getName()}"
                     return new SimpleEntry<>(enrichmentName, outerEventName)
                 }
             }
