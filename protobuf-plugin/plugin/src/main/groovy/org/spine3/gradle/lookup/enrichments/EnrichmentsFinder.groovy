@@ -93,17 +93,17 @@ class EnrichmentsFinder {
 
     private void putEntry(ImmutableMap.Builder<GString, GString> mapBuilder, DescriptorProto msg) {
         final Map.Entry<GString, GString> entry = scanMsg(msg)
-        if (entry != null) {
+        if (entry) {
             put(entry, mapBuilder)
             return
         }
         final Map.Entry<GString, GString> entryFromField = scanFields(msg)
-        if (entryFromField != null) {
+        if (entryFromField) {
             put(entryFromField, mapBuilder)
             return
         }
         final Map.Entry<GString, GString> entryFromInnerMsg = scanInnerMessages(msg)
-        if (entryFromInnerMsg != null) {
+        if (entryFromInnerMsg) {
             put(entryFromInnerMsg, mapBuilder)
         }
     }
@@ -203,6 +203,7 @@ class EnrichmentsFinder {
     }
 
     private static void put(Map.Entry<String, String> entry, ImmutableMap.Builder<String, String> mapBuilder) {
+        // put key and value separately to avoid an error
         mapBuilder.put(entry.getKey(), entry.getValue())
     }
 
