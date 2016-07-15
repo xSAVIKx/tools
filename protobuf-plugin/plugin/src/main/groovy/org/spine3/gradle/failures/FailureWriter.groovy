@@ -61,7 +61,7 @@ class FailureWriter {
     ]
 
     /**
-     * Public constructor for {@code FailureWriter}.
+     * Creates a new instance.
      *
      * @param failureDescriptor {@link DescriptorProto} of failure's proto message
      * @param outputFile a {@link File} to write Failure code

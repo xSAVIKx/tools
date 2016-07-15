@@ -42,7 +42,7 @@ import static org.spine3.gradle.util.DescriptorSetUtil.getProtoFileDescriptors
  * @author Alexander Litus
  */
 @Slf4j
-public class EnrichmentLookupPlugin implements Plugin<Project> {
+class EnrichmentLookupPlugin implements Plugin<Project> {
 
     /**
      * The name of the file to populate. NOTE: also change its name used in the `core-java` project on changing.

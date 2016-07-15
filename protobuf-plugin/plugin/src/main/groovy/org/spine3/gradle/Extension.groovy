@@ -80,7 +80,7 @@ class Extension {
     GString[] dirsToClean = []
 
 
-    public static GString getMainTargetGenResourcesDir(Project project) {
+    static GString getMainTargetGenResourcesDir(Project project) {
         final GString path = project.spineProtobuf.mainTargetGenResourcesDir
         if (!path) {
             return "$project.projectDir.absolutePath/generated/main/resources"
@@ -89,7 +89,7 @@ class Extension {
         }
     }
 
-    public static GString getTestTargetGenResourcesDir(Project project) {
+    static GString getTestTargetGenResourcesDir(Project project) {
         final GString path = project.spineProtobuf.testTargetGenResourcesDir
         if (!path) {
             return "$project.projectDir.absolutePath/generated/test/resources"
@@ -98,7 +98,7 @@ class Extension {
         }
     }
 
-    public static GString getMainProtoSrcDir(Project project) {
+    static GString getMainProtoSrcDir(Project project) {
         final GString path = project.spineProtobuf.mainProtoSrcDir
         if (!path) {
             return "$project.projectDir.absolutePath/src/main/proto"
@@ -107,7 +107,7 @@ class Extension {
         }
     }
 
-    public static GString getTestProtoSrcDir(Project project) {
+    static GString getTestProtoSrcDir(Project project) {
         final GString path = project.spineProtobuf.testProtoSrcDir
         if (!path) {
             return "$project.projectDir.absolutePath/src/test/proto"
@@ -116,7 +116,7 @@ class Extension {
         }
     }
 
-    public static GString getMainDescriptorSetPath(Project project) {
+    static GString getMainDescriptorSetPath(Project project) {
         final GString path = project.spineProtobuf.mainDescriptorSetPath
         if (!path) {
             return "$project.projectDir.absolutePath/build/descriptors/main.desc"
@@ -125,7 +125,7 @@ class Extension {
         }
     }
 
-    public static GString getTestDescriptorSetPath(Project project) {
+    static GString getTestDescriptorSetPath(Project project) {
         final GString path = project.spineProtobuf.testDescriptorSetPath
         if (!path) {
             return "$project.projectDir.absolutePath/build/descriptors/test.desc"
@@ -134,7 +134,7 @@ class Extension {
         }
     }
 
-    public static GString getTargetGenFailuresRootDir(Project project) {
+    static GString getTargetGenFailuresRootDir(Project project) {
         final GString path = project.spineProtobuf.targetGenFailuresRootDir
         if (!path) {
             return "$project.projectDir.absolutePath/generated/main/spine"
@@ -143,7 +143,7 @@ class Extension {
         }
     }
 
-    public static List<GString> getDirsToClean(Project project) {
+    static List<GString> getDirsToClean(Project project) {
         final GString[] dirs = project.spineProtobuf.dirsToClean
         if (dirs.length > 0) {
             return ImmutableList.copyOf(dirs)

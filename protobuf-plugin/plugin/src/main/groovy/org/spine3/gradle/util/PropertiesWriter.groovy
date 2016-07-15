@@ -27,7 +27,7 @@ import static java.util.Map.Entry
  *
  * @author Alexander Litus
  */
-public class PropertiesWriter {
+class PropertiesWriter {
 
     private final GString propsFilePath
     private final GString rootDirPath
@@ -38,7 +38,7 @@ public class PropertiesWriter {
      * @param rootDirPath a path to a directory where the {@code .properties} file is (or will be) located
      * @param propsFileName a name of the {@code .properties} file to write to (can be non-existing)
      */
-    public PropertiesWriter(GString rootDirPath, String propsFileName) {
+    PropertiesWriter(GString rootDirPath, String propsFileName) {
         this.rootDirPath = rootDirPath
         this.propsFilePath = "$rootDirPath/$propsFileName"
     }
@@ -48,7 +48,7 @@ public class PropertiesWriter {
      *
      * @param propertiesMap a map containing properties to write to the file
      */
-    public void write(Map<GString, GString> propertiesMap) {
+    void write(Map<GString, GString> propertiesMap) {
         final File rootDir = new File(rootDirPath)
         if (!rootDir.exists()) {
             rootDir.mkdirs()

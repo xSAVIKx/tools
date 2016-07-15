@@ -39,7 +39,7 @@ import static java.util.AbstractMap.SimpleEntry
  */
 @Slf4j
 @SuppressWarnings("UnnecessaryQualifiedReference")
-public class EnrichmentsFinder {
+class EnrichmentsFinder {
 
     private static final String MSG_FQN_REGEX = /[a-zA-Z0-9._]+/
 
@@ -71,7 +71,7 @@ public class EnrichmentsFinder {
      *
      * @param file a file to search enrichments in
      */
-    public EnrichmentsFinder(FileDescriptorProto file) {
+    EnrichmentsFinder(FileDescriptorProto file) {
         this.file = file
         this.packagePrefix = "${file.getPackage()}$PROTO_TYPE_SEPARATOR"
     }
@@ -81,7 +81,7 @@ public class EnrichmentsFinder {
      *
      * @return a map from enrichment type name to event to enrich type name
      */
-    public Map<GString, GString> findEnrichments() {
+    Map<GString, GString> findEnrichments() {
         // Do not name this method "find" to avoid a confusion with "DefaultGroovyMethods.find()".
         final ImmutableMap.Builder<GString, GString> result = ImmutableMap.builder()
         final List<DescriptorProto> messages = file.getMessageTypeList()

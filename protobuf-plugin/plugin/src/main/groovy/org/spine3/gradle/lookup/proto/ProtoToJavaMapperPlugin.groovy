@@ -75,7 +75,7 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
      * and executed before the corresponding `:processResources` tasks.
      */
     @Override
-    public void apply(Project project) {
+    void apply(Project project) {
         final Task scanProtosTask = project.task("scanProtos") << {
             scanProtos(project)
         }
@@ -132,7 +132,7 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
     /** Parses a `.proto` file and creates a map with entries for the `.properties` file. */
     private static class ProtoParser {
 
-        public static final String PROTO_FILE_NAME_SEPARATOR = "_"
+        private static final String PROTO_FILE_NAME_SEPARATOR = "_"
 
         private static final String PROTO_FILE_NAME_SUFFIX = ".proto"
 
