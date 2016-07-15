@@ -22,36 +22,15 @@ package org.spine3.gradle
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Before
 import org.junit.Test
 
 import static org.junit.Assert.assertNotNull
 import static org.junit.Assert.assertTrue
+import static org.spine3.gradle.Given.*
 
 @SuppressWarnings("GroovyInstanceMethodNamingConvention")
 class ProtobufPluginShould {
-
-    /** The name of the `clean` task.*/
-    private static final String CLEAN = "clean"
-
-    /** The name of the `processResources` task.*/
-    private static final String PROCESS_RESOURCES = "processResources"
-
-    /** The name of the `processTestResources` task.*/
-    private static final String PROCESS_TEST_RESOURCES = "processTestResources"
-
-    /** The name of the `generateProto` task.*/
-    private static final String GENERATE_PROTO = "generateProto"
-
-    /** The name of the `generateTestProto` task. */
-    private static final String GENERATE_TEST_PROTO = "generateTestProto"
-
-    /** The name of the `compileJava` task.*/
-    private static final String COMPILE_JAVA = "compileJava"
-
-    /** The name of the `compileTestJava` task.*/
-    private static final String COMPILE_TEST_JAVA = "compileTestJava"
 
     private Project project
     private TaskContainer tasks
@@ -67,9 +46,15 @@ class ProtobufPluginShould {
 
     @Before
     void setUp() {
-        project = createProject()
-        project.pluginManager.apply('org.spine3.tools.protobuf-plugin')
+        project = newProject()
+        project.pluginManager.apply(SPINE_PLUGIN_ID)
         tasks = project.tasks
+    }
+
+    @Test
+    void apply_to_project() {
+        final Project project = newProject()
+        project.pluginManager.apply(SPINE_PLUGIN_ID)
     }
 
     @Test
@@ -124,15 +109,5 @@ class ProtobufPluginShould {
         assertNotNull(mapProto)
         assertTrue(mapProto.dependsOnTask(GENERATE_TEST_PROTO))
         assertTrue(tasks.processTestResources.dependsOnTask(mapProto))
-    }
-
-    private static Project createProject() {
-        final Project project = ProjectBuilder.builder().build()
-        project.task(CLEAN)
-        project.task(PROCESS_RESOURCES)
-        project.task(PROCESS_TEST_RESOURCES)
-        project.task(COMPILE_JAVA)
-        project.task(COMPILE_TEST_JAVA)
-        return project
     }
 }
