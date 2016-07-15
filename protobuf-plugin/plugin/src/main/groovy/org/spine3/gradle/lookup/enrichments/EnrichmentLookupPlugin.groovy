@@ -55,14 +55,14 @@ class EnrichmentLookupPlugin implements Plugin<Project> {
             findEnrichmentsAndWriteProps(getMainTargetGenResourcesDir(project), getMainDescriptorSetPath(project))
         }
         findEnrichmentsTask.dependsOn("compileJava")
-        final Task processResources = project.getTasks().getByPath("processResources")
+        final Task processResources = project.tasks.getByPath("processResources")
         processResources.dependsOn(findEnrichmentsTask)
 
         final Task findTestEnrichmentsTask = project.task("findTestEnrichments") << {
             findEnrichmentsAndWriteProps(getTestTargetGenResourcesDir(project), getTestDescriptorSetPath(project))
         }
         findTestEnrichmentsTask.dependsOn("compileTestJava")
-        final Task processTestResources = project.getTasks().getByPath("processTestResources")
+        final Task processTestResources = project.tasks.getByPath("processTestResources")
         processTestResources.dependsOn(findTestEnrichmentsTask)
     }
 

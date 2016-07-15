@@ -19,17 +19,14 @@
  */
 
 package org.spine3.gradle.failures
-
 import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.tasks.TaskContainer
 
 import static com.google.protobuf.DescriptorProtos.*
 import static org.spine3.gradle.Extension.*
 import static org.spine3.gradle.util.DescriptorSetUtil.getProtoFileDescriptors
-
 /**
  * Plugin which generates Failures, based on failures.proto files.
  *
@@ -60,16 +57,14 @@ class FailuresGenPlugin implements Plugin<Project> {
             processDescriptors(getFailureProtoFileDescriptors(path))
         }
         generateFailures.dependsOn("generateProto")
+        project.tasks.getByPath("compileJava").dependsOn(generateFailures)
 
         final Task generateTestFailures = project.task("generateTestFailures") << {
             final GString path = getTestDescriptorSetPath(project)
             processDescriptors(getFailureProtoFileDescriptors(path))
         }
         generateTestFailures.dependsOn("generateTestProto")
-
-        final TaskContainer targetTasks = project.getTasks()
-        targetTasks.getByPath("compileJava").dependsOn(generateFailures)
-        targetTasks.getByPath("compileTestJava").dependsOn(generateTestFailures)
+        project.tasks.getByPath("compileTestJava").dependsOn(generateTestFailures)
     }
 
     private void processDescriptors(List<FileDescriptorProto> descriptors) {
