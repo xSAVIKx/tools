@@ -19,23 +19,17 @@
  */
 
 package org.spine3.gradle.lookup.proto
-
 import com.google.common.collect.ImmutableMap
 import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.tasks.TaskContainer
 import org.spine3.gradle.util.PropertiesWriter
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-import static org.spine3.gradle.Extension.getMainProtoSrcDir
-import static org.spine3.gradle.Extension.getMainTargetGenResourcesDir
-import static org.spine3.gradle.Extension.getTestProtoSrcDir
-import static org.spine3.gradle.Extension.getTestTargetGenResourcesDir
-
+import static org.spine3.gradle.Extension.*
 /**
  * Plugin which performs generated Java classes (based on protobuf) search.
  *
@@ -76,27 +70,19 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
      */
     @Override
     void apply(Project project) {
-        final Task scanProtosTask = project.task("scanProtos") << {
-            scanProtos(project)
+        final Task mapProtoToJava = project.task("mapProtoToJava") << {
+            parseProtosAndWriteProps(project, getMainTargetGenResourcesDir(project), getMainProtoSrcDir(project))
         }
-        scanProtosTask.dependsOn("generateProto")
-        final Task scanTestProtosTask = project.task("scanTestProtos") << {
-            scanTestProtos(project)
+        mapProtoToJava.dependsOn("generateProto")
+        final Task processResources = project.tasks.getByPath("processResources")
+        processResources.dependsOn(mapProtoToJava)
+
+        final Task mapTestProtoToJava = project.task("mapTestProtoToJava") << {
+            parseProtosAndWriteProps(project, getTestTargetGenResourcesDir(project), getTestProtoSrcDir(project))
         }
-        scanTestProtosTask.dependsOn("generateTestProto")
-        final TaskContainer tasks = project.getTasks()
-        final Task processResources = tasks.getByPath("processResources")
-        processResources.dependsOn(scanProtosTask)
-        final Task processTestResources = tasks.getByPath("processTestResources")
-        processTestResources.dependsOn(scanTestProtosTask)
-    }
-
-    private static void scanProtos(Project project) {
-        parseProtosAndWriteProps(project, getMainTargetGenResourcesDir(project), getMainProtoSrcDir(project))
-    }
-
-    private static void scanTestProtos(Project project) {
-        parseProtosAndWriteProps(project, getTestTargetGenResourcesDir(project), getTestProtoSrcDir(project))
+        mapTestProtoToJava.dependsOn("generateTestProto")
+        final Task processTestResources = project.tasks.getByPath("processTestResources")
+        processTestResources.dependsOn(mapTestProtoToJava)
     }
 
     private static void parseProtosAndWriteProps(Project project,
