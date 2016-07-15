@@ -41,7 +41,7 @@ class FailureWriter {
     private Map<GString, GString> messageTypeMap
 
     // https://developers.google.com/protocol-buffers/docs/proto3#scalar
-    private static final Map<String, String> protoFieldTypes = [
+    private static final Map<String, String> PROTO_FIELD_TYPES = [
             (FieldDescriptorProto.Type.TYPE_DOUBLE.name())  : "double",
             (FieldDescriptorProto.Type.TYPE_FLOAT.name())   : "float",
             (FieldDescriptorProto.Type.TYPE_INT64.name())   : "long",
@@ -190,7 +190,7 @@ class FailureWriter {
                 }
                 value = messageTypeMap.get(typeName)
             } else {
-                value = "${protoFieldTypes.get(field.type.name())}"
+                value = "${PROTO_FIELD_TYPES.get(field.type.name())}"
             }
             result.put("$field.name", value)
         }

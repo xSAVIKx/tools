@@ -46,7 +46,7 @@ public class DescriptorSetUtil {
      *      which contains the info about project `.proto` files
      * @return a list of descriptors
      */
-    public static List<FileDescriptorProto> getProtoFileDescriptors(String descriptorSetFilePath) {
+    public static List<FileDescriptorProto> getProtoFileDescriptors(GString descriptorSetFilePath) {
         return getProtoFileDescriptors(descriptorSetFilePath, Predicates.alwaysTrue())
     }
 
@@ -58,7 +58,7 @@ public class DescriptorSetUtil {
      * @param filter the filter predicate
      * @return a list of descriptors
      */
-    public static List<FileDescriptorProto> getProtoFileDescriptors(String descriptorSetFilePath,
+    public static List<FileDescriptorProto> getProtoFileDescriptors(GString descriptorSetFilePath,
                                                                     Predicate<FileDescriptorProto> filter) {
         if (!new File(descriptorSetFilePath).exists()) {
             log.warn(MSG_ENABLE_DESCRIPTOR_SET_GENERATION)

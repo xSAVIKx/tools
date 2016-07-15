@@ -19,14 +19,15 @@
  */
 
 package org.spine3.gradle.lookup.enrichments
+
 import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.spine3.gradle.Extension
 import org.spine3.gradle.util.PropertiesWriter
 
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto
+import static org.spine3.gradle.Extension.*
 import static org.spine3.gradle.util.DescriptorSetUtil.getProtoFileDescriptors
 
 /**
@@ -48,31 +49,28 @@ public class EnrichmentLookupPlugin implements Plugin<Project> {
      */
     private static final String PROPS_FILE_NAME = "enrichments.properties"
 
-    private String projectPath
-
     @Override
     void apply(Project project) {
-        this.projectPath = project.getProjectDir().getAbsolutePath()
         final Task findEnrichmentsTask = project.task("findEnrichments") << {
-            findEnrichmentsAndWriteProps(Extension.getMainTargetGenResourcesDir(project), Extension.getMainDescriptorSetPath(project))
+            findEnrichmentsAndWriteProps(getMainTargetGenResourcesDir(project), getMainDescriptorSetPath(project))
         }
         findEnrichmentsTask.dependsOn("compileJava")
         final Task processResources = project.getTasks().getByPath("processResources")
         processResources.dependsOn(findEnrichmentsTask)
 
         final Task findTestEnrichmentsTask = project.task("findTestEnrichments") << {
-            findEnrichmentsAndWriteProps(Extension.getTestTargetGenResourcesDir(project), Extension.getTestDescriptorSetPath(project))
+            findEnrichmentsAndWriteProps(getTestTargetGenResourcesDir(project), getTestDescriptorSetPath(project))
         }
         findTestEnrichmentsTask.dependsOn("compileTestJava")
         final Task processTestResources = project.getTasks().getByPath("processTestResources")
         processTestResources.dependsOn(findTestEnrichmentsTask)
     }
 
-    private static void findEnrichmentsAndWriteProps(String targetGeneratedResourcesDir, String descriptorSetPath) {
-        final Map<String, String> propsMap = new HashMap<>()
+    private static void findEnrichmentsAndWriteProps(GString targetGeneratedResourcesDir, GString descriptorSetPath) {
+        final Map<GString, GString> propsMap = new HashMap<>()
         final List<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath)
         for (FileDescriptorProto file : files) {
-            final Map<String, String> enrichments = new EnrichmentsFinder(file).findEnrichments()
+            final Map<GString, GString> enrichments = new EnrichmentsFinder(file).findEnrichments()
             propsMap.putAll(enrichments)
         }
         if (propsMap.isEmpty()) {

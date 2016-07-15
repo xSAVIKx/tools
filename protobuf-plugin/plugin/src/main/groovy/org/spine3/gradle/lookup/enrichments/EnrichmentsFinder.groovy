@@ -21,6 +21,7 @@
 package org.spine3.gradle.lookup.enrichments
 
 import com.google.common.base.Joiner
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import groovy.util.logging.Slf4j
 
@@ -63,7 +64,7 @@ public class EnrichmentsFinder {
     private static final String COLON = ":"
 
     private final FileDescriptorProto file
-    private final String packagePrefix
+    private final GString packagePrefix
 
     /**
      * Creates a new instance.
@@ -72,7 +73,7 @@ public class EnrichmentsFinder {
      */
     public EnrichmentsFinder(FileDescriptorProto file) {
         this.file = file
-        this.packagePrefix = file.getPackage() + PROTO_TYPE_SEPARATOR
+        this.packagePrefix = "${file.getPackage()}$PROTO_TYPE_SEPARATOR"
     }
 
     /**
@@ -80,9 +81,9 @@ public class EnrichmentsFinder {
      *
      * @return a map from enrichment type name to event to enrich type name
      */
-    public Map<String, String> findEnrichments() {
+    public Map<GString, GString> findEnrichments() {
         // Do not name this method "find" to avoid a confusion with "DefaultGroovyMethods.find()".
-        final ImmutableMap.Builder<String, String> result = ImmutableMap.builder()
+        final ImmutableMap.Builder<GString, GString> result = ImmutableMap.builder()
         final List<DescriptorProto> messages = file.getMessageTypeList()
         for (DescriptorProto msg : messages) {
             putEntry(result, msg)
@@ -90,53 +91,53 @@ public class EnrichmentsFinder {
         return result.build()
     }
 
-    private void putEntry(ImmutableMap.Builder<String, String> mapBuilder, DescriptorProto msg) {
-        final Map.Entry entry = scanMsg(msg)
+    private void putEntry(ImmutableMap.Builder<GString, GString> mapBuilder, DescriptorProto msg) {
+        final Map.Entry<GString, GString> entry = scanMsg(msg)
         if (entry != null) {
             put(entry, mapBuilder)
             return
         }
-        final Map.Entry entryFromField = scanFields(msg)
+        final Map.Entry<GString, GString> entryFromField = scanFields(msg)
         if (entryFromField != null) {
             put(entryFromField, mapBuilder)
             return
         }
-        final Map.Entry entryFromInnerMsg = scanInnerMessages(msg)
+        final Map.Entry<GString, GString> entryFromInnerMsg = scanInnerMessages(msg)
         if (entryFromInnerMsg != null) {
             put(entryFromInnerMsg, mapBuilder)
         }
     }
 
-    private Map.Entry<String, String> scanMsg(DescriptorProto msg) {
-        final String eventNames = parseEventNamesFromMsgOption(msg)
-        if (eventNames == null) {
+    private Map.Entry<GString, GString> scanMsg(DescriptorProto msg) {
+        final GString eventNames = parseEventNamesFromMsgOption(msg)
+        if (!eventNames) {
             return null
         }
-        final String enrichmentName = packagePrefix + msg.getName()
+        final GString enrichmentName = packagePrefix + msg.getName()
         return new SimpleEntry<>(enrichmentName, eventNames)
     }
 
-    private Map.Entry<String, String> scanFields(DescriptorProto msg) {
+    private Map.Entry<GString, GString> scanFields(DescriptorProto msg) {
         final String msgName = msg.getName()
         for (FieldDescriptorProto field : msg.getFieldList()) {
             if (hasOptionEnrichBy(field)) {
-                final String eventNameFromBy = parseEventNameFromOptBy(field)
-                if (eventNameFromBy == null) {
+                final GString eventNameFromBy = parseEventNameFromOptBy(field)
+                if (!eventNameFromBy) {
                     throw invalidByOptionValue(msgName)
                 }
-                final String enrichmentName = packagePrefix + msgName
+                final GString enrichmentName = "$packagePrefix$msgName"
                 return new SimpleEntry<>(enrichmentName, eventNameFromBy)
             }
         }
         return null
     }
 
-    private Map.Entry<String, String> scanInnerMessages(DescriptorProto msg) {
+    private Map.Entry<GString, GString> scanInnerMessages(DescriptorProto msg) {
         for (DescriptorProto innerMsg : msg.getNestedTypeList()) {
             for (FieldDescriptorProto field : innerMsg.getFieldList()) {
                 if (hasOptionEnrichBy(field)) {
-                    final String outerEventName = packagePrefix + msg.getName()
-                    final String enrichmentName = outerEventName + PROTO_TYPE_SEPARATOR + innerMsg.getName()
+                    final GString outerEventName = "$packagePrefix${msg.getName()}"
+                    final GString enrichmentName = "$outerEventName + PROTO_TYPE_SEPARATOR + innerMsg.getName()"
                     return new SimpleEntry<>(enrichmentName, outerEventName)
                 }
             }
@@ -144,7 +145,7 @@ public class EnrichmentsFinder {
         return null
     }
 
-    private String parseEventNamesFromMsgOption(DescriptorProto msg) {
+    private GString parseEventNamesFromMsgOption(DescriptorProto msg) {
         // This needed option is "unknown" and serialized, but it is possible to print option field numbers and values.
         final String optionsStr = msg.getOptions().getUnknownFields().toString().trim()
         if (!optionsStr.contains(OPTION_FIELD_NUMBER_ENRICHMENT_FOR)) {
@@ -161,15 +162,16 @@ public class EnrichmentsFinder {
             }
         }
         final String result = Joiner.on(EVENT_NAME_SEPARATOR).join(eventNamesResult)
-        return result
+        return "$result"
     }
 
     private static List<String> parseEventNames(String optionsStr) {
-        final int colonIndex = optionsStr.indexOf(COLON)
-        optionsStr = optionsStr.substring(colonIndex + 1)
-        optionsStr = PATTERN_SPACE.matcher(optionsStr).replaceAll("")
-        optionsStr = PATTERN_QUOTE.matcher(optionsStr).replaceAll("")
-        final List<String> eventNames = newArrayList(optionsStr.split(EVENT_NAME_SEPARATOR))
+        String opts = optionsStr
+        final int colonIndex = opts.indexOf(COLON)
+        opts = opts.substring(colonIndex + 1)
+        opts = PATTERN_SPACE.matcher(opts).replaceAll("")
+        opts = PATTERN_QUOTE.matcher(opts).replaceAll("")
+        final List<String> eventNames = ImmutableList.copyOf(opts.split(EVENT_NAME_SEPARATOR))
         return eventNames
     }
 
@@ -179,7 +181,7 @@ public class EnrichmentsFinder {
         return result
     }
 
-    private static String parseEventNameFromOptBy(FieldDescriptorProto field) {
+    private static GString parseEventNameFromOptBy(FieldDescriptorProto field) {
         final String optionsStr = getOptionsString(field)
         final Matcher matcher = OPTION_PATTERN_ENRICH_BY.matcher(optionsStr)
         if (!matcher.matches()) {
@@ -191,7 +193,7 @@ public class EnrichmentsFinder {
             return null
         }
         final String eventName = fieldFqn.substring(0, index)
-        return eventName
+        return "$eventName"
     }
 
     private static String getOptionsString(FieldDescriptorProto field) {

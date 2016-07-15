@@ -82,7 +82,7 @@ class FailuresGenPlugin implements Plugin<Project> {
         }
     }
 
-    private List<FileDescriptorProto> getFailureProtoFileDescriptors(String descFilePath) {
+    private List<FileDescriptorProto> getFailureProtoFileDescriptors(GString descFilePath) {
         final List<FileDescriptorProto> failureDescriptors = new LinkedList<>()
         final List<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath)
         for (FileDescriptorProto file : allDescriptors) {

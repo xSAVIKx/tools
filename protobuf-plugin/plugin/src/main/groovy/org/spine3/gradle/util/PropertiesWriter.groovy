@@ -48,12 +48,12 @@ public class PropertiesWriter {
      *
      * @param propertiesMap a map containing properties to write to the file
      */
-    public void write(Map<?, ?> propertiesMap) {
+    public void write(Map<GString, GString> propertiesMap) {
         final File rootDir = new File(rootDirPath)
         if (!rootDir.exists()) {
             rootDir.mkdirs()
         }
-        final Properties props = obtainSortedProperties()
+        final Properties props = createSortedProperties()
         File file = null
         try {
             file = new File(propsFilePath)
@@ -69,7 +69,7 @@ public class PropertiesWriter {
             file.parentFile.mkdirs()
             file.createNewFile()
         }
-        for (Entry entry : propertiesMap.entrySet()) {
+        for (Entry<GString, GString> entry : propertiesMap.entrySet()) {
             final String keyStr = entry.getKey().toString()
             final String valueStr = entry.getValue().toString()
             props.setProperty(keyStr, valueStr)
@@ -82,7 +82,7 @@ public class PropertiesWriter {
     /**
      * Returns {@link Properties} instance, which has it's key set sorted by names.
      */
-    private static Properties obtainSortedProperties() {
+    private static Properties createSortedProperties() {
         final Properties props = new Properties() {
             @Override
             public synchronized Enumeration<Object> keys() {

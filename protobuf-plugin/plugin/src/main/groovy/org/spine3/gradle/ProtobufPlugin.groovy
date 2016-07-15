@@ -26,6 +26,7 @@ import org.spine3.gradle.cleaning.CleaningPlugin
 import org.spine3.gradle.failures.FailuresGenPlugin
 import org.spine3.gradle.lookup.enrichments.EnrichmentLookupPlugin
 import org.spine3.gradle.lookup.proto.ProtoToJavaMapperPlugin
+
 /**
  * Root plugin, which aggregates other plugins.
  */
