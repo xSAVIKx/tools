@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.util
+package org.spine3.gradle.protobuf.util
 
 import static java.util.Map.Entry
 
@@ -27,10 +27,10 @@ import static java.util.Map.Entry
  *
  * @author Alexander Litus
  */
-public class PropertiesWriter {
+class PropertiesWriter {
 
-    private final String propsFilePath
-    private final String rootDirPath
+    private final GString propsFilePath
+    private final GString rootDirPath
 
     /**
      * Creates a new instance.
@@ -38,9 +38,9 @@ public class PropertiesWriter {
      * @param rootDirPath a path to a directory where the {@code .properties} file is (or will be) located
      * @param propsFileName a name of the {@code .properties} file to write to (can be non-existing)
      */
-    public PropertiesWriter(String rootDirPath, String propsFileName) {
+    PropertiesWriter(GString rootDirPath, String propsFileName) {
         this.rootDirPath = rootDirPath
-        this.propsFilePath = rootDirPath + "/" + propsFileName;
+        this.propsFilePath = "$rootDirPath/$propsFileName"
     }
 
     /**
@@ -48,12 +48,12 @@ public class PropertiesWriter {
      *
      * @param propertiesMap a map containing properties to write to the file
      */
-    public void write(Map<?, ?> propertiesMap) {
+    void write(Map<GString, GString> propertiesMap) {
         final File rootDir = new File(rootDirPath)
         if (!rootDir.exists()) {
             rootDir.mkdirs()
         }
-        final Properties props = obtainSortedProperties()
+        final Properties props = createSortedProperties()
         File file = null
         try {
             file = new File(propsFilePath)
@@ -69,7 +69,7 @@ public class PropertiesWriter {
             file.parentFile.mkdirs()
             file.createNewFile()
         }
-        for (Entry entry : propertiesMap.entrySet()) {
+        for (Entry<GString, GString> entry : propertiesMap.entrySet()) {
             final String keyStr = entry.getKey().toString()
             final String valueStr = entry.getValue().toString()
             props.setProperty(keyStr, valueStr)
@@ -82,7 +82,7 @@ public class PropertiesWriter {
     /**
      * Returns {@link Properties} instance, which has it's key set sorted by names.
      */
-    private static Properties obtainSortedProperties() {
+    private static Properties createSortedProperties() {
         final Properties props = new Properties() {
             @Override
             public synchronized Enumeration<Object> keys() {

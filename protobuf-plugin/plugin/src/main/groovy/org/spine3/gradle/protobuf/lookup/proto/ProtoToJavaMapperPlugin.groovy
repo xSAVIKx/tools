@@ -18,23 +18,18 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.lookup.proto
-
+package org.spine3.gradle.protobuf.lookup.proto
 import com.google.common.collect.ImmutableMap
 import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.spine3.gradle.util.PropertiesWriter
+import org.spine3.gradle.protobuf.util.PropertiesWriter
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-import static org.spine3.gradle.Extension.getMainProtoSrcDir
-import static org.spine3.gradle.Extension.getMainTargetGenResourcesDir
-import static org.spine3.gradle.Extension.getTestProtoSrcDir
-import static org.spine3.gradle.Extension.getTestTargetGenResourcesDir
-
+import static org.spine3.gradle.protobuf.Extension.*
 /**
  * Plugin which performs generated Java classes (based on protobuf) search.
  *
@@ -54,9 +49,9 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
 
     private static final Pattern TYPE_NAME_PATTERN = Pattern.compile("([a-zA-Z0-9]*) *\\{")
     private static final String MESSAGE_PREFIX = "message"
-    private static final Pattern MESSAGE_PATTERN = Pattern.compile(MESSAGE_PREFIX + " +" + TYPE_NAME_PATTERN)
+    private static final Pattern MESSAGE_PATTERN = Pattern.compile("$MESSAGE_PREFIX +$TYPE_NAME_PATTERN")
     private static final String ENUM_PREFIX = "enum"
-    private static final Pattern ENUM_PATTERN = Pattern.compile(ENUM_PREFIX + " +" + TYPE_NAME_PATTERN)
+    private static final Pattern ENUM_PATTERN = Pattern.compile("$ENUM_PREFIX +$TYPE_NAME_PATTERN")
 
     private static final String JAVA_PACKAGE_PREFIX = "option java_package"
     private static final Pattern JAVA_PACKAGE_PATTERN = Pattern.compile(/$JAVA_PACKAGE_PREFIX *= *"(.*)";+/);
@@ -66,7 +61,7 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
     private static final Pattern TYPE_URL_PATTERN = Pattern.compile(/option \($TYPE_URL_PREFIX\) *= *"(.*)";+/);
 
     private static final String PROTO_PACKAGE_PREFIX = "package "
-    private static final Pattern PROTO_PACKAGE_PATTERN = Pattern.compile(PROTO_PACKAGE_PREFIX + "([a-zA-Z0-9_.]*);*");
+    private static final Pattern PROTO_PACKAGE_PATTERN = Pattern.compile("$PROTO_PACKAGE_PREFIX([a-zA-Z0-9_.]*);*");
 
     /**
      * Adds `:scanProtos` and `:scanTestProtos` tasks
@@ -74,34 +69,26 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
      * and executed before the corresponding `:processResources` tasks.
      */
     @Override
-    public void apply(Project project) {
-        final Task scanProtosTask = project.task("scanProtos") << {
-            scanProtos(project)
+    void apply(Project project) {
+        final Task mapProtoToJava = project.task("mapProtoToJava") << {
+            parseProtosAndWriteProps(project, getMainTargetGenResourcesDir(project), getMainProtoSrcDir(project))
         }
-        scanProtosTask.dependsOn("generateProto")
-        final Task scanTestProtosTask = project.task("scanTestProtos") << {
-            scanTestProtos(project)
+        mapProtoToJava.dependsOn("generateProto")
+        final Task processResources = project.tasks.getByPath("processResources")
+        processResources.dependsOn(mapProtoToJava)
+
+        final Task mapTestProtoToJava = project.task("mapTestProtoToJava") << {
+            parseProtosAndWriteProps(project, getTestTargetGenResourcesDir(project), getTestProtoSrcDir(project))
         }
-        scanTestProtosTask.dependsOn("generateTestProto")
-        final def tasks = project.getTasks()
-        final Task processResources = tasks.getByPath("processResources")
-        processResources.dependsOn(scanProtosTask)
-        final Task processTestResources = tasks.getByPath("processTestResources")
-        processTestResources.dependsOn(scanTestProtosTask)
-    }
-
-    private static void scanProtos(Project project) {
-        parseProtosAndWriteProps(project, getMainTargetGenResourcesDir(project), getMainProtoSrcDir(project))
-    }
-
-    private static void scanTestProtos(Project project) {
-        parseProtosAndWriteProps(project, getTestTargetGenResourcesDir(project), getTestProtoSrcDir(project))
+        mapTestProtoToJava.dependsOn("generateTestProto")
+        final Task processTestResources = project.tasks.getByPath("processTestResources")
+        processTestResources.dependsOn(mapTestProtoToJava)
     }
 
     private static void parseProtosAndWriteProps(Project project,
-                                                 String targetGeneratedResourcesDir,
-                                                 String protoSrcDir) {
-        final Map<String, String> propsMap = parseProtos(protoSrcDir, project)
+                                                 GString targetGeneratedResourcesDir,
+                                                 GString protoSrcDir) {
+        final Map<GString, GString> propsMap = parseProtos(protoSrcDir, project)
         if (propsMap.isEmpty()) {
             return
         }
@@ -114,29 +101,24 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
      *
      * @param rootProtoPath where all `.proto` files are located
      * @param project the target project to which the task is applied
-     * @return protoTypeUrl-to-javaClassName map
+     * @return protoTypeUrl to javaClassName map
      */
-    private static Map<String, String> parseProtos(String rootProtoPath, Project project) {
-        final Map<String, String> entries = new HashMap<String, String>()
+    private static Map<GString, GString> parseProtos(GString rootProtoPath, Project project) {
+        final ImmutableMap.Builder<GString, GString> builder = ImmutableMap.builder();
         final File root = new File(rootProtoPath)
         project.fileTree(root).each {
             if (it.name.endsWith(PROTO_FILE_NAME_SUFFIX)) {
-                final Map<String, String> fileEntries = new ProtoParser(it.canonicalFile).parse()
-                entries.putAll(fileEntries)
+                final Map<GString, GString> fileEntries = new ProtoParser(it.canonicalFile).parse()
+                builder.putAll(fileEntries)
             }
         }
-        return entries
-    }
-
-    private static Map<String, String> parseProtoFile(File file) {
-        final Map<String, String> result = new ProtoParser(file).parse()
-        return result
+        return builder.build()
     }
 
     /** Parses a `.proto` file and creates a map with entries for the `.properties` file. */
     private static class ProtoParser {
 
-        public static final String PROTO_FILE_NAME_SEPARATOR = "_"
+        private static final String PROTO_FILE_NAME_SEPARATOR = "_"
 
         private static final String PROTO_FILE_NAME_SUFFIX = ".proto"
 
@@ -151,10 +133,10 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
 
         private final File file
         private final List<String> lines
-        private String javaPackage = ""
-        private String protoPackage = ""
-        private String commonOuterJavaClass = ""
-        private String typeUrlPrefix = GOOGLE_TYPE_URL_PREFIX
+        private GString javaPackage = GString.EMPTY
+        private GString protoPackage = GString.EMPTY
+        private GString commonOuterJavaClass = GString.EMPTY
+        private GString typeUrlPrefix = "$GOOGLE_TYPE_URL_PREFIX"
         private final List<String> protoClasses = new ArrayList<>()
         private final List<String> javaClasses = new ArrayList<>()
         private int nestedClassDepth = 0
@@ -165,19 +147,19 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         }
 
         /** Parses given `.proto` file and creates a map from type URLs to Java class FQNs. */
-        private ImmutableMap<String, String> parse() {
+        private ImmutableMap<GString, GString> parse() {
             for (String line : lines) {
                 parseLine(line.trim())
             }
-            final ImmutableMap.Builder<String, String> builder = ImmutableMap.builder()
+            final ImmutableMap.Builder<GString, GString> builder = ImmutableMap.builder()
             for (int i = 0; i < protoClasses.size(); i++) {
                 final String protoClassName = protoClasses.get(i)
-                String javaClassName = javaClasses.get(i)
+                GString javaClassName = "${javaClasses.get(i)}"
                 if (!commonOuterJavaClass.isEmpty()) {
                     javaClassName = "$commonOuterJavaClass$JAVA_INNER_CLASS_SEPARATOR$javaClassName"
                 }
-                final String typeUrl = "$typeUrlPrefix/$protoPackage$protoClassName"
-                final String javaClassFqn = "$javaPackage$javaClassName"
+                final GString typeUrl = "$typeUrlPrefix/$protoPackage$protoClassName"
+                final GString javaClassFqn = "$javaPackage$javaClassName"
                 builder.put(typeUrl, javaClassFqn)
             }
             return builder.build()
@@ -185,19 +167,19 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
 
         private void parseLine(String line) {
             if (line.startsWith(MESSAGE_PREFIX)) {
-                addClass(findLineData(line, MESSAGE_PATTERN))
+                addClass(parse(line, MESSAGE_PATTERN))
             } else if (line.startsWith(ENUM_PREFIX)) {
-                addClass(findLineData(line, ENUM_PATTERN))
+                addClass(parse(line, ENUM_PATTERN))
             } else if (line.startsWith(JAVA_PACKAGE_PREFIX) && javaPackage.isEmpty()) {
-                javaPackage = findLineData(line, JAVA_PACKAGE_PATTERN) + "."
+                javaPackage = parse(line, JAVA_PACKAGE_PATTERN) + "."
             } else if (line.startsWith(PROTO_PACKAGE_PREFIX) && protoPackage.isEmpty()) {
-                protoPackage = findLineData(line, PROTO_PACKAGE_PATTERN) + "."
+                protoPackage = parse(line, PROTO_PACKAGE_PATTERN) + "."
             } else if (line.startsWith(JAVA_MULTIPLE_FILES_OPT_PREFIX) &&
                        line.contains(JAVA_MULTIPLE_FILES_FALSE_VALUE) &&
                        commonOuterJavaClass.isEmpty()) {
                 commonOuterJavaClass = toClassName(file.getName())
             } else if (line.startsWith(TYPE_URL_PREFIX_DECLARATION)) {
-                typeUrlPrefix = findLineData(line, TYPE_URL_PATTERN)
+                typeUrlPrefix = parse(line, TYPE_URL_PATTERN)
             }
             // This won't work for bad-formatted proto files. Consider moving to descriptors.
             // Again, won't work for }} case, move to descriptors instead of fixing
@@ -213,7 +195,7 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
          * Converts `.proto` file name to Java class name,
          * for example: `my_test.proto` to `MyTest`.
          */
-        private static String toClassName(String fullFileName) {
+        private static GString toClassName(String fullFileName) {
             final String fileName = fullFileName.substring(0, fullFileName.indexOf(PROTO_FILE_NAME_SUFFIX))
             String result = ""
             final String[] parts = fileName.split(PROTO_FILE_NAME_SEPARATOR)
@@ -222,7 +204,7 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
                 final String partProcessed = firstChar + part.substring(1).toLowerCase()
                 result += partProcessed
             }
-            return result
+            return "$result"
         }
 
         /**
@@ -232,9 +214,9 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
          *
          * @param className found proto class name
          */
-        private void addClass(String className) {
-            String protoFullClassName = className
-            String javaFullClassName = className
+        private void addClass(GString className) {
+            GString protoFullClassName = className
+            GString javaFullClassName = className
             for (int i = 0; i < nestedClassDepth; i++) {
                 final int rootClassIndex = protoClasses.size() - i - 1
                 protoFullClassName = "${protoClasses.get(rootClassIndex)}.$protoFullClassName"
@@ -250,10 +232,11 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
          * @return matched String
          * @throws IllegalArgumentException in case of invalid data received
          */
-        private String findLineData(String line, Pattern pattern) {
+        private GString parse(String line, Pattern pattern) {
             final Matcher matcher = pattern.matcher(line)
             if (matcher.matches()) {
-                return matcher.group(1)
+                final String result = matcher.group(1)
+                return "$result"
             }
             throw new IllegalArgumentException("Cannot parse: '$line' in file $file.name")
         }

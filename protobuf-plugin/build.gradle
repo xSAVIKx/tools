@@ -13,8 +13,6 @@ dependencies {
     compile gradleApi()
     compile localGroovy()
 
-    compile 'org.slf4j:slf4j-api:1.6.4'
-
     compile 'com.google.protobuf:protobuf-java:3.0.0-beta-3'
 }
 
@@ -22,5 +20,9 @@ sourceSets {
     main {
         resources.srcDirs += files('plugin/src/main/resources')
         groovy.srcDirs += ['plugin/src/main/groovy']
+    }
+    main {
+        resources.srcDirs += files('plugin/src/test/resources')
+        groovy.srcDirs += ['plugin/src/test/groovy']
     }
 }

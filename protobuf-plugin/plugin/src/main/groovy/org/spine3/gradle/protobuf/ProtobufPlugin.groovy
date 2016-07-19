@@ -18,14 +18,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle
+package org.spine3.gradle.protobuf
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.spine3.gradle.cleaning.CleaningPlugin
-import org.spine3.gradle.failures.FailuresGenPlugin
-import org.spine3.gradle.lookup.enrichments.EnrichmentLookupPlugin
-import org.spine3.gradle.lookup.proto.ProtoToJavaMapperPlugin
+import org.spine3.gradle.protobuf.cleaning.CleaningPlugin
+import org.spine3.gradle.protobuf.failures.FailuresGenPlugin
+import org.spine3.gradle.protobuf.lookup.enrichments.EnrichmentLookupPlugin
+import org.spine3.gradle.protobuf.lookup.proto.ProtoToJavaMapperPlugin
+
 /**
  * Root plugin, which aggregates other plugins.
  */

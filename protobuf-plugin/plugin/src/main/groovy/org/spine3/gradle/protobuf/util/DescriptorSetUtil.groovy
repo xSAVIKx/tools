@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.util
+package org.spine3.gradle.protobuf.util
 
 import com.google.common.base.Predicate
 import com.google.common.base.Predicates
@@ -33,7 +33,7 @@ import static com.google.protobuf.DescriptorProtos.FileDescriptorSet
  * @author Alexander Litus
  */
 @Slf4j
-public class DescriptorSetUtil {
+class DescriptorSetUtil {
 
     private static final String MSG_ENABLE_DESCRIPTOR_SET_GENERATION =
             "Please enable descriptor set generation. See an appropriate section at " +
@@ -46,7 +46,7 @@ public class DescriptorSetUtil {
      *      which contains the info about project `.proto` files
      * @return a list of descriptors
      */
-    public static List<FileDescriptorProto> getProtoFileDescriptors(String descriptorSetFilePath) {
+    static List<FileDescriptorProto> getProtoFileDescriptors(GString descriptorSetFilePath) {
         return getProtoFileDescriptors(descriptorSetFilePath, Predicates.alwaysTrue())
     }
 
@@ -58,7 +58,7 @@ public class DescriptorSetUtil {
      * @param filter the filter predicate
      * @return a list of descriptors
      */
-    public static List<FileDescriptorProto> getProtoFileDescriptors(String descriptorSetFilePath,
+    static List<FileDescriptorProto> getProtoFileDescriptors(GString descriptorSetFilePath,
                                                                     Predicate<FileDescriptorProto> filter) {
         if (!new File(descriptorSetFilePath).exists()) {
             log.warn(MSG_ENABLE_DESCRIPTOR_SET_GENERATION)

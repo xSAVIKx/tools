@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.failures
+package org.spine3.gradle.protobuf.failures
 
 import groovy.util.logging.Slf4j
 
@@ -33,14 +33,15 @@ class FailureWriter {
 
     private final DescriptorProto failureDescriptor
     private final File outputFile
-    private final String javaPackage
+    private final GString javaPackage
 
     private String className
 
-    private Map<String, String> messageTypeMap
+    /** A map from Protobuf type name to Java class FQN. */
+    private Map<GString, GString> messageTypeMap
 
     // https://developers.google.com/protocol-buffers/docs/proto3#scalar
-    private static final def commonProtoTypes = [
+    private static final Map<String, String> PROTO_FIELD_TYPES = [
             (FieldDescriptorProto.Type.TYPE_DOUBLE.name())  : "double",
             (FieldDescriptorProto.Type.TYPE_FLOAT.name())   : "float",
             (FieldDescriptorProto.Type.TYPE_INT64.name())   : "long",
@@ -60,7 +61,7 @@ class FailureWriter {
     ]
 
     /**
-     * Public constructor for {@code FailureWriter}.
+     * Creates a new instance.
      *
      * @param failureDescriptor {@link DescriptorProto} of failure's proto message
      * @param outputFile a {@link File} to write Failure code
@@ -69,8 +70,8 @@ class FailureWriter {
      */
     FailureWriter(DescriptorProto failureDescriptor,
                   File outputFile,
-                  String javaPackage,
-                  Map<String, String> messageTypeMap) {
+                  GString javaPackage,
+                  Map<GString, GString> messageTypeMap) {
         this.failureDescriptor = failureDescriptor
         this.outputFile = outputFile
         this.javaPackage = javaPackage
@@ -86,8 +87,7 @@ class FailureWriter {
 
         new FileOutputStream(outputFile).withStream {
             new OutputStreamWriter(it).withWriter {
-                def writer = it as OutputStreamWriter
-
+                final Writer writer = it as OutputStreamWriter
                 writePackage(writer)
                 readFieldValues()
                 writeImports(writer)
@@ -95,7 +95,6 @@ class FailureWriter {
                 writeConstructor(writer)
                 writeGetFailure(writer)
                 writeEnding(writer)
-
                 writer.flush()
             }
         }
@@ -111,7 +110,7 @@ class FailureWriter {
     }
 
     private void writeClassName(OutputStreamWriter writer) {
-        className = failureDescriptor.name
+        this.className = failureDescriptor.name
 
         writer.write("@javax.annotation.Generated(\"by Spine compiler\")\n")
         writer.write("public class $className extends FailureThrowable {\n\n")
@@ -127,20 +126,19 @@ class FailureWriter {
 
     private void writeConstructor(OutputStreamWriter writer) {
         writer.write("\tpublic $className(")
-        final Set<Map.Entry<String, String>> fieldsEntries = readFieldValues().entrySet()
+        final Set<Map.Entry<GString, GString>> fieldsEntries = readFieldValues().entrySet()
         for (int i = 0; i < fieldsEntries.size(); i++) {
-            Map.Entry<String, String> field = fieldsEntries.getAt(i)
-
+            final Map.Entry<GString, GString> field = fieldsEntries.getAt(i)
             writer.write("${field.value} ${getJavaFieldName(field.key, false)}")
-
-            if (i != fieldsEntries.size() - 1) {
+            final boolean isNotLast = i != (fieldsEntries.size() - 1)
+            if (isNotLast) {
                 writer.write(", ");
             }
         }
         writer.write(") {\n")
         writer.write("\t\tsuper(Failures.${className}.newBuilder()")
-        for (def field : fieldsEntries) {
-            def upperCaseName = getJavaFieldName(field.key, true)
+        for (Map.Entry<GString, GString> field : fieldsEntries) {
+            final GString upperCaseName = getJavaFieldName(field.key, true)
             writer.write(".set${upperCaseName}(${getJavaFieldName(field.key, false)})")
         }
         writer.write(".build());\n")
@@ -159,13 +157,13 @@ class FailureWriter {
      *
      * @param protoFieldName Protobuf field name.
      * @param capitalizeFirstLetter Indicates if we need first letter of the output to be capitalized.
-     * @return field name String.
+     * @return a field name
      */
-    private static String getJavaFieldName(String protoFieldName, boolean capitalizeFirstLetter) {
-        def words = protoFieldName.split('_')
-        String resultName = words[0]
+    private static GString getJavaFieldName(String protoFieldName, boolean capitalizeFirstLetter) {
+        final String[] words = protoFieldName.split('_')
+        GString resultName = "${words[0]}"
         for (int i = 1; i < words.length; i++) {
-            def word = words[i]
+            final GString word = "${words[i]}"
             resultName = "${resultName}${word.charAt(0).toUpperCase()}${word.substring(1)}"
         }
         if (capitalizeFirstLetter) {
@@ -175,28 +173,27 @@ class FailureWriter {
     }
 
     /**
-     * Reads all descriptor's fields.
+     * Reads all descriptor fields.
      *
-     * @return name-to-value String map.
+     * @return name-to-value GString map
      */
-    private Map<String, String> readFieldValues() {
-        def fields = new LinkedHashMap<>()
+    private Map<GString, GString> readFieldValues() {
+        final Map<GString, GString> result = new LinkedHashMap<>()
         failureDescriptor.fieldList.each { FieldDescriptorProto field ->
-            def name = field.name
-            String value
+            final GString value
             if (field.type == FieldDescriptorProto.Type.TYPE_MESSAGE ||
-                    field.type == FieldDescriptorProto.Type.TYPE_ENUM) {
-                def fieldTypeName = field.typeName
-                // Somewhy it has a dot in the beginning
-                if (fieldTypeName.startsWith(".")) {
-                    fieldTypeName = "${fieldTypeName.substring(1)}"
+                field.type == FieldDescriptorProto.Type.TYPE_ENUM) {
+                GString typeName = "$field.typeName"
+                // it has a redundant dot in the beginning
+                if (typeName.startsWith(".")) {
+                    typeName = "${typeName.substring(1)}"
                 }
-                value = messageTypeMap.get(fieldTypeName)
+                value = messageTypeMap.get(typeName)
             } else {
-                value = commonProtoTypes.get(field.type.name())
+                value = "${PROTO_FIELD_TYPES.get(field.type.name())}"
             }
-            fields.put(name, value)
+            result.put("$field.name", value)
         }
-        return fields
+        return result
     }
 }
