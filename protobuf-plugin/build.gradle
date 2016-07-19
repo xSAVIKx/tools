@@ -21,4 +21,8 @@ sourceSets {
         resources.srcDirs += files('plugin/src/main/resources')
         groovy.srcDirs += ['plugin/src/main/groovy']
     }
+    main {
+        resources.srcDirs += files('plugin/src/test/resources')
+        groovy.srcDirs += ['plugin/src/test/groovy']
+    }
 }

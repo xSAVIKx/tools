@@ -18,16 +18,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle
+package org.spine3.gradle.protobuf
 
 import org.gradle.api.Project
 import org.junit.Before
 import org.junit.Test
 
-import static org.spine3.gradle.Given.*
-import static org.testng.Assert.assertEquals
-import static org.testng.Assert.assertFalse
-import static org.testng.Assert.assertTrue
+import static org.spine3.gradle.protobuf.Given.*
+import static org.testng.Assert.*
 
 @SuppressWarnings("GroovyInstanceMethodNamingConvention")
 class ExtensionShould {
@@ -37,7 +35,7 @@ class ExtensionShould {
     @Before
     void setUp() {
         project = newProject()
-        project.pluginManager.apply(SPINE_PLUGIN_ID)
+        project.pluginManager.apply(SPINE_PROTOBUF_PLUGIN_ID)
     }
 
     @Test

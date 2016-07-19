@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle
+package org.spine3.gradle.protobuf
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Project

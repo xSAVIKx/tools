@@ -18,17 +18,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.lookup.enrichments
+package org.spine3.gradle.protobuf.lookup.enrichments
 
 import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.spine3.gradle.util.PropertiesWriter
+import org.spine3.gradle.protobuf.util.PropertiesWriter
 
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto
-import static org.spine3.gradle.Extension.*
-import static org.spine3.gradle.util.DescriptorSetUtil.getProtoFileDescriptors
+import static org.spine3.gradle.protobuf.Extension.*
+import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors
 
 /**
  * Finds event enrichment Protobuf definitions and creates a {@code .properties} file, which contains entries like:

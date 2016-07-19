@@ -18,26 +18,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle
+package org.spine3.gradle.protobuf.cleaning
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.spine3.gradle.cleaning.CleaningPlugin
-import org.spine3.gradle.failures.FailuresGenPlugin
-import org.spine3.gradle.lookup.enrichments.EnrichmentLookupPlugin
-import org.spine3.gradle.lookup.proto.ProtoToJavaMapperPlugin
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskContainer
+
+import static org.spine3.gradle.protobuf.Extension.getDirsToClean
 
 /**
- * Root plugin, which aggregates other plugins.
+ * Plugin which performs additional cleaning on clean task.
  */
-class ProtobufPlugin implements Plugin<Project> {
+class CleaningPlugin implements Plugin<Project> {
 
+    /**
+     * Adds `:preClean` task, which is executed before `:clean` task.
+     */
     @Override
     void apply(Project project) {
-        project.extensions.create("spineProtobuf", Extension.class)
-        new CleaningPlugin().apply(project)
-        new ProtoToJavaMapperPlugin().apply(project)
-        new EnrichmentLookupPlugin().apply(project)
-        new FailuresGenPlugin().apply(project)
+        final Task preClean = project.task("preClean") << {
+            deleteDirs(getDirsToClean(project))
+        }
+        final TaskContainer tasks = project.getTasks()
+        tasks.getByPath("clean").dependsOn(preClean)
+    }
+
+    private static void deleteDirs(List<String> dirs) {
+        for (String dirPath : dirs) {
+            final File file = new File(dirPath)
+            if (file.exists() && file.isDirectory()) {
+                file.deleteDir()
+            }
+        }
     }
 }

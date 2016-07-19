@@ -18,18 +18,18 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.lookup.proto
+package org.spine3.gradle.protobuf.lookup.proto
 import com.google.common.collect.ImmutableMap
 import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.spine3.gradle.util.PropertiesWriter
+import org.spine3.gradle.protobuf.util.PropertiesWriter
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-import static org.spine3.gradle.Extension.*
+import static org.spine3.gradle.protobuf.Extension.*
 /**
  * Plugin which performs generated Java classes (based on protobuf) search.
  *

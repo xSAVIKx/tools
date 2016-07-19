@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle
+package org.spine3.gradle.protobuf
 
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -28,7 +28,7 @@ import org.junit.Test
 
 import static org.junit.Assert.assertNotNull
 import static org.junit.Assert.assertTrue
-import static org.spine3.gradle.Given.*
+import static org.spine3.gradle.protobuf.Given.*
 
 @SuppressWarnings("GroovyInstanceMethodNamingConvention")
 class ProtobufPluginShould {
@@ -48,14 +48,14 @@ class ProtobufPluginShould {
     @Before
     void setUp() {
         project = newProject()
-        project.pluginManager.apply(SPINE_PLUGIN_ID)
+        project.pluginManager.apply(SPINE_PROTOBUF_PLUGIN_ID)
         tasks = project.tasks
     }
 
     @Test
     void apply_to_project() {
         final Project project = newProject()
-        project.pluginManager.apply(SPINE_PLUGIN_ID)
+        project.pluginManager.apply(SPINE_PROTOBUF_PLUGIN_ID)
     }
 
     @Test

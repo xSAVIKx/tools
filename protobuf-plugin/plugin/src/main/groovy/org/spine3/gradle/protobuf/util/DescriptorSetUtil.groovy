@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.util
+package org.spine3.gradle.protobuf.util
 
 import com.google.common.base.Predicate
 import com.google.common.base.Predicates

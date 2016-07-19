@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle
+package org.spine3.gradle.protobuf
 
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
@@ -28,7 +28,7 @@ import org.gradle.testfixtures.ProjectBuilder
  */
 class Given {
 
-    static final String SPINE_PLUGIN_ID = 'org.spine3.tools.protobuf-plugin'
+    static final String SPINE_PROTOBUF_PLUGIN_ID = 'org.spine3.tools.protobuf-plugin'
 
     /** The name of the `clean` task.*/
     static final String CLEAN = "clean"

@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.failures
+package org.spine3.gradle.protobuf.failures
 
 import groovy.util.logging.Slf4j
 
