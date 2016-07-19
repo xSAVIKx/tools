@@ -130,7 +130,7 @@ class FailureWriter {
         for (int i = 0; i < fieldsEntries.size(); i++) {
             final Map.Entry<GString, GString> field = fieldsEntries.getAt(i)
             writer.write("${field.value} ${getJavaFieldName(field.key, false)}")
-            final boolean isNotLast = i != fieldsEntries.size() - 1
+            final boolean isNotLast = i != (fieldsEntries.size() - 1)
             if (isNotLast) {
                 writer.write(", ");
             }
