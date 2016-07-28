@@ -4,34 +4,35 @@ version '1.0'
 buildscript {
     repositories {
         mavenLocal()
+        mavenCentral()
         maven {
             url = "${project.MAVEN_REPOSITORY_URL}"
         }
-        mavenCentral()
     }
     dependencies {
         classpath 'com.google.protobuf:protobuf-java:3.0.0-beta-2'
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.7.7'
         classpath "org.spine3.tools:protobuf-plugin:1.4.8"
     }
+    configurations.all({
+        resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
+    })
 }
 
 apply plugin: 'java'
 apply plugin: 'com.google.protobuf'
-apply plugin: 'idea'
-
 apply plugin: 'org.spine3.tools.protobuf-plugin'
 
 repositories {
     mavenLocal()
     maven {
-        url = "${project.MAVEN_REPOSITORY_URL}"
+        url = "$MAVEN_REPOSITORY_URL"
     }
     mavenCentral()
 }
 
 dependencies {
-    compile "org.spine3:server:${project.SPINE_VERSION}"
+    compile "org.spine3:server:$SPINE_VERSION"
     compile 'com.google.protobuf:protobuf-java:3.0.0-beta-2'
 }
 
