@@ -20,20 +20,25 @@
 
 package org.spine3.gradle.protobuf.util
 
+import com.google.common.collect.ImmutableMap
 import groovy.util.logging.Slf4j
 
+import java.util.regex.Pattern
+
 import static com.google.protobuf.DescriptorProtos.*
+import static java.util.Collections.*
 
 /**
- * A utility class which helps to get Protobuf options string which contains "unknown" option field numbers and values.
+ * A utility class which helps to get "unknown" Protobuf option field numbers (as in option type declaration)
+ * and option values.
  *
- * <p>For example:
+ * <p>For example, a map with pairs:
  *
- * <p>{@code 50123: "option_value"}
+ * <p>{@code 50123 -> "option_string_value_1"}
+ * <p>{@code 50124 -> "option_string_value_2"}
  *
- * <p>This is needed to get the value of an option which is "unknown" and serialized.
- *
- * <p>This can be the case if we cannot add a dependency on the artifact which contains the needed option definition.
+ * <p>An option is "unknown" and serialized if there is no dependency on the artifact
+ * which contains the needed option definition.
  * For example, we should not depend on "Spine/core-java" project artifacts to avoid circular dependency.
  *
  * @author Alexander Litus
@@ -41,21 +46,70 @@ import static com.google.protobuf.DescriptorProtos.*
 @Slf4j
 class ProtobufOptionsUtil {
 
-    /** Returns a Protobuf file options string which contains option field numbers and values. */
-    static String getOptionsString(FileDescriptorProto file) {
+    private static final Pattern PATTERN_COLON = Pattern.compile(":")
+    private static final Pattern PATTERN_NEW_LINE = Pattern.compile("\n")
+
+    /** Returns a map from "unknown" Protobuf option field numbers to option values. */
+    static Map<Long, String> getUnknownOptions(FileDescriptorProto file) {
         final String optionsStr = file.getOptions().getUnknownFields().toString().trim()
-        return optionsStr
+        final Map<Long, String> result = parseOptions(optionsStr)
+        return result
     }
 
-    /** Returns a Protobuf message options string which contains option field numbers and values. */
-    static String getOptionsString(DescriptorProto message) {
+    /**
+     * Returns a string value of "unknown" Protobuf option or {@code null} if no option with such field number found.
+     */
+    static String getUnknownOptionValue(FileDescriptorProto file, Long optionFieldNumber) {
+        final Map<Long, String> options = getUnknownOptions(file)
+        final String result = options.get(optionFieldNumber)
+        return result
+    }
+
+    /** Returns a map from "unknown" Protobuf option field numbers to option values. */
+    static Map<Long, String> getUnknownOptions(DescriptorProto message) {
         final String optionsStr = message.getOptions().getUnknownFields().toString().trim()
-        return optionsStr
+        final Map<Long, String> result = parseOptions(optionsStr)
+        return result
     }
 
-    /** Returns a Protobuf field options string which contains option field numbers and values. */
-    static String getOptionsString(FieldDescriptorProto field) {
+    /**
+     * Returns a string value of "unknown" Protobuf option or {@code null} if no option with such field number found.
+     */
+    static String getUnknownOptionValue(DescriptorProto msg, Long optionFieldNumber) {
+        final Map<Long, String> options = getUnknownOptions(msg)
+        final String result = options.get(optionFieldNumber)
+        return result
+    }
+
+    /** Returns a map from "unknown" Protobuf option field numbers to option values. */
+    static Map<Long, String> getUnknownOptions(FieldDescriptorProto field) {
         final String optionsStr = field.getOptions().getUnknownFields().toString().trim()
-        return optionsStr
+        final Map<Long, String> result = parseOptions(optionsStr)
+        return result
+    }
+
+    /**
+     * Returns a string value of "unknown" Protobuf option or {@code null} if no option with such field number found.
+     */
+    static String getUnknownOptionValue(FieldDescriptorProto field, Long optionFieldNumber) {
+        final Map<Long, String> options = getUnknownOptions(field)
+        final String result = options.get(optionFieldNumber)
+        return result
+    }
+
+    private static Map<Long, String> parseOptions(String optionsStr) {
+        if (optionsStr.trim().isEmpty()) {
+            return emptyMap()
+        }
+        final ImmutableMap.Builder<Long, String> result = ImmutableMap.builder()
+        final String[] options = PATTERN_NEW_LINE.split(optionsStr);
+        for (String option : options) {
+            final String[] numberAndValue = PATTERN_COLON.split(option)
+            final String numberStr = numberAndValue[0].trim()
+            final Long number = Long.valueOf(numberStr)
+            final String value = numberAndValue[1].trim()
+            result.put(number, value)
+        }
+        return result.build()
     }
 }
