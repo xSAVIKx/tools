@@ -81,7 +81,7 @@ class FailuresGenPlugin implements Plugin<Project> {
 
     private List<FileDescriptorProto> getFailureProtoFileDescriptors(GString descFilePath) {
         final List<FileDescriptorProto> failureDescriptors = new LinkedList<>()
-        final List<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath)
+        final Collection<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath)
         for (FileDescriptorProto file : allDescriptors) {
             if (file.getName().endsWith("/failures.proto")) {
                 failureDescriptors.add(file)

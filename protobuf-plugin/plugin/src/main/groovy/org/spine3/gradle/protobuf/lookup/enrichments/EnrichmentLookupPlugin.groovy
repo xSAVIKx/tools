@@ -68,7 +68,7 @@ class EnrichmentLookupPlugin implements Plugin<Project> {
 
     private static void findEnrichmentsAndWriteProps(GString targetGeneratedResourcesDir, GString descriptorSetPath) {
         final Map<GString, GString> propsMap = new HashMap<>()
-        final List<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath)
+        final Collection<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath)
         for (FileDescriptorProto file : files) {
             final Map<GString, GString> enrichments = new EnrichmentsFinder(file).findEnrichments()
             propsMap.putAll(enrichments)

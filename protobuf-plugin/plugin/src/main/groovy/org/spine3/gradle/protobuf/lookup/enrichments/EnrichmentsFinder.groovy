@@ -19,7 +19,6 @@
  */
 
 package org.spine3.gradle.protobuf.lookup.enrichments
-
 import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
@@ -31,7 +30,7 @@ import java.util.regex.Pattern
 import static com.google.common.collect.Lists.newLinkedList
 import static com.google.protobuf.DescriptorProtos.*
 import static java.util.AbstractMap.SimpleEntry
-
+import static org.spine3.gradle.protobuf.util.ProtobufOptionsUtil.getOptionsString
 /**
  * Finds event enrichment Protobuf definitions.
  *
@@ -73,7 +72,7 @@ class EnrichmentsFinder {
      */
     EnrichmentsFinder(FileDescriptorProto file) {
         this.file = file
-        this.packagePrefix = "${file.getPackage()}$PROTO_TYPE_SEPARATOR"
+        this.packagePrefix = "$file.package$PROTO_TYPE_SEPARATOR"
     }
 
     /**
@@ -113,7 +112,7 @@ class EnrichmentsFinder {
         if (!eventNames) {
             return null
         }
-        final GString enrichmentName = packagePrefix + msg.getName()
+        final GString enrichmentName = "$packagePrefix$msg.name"
         return new SimpleEntry<>(enrichmentName, eventNames)
     }
 
@@ -136,8 +135,8 @@ class EnrichmentsFinder {
         for (DescriptorProto innerMsg : msg.getNestedTypeList()) {
             for (FieldDescriptorProto field : innerMsg.getFieldList()) {
                 if (hasOptionEnrichBy(field)) {
-                    final GString outerEventName = "$packagePrefix${msg.getName()}"
-                    final GString enrichmentName = "$outerEventName$PROTO_TYPE_SEPARATOR${innerMsg.getName()}"
+                    final GString outerEventName = "$packagePrefix$msg.name"
+                    final GString enrichmentName = "$outerEventName$PROTO_TYPE_SEPARATOR$innerMsg.name"
                     return new SimpleEntry<>(enrichmentName, outerEventName)
                 }
             }
@@ -146,8 +145,7 @@ class EnrichmentsFinder {
     }
 
     private GString parseEventNamesFromMsgOption(DescriptorProto msg) {
-        // This needed option is "unknown" and serialized, but it is possible to print option field numbers and values.
-        final String optionsStr = msg.getOptions().getUnknownFields().toString().trim()
+        final String optionsStr = getOptionsString(msg);
         if (!optionsStr.contains(OPTION_FIELD_NUMBER_ENRICHMENT_FOR)) {
             return null
         }
@@ -194,12 +192,6 @@ class EnrichmentsFinder {
         }
         final String eventName = fieldFqn.substring(0, index)
         return "$eventName"
-    }
-
-    private static String getOptionsString(FieldDescriptorProto field) {
-        // This needed option is "unknown" and serialized, but it is possible to print option field numbers and values.
-        final String optionsStr = field.getOptions().getUnknownFields().toString().trim()
-        return optionsStr
     }
 
     private static void put(Map.Entry<String, String> entry, ImmutableMap.Builder<String, String> mapBuilder) {
