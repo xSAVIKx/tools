@@ -98,24 +98,6 @@ class Extension {
         }
     }
 
-    static GString getMainProtoSrcDir(Project project) {
-        final GString path = project.spineProtobuf.mainProtoSrcDir
-        if (!path) {
-            return "$project.projectDir.absolutePath/src/main/proto"
-        } else {
-            return path
-        }
-    }
-
-    static GString getTestProtoSrcDir(Project project) {
-        final GString path = project.spineProtobuf.testProtoSrcDir
-        if (!path) {
-            return "$project.projectDir.absolutePath/src/test/proto"
-        } else {
-            return path
-        }
-    }
-
     static GString getMainDescriptorSetPath(Project project) {
         final GString path = project.spineProtobuf.mainDescriptorSetPath
         if (!path) {

@@ -48,6 +48,7 @@ class ProtobufOptionsUtil {
 
     private static final Pattern PATTERN_COLON = Pattern.compile(":")
     private static final Pattern PATTERN_NEW_LINE = Pattern.compile("\n")
+    private static final String QUOTE = '"'
 
     /** Returns a map from "unknown" Protobuf option field numbers to option values. */
     static Map<Long, String> getUnknownOptions(FileDescriptorProto file) {
@@ -97,6 +98,7 @@ class ProtobufOptionsUtil {
         return result
     }
 
+    // TODO:2016-08-04:alexander.litus: tests
     private static Map<Long, String> parseOptions(String optionsStr) {
         if (optionsStr.trim().isEmpty()) {
             return emptyMap()
@@ -104,12 +106,21 @@ class ProtobufOptionsUtil {
         final ImmutableMap.Builder<Long, String> result = ImmutableMap.builder()
         final String[] options = PATTERN_NEW_LINE.split(optionsStr);
         for (String option : options) {
-            final String[] numberAndValue = PATTERN_COLON.split(option)
-            final String numberStr = numberAndValue[0].trim()
-            final Long number = Long.valueOf(numberStr)
-            final String value = numberAndValue[1].trim()
-            result.put(number, value)
+            parseAndPutNumberAndValue(option, result)
         }
         return result.build()
+    }
+
+    private static void parseAndPutNumberAndValue(String option, ImmutableMap.Builder<Long, String> result) {
+        // we need only two parts split by the first colon
+        final int limit = 2
+        final String[] numberAndValue = PATTERN_COLON.split(option, limit)
+        final String numberStr = numberAndValue[0].trim()
+        final Long number = Long.valueOf(numberStr)
+        String value = numberAndValue[1].trim()
+        if (value.startsWith(QUOTE) && value.endsWith(QUOTE)) {
+            value = value.substring(1, value.length() - 1)
+        }
+        result.put(number, value)
     }
 }

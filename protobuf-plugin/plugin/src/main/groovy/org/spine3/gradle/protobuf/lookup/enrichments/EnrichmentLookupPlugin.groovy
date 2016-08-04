@@ -69,6 +69,7 @@ class EnrichmentLookupPlugin implements Plugin<Project> {
     private static void findEnrichmentsAndWriteProps(GString targetGeneratedResourcesDir, GString descriptorSetPath) {
         final Map<GString, GString> propsMap = new HashMap<>()
         final Collection<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath)
+        // TODO:2016-08-03:alexander.litus: get rid of all google protos
         for (FileDescriptorProto file : files) {
             final Map<GString, GString> enrichments = new EnrichmentsFinder(file).findEnrichments()
             propsMap.putAll(enrichments)

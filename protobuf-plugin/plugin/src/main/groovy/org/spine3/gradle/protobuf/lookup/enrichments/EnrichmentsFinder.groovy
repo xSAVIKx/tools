@@ -19,6 +19,7 @@
  */
 
 package org.spine3.gradle.protobuf.lookup.enrichments
+
 import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
@@ -30,6 +31,7 @@ import static com.google.common.collect.Lists.newLinkedList
 import static com.google.protobuf.DescriptorProtos.*
 import static java.util.AbstractMap.SimpleEntry
 import static org.spine3.gradle.protobuf.util.ProtobufOptionsUtil.getUnknownOptionValue
+
 /**
  * Finds event enrichment Protobuf definitions.
  *
@@ -50,7 +52,6 @@ class EnrichmentsFinder {
     private static final Long OPTION_NUMBER_ENRICHMENT_FOR = 57124L
 
     private static final Pattern PATTERN_SPACE = Pattern.compile(" ")
-    private static final Pattern PATTERN_QUOTE = Pattern.compile("\"")
 
     private static final String EVENT_NAME_SEPARATOR = ","
     private static final Pattern PATTERN_EVENT_NAME_SEPARATOR = Pattern.compile(EVENT_NAME_SEPARATOR)
@@ -161,7 +162,6 @@ class EnrichmentsFinder {
     private static List<String> parseEventNames(String eventNames) {
         String names = eventNames
         names = PATTERN_SPACE.matcher(names).replaceAll("")
-        names = PATTERN_QUOTE.matcher(names).replaceAll("")
         final String[] namesArray = PATTERN_EVENT_NAME_SEPARATOR.split(names)
         return ImmutableList.copyOf(namesArray)
     }
