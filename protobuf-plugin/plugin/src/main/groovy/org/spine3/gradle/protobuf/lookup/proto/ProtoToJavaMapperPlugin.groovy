@@ -69,10 +69,8 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         final Map<GString, GString> propsMap = new HashMap<>()
         final Collection<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath)
         for (FileDescriptorProto file : files) {
-            if (!file.package.contains("google")) { // TODO:2016-08-04:alexander.litus: improve
-                final Map<GString, GString> enrichments = new ProtoToJavaTypeMapper(file).mapTypes()
-                propsMap.putAll(enrichments)
-            }
+            final Map<GString, GString> enrichments = new ProtoToJavaTypeMapper(file).mapTypes()
+            propsMap.putAll(enrichments)
         }
         if (propsMap.isEmpty()) {
             return

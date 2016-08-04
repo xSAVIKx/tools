@@ -66,8 +66,6 @@ class ProtoToJavaTypeMapper {
 
     // TODO:2016-08-04:alexander.litus: enums!
 
-    // TODO:2016-08-04:alexander.litus: google url prefix if no package
-
     /** Returns a map from Protobuf type url to the corresponding fully-qualified Java class name. */
     Map<GString, GString> mapTypes() {
         final ImmutableMap.Builder<GString, GString> builder = ImmutableMap.builder()
