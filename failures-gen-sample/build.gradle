@@ -12,7 +12,7 @@ buildscript {
     dependencies {
         classpath 'com.google.protobuf:protobuf-java:3.0.0-beta-2'
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.7.7'
-        classpath "org.spine3.tools:protobuf-plugin:1.4.8"
+        classpath "org.spine3.tools:protobuf-plugin:$PROTOBUF_PLUGIN_VERSION"
     }
     configurations.all({
         resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
@@ -44,16 +44,15 @@ protobuf {
     generateProtoTasks {
         all().each { task ->
             task.generateDescriptorSet = true
-            task.descriptorSetOptions.path =
-                    "${projectDir}/build/descriptors/${task.sourceSet.name}.desc"
+            task.descriptorSetOptions.path = "${projectDir}/build/descriptors/${task.sourceSet.name}.desc"
             task.descriptorSetOptions.includeImports = true
         }
     }
 }
 
 idea.module {
-    generatedSourceDirs += file("$projectDir/generated/main/java");
-    generatedSourceDirs += file("$projectDir/generated/main/spine");
+    generatedSourceDirs += file("$projectDir/generated/main/java")
+    generatedSourceDirs += file("$projectDir/generated/main/spine")
 }
 
 sourceSets {

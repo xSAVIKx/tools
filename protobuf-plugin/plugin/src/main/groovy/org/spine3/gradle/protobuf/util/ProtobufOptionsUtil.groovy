@@ -111,7 +111,7 @@ class ProtobufOptionsUtil {
         return result.build()
     }
 
-    private static void parseAndPutNumberAndValue(String option, ImmutableMap.Builder<Long, String> result) {
+    private static void parseAndPutNumberAndValue(String option, ImmutableMap.Builder<Long, String> builder) {
         // we need only two parts split by the first colon
         final int limit = 2
         final String[] numberAndValue = PATTERN_COLON.split(option, limit)
@@ -121,6 +121,6 @@ class ProtobufOptionsUtil {
         if (value.startsWith(QUOTE) && value.endsWith(QUOTE)) {
             value = value.substring(1, value.length() - 1)
         }
-        result.put(number, value)
+        builder.put(number, value)
     }
 }
