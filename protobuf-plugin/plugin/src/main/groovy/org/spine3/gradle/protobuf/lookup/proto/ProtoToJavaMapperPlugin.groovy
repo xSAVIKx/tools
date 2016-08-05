@@ -28,6 +28,7 @@ import org.spine3.gradle.protobuf.util.PropertiesWriter
 
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto
 import static org.spine3.gradle.protobuf.Extension.*
+import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.IsNotGoogleProto
 import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors
 
 /**
@@ -67,10 +68,10 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
 
     private static void mapProtoToJavaAndWriteProps(GString targetGeneratedResourcesDir, GString descriptorSetPath) {
         final Map<GString, GString> propsMap = new HashMap<>()
-        final Collection<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath)
+        final Collection<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath, new IsNotGoogleProto())
         for (FileDescriptorProto file : files) {
-            final Map<GString, GString> enrichments = new ProtoToJavaTypeMapper(file).mapTypes()
-            propsMap.putAll(enrichments)
+            final Map<GString, GString> types = new ProtoToJavaTypeMapper(file).mapTypes()
+            propsMap.putAll(types)
         }
         if (propsMap.isEmpty()) {
             return

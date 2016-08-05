@@ -19,7 +19,9 @@
  */
 
 package org.spine3.gradle.protobuf.lookup.proto
+
 import com.google.common.base.Joiner
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import groovy.util.logging.Slf4j
 
@@ -64,46 +66,60 @@ class ProtoToJavaTypeMapper {
         this.commonOuterClassPrefix = getCommonOuterJavaClassPrefix(file)
     }
 
-    // TODO:2016-08-04:alexander.litus: enums!
-
     /** Returns a map from Protobuf type url to the corresponding fully-qualified Java class name. */
     Map<GString, GString> mapTypes() {
         final ImmutableMap.Builder<GString, GString> builder = ImmutableMap.builder()
-        final List<DescriptorProto> messages = file.messageTypeList
-        putEntries(builder, messages, newLinkedList())
+        putMessageEntries(builder, file.messageTypeList, newLinkedList())
+        putEnumEntries(builder, file.enumTypeList, newLinkedList())
         return builder.build()
     }
 
-    private void putEntries(ImmutableMap.Builder<GString, GString> builder,
-                            Iterable<DescriptorProto> messages,
-                            Collection<String> parentMsgNames) {
+    private void putMessageEntries(ImmutableMap.Builder<GString, GString> builder,
+                                   Iterable<DescriptorProto> messages,
+                                   Collection<String> parentMsgNames) {
         for (DescriptorProto msg : messages) {
-            putEntry(builder, msg, parentMsgNames)
+            putMessageEntry(builder, msg, parentMsgNames)
         }
     }
 
-    private void putEntry(ImmutableMap.Builder<GString, GString> builder,
-                          DescriptorProto msg,
-                          Collection<String> parentMsgNames) {
-        final String typeUrl = getTypeUrl(msg, parentMsgNames)
-        final String javaClassName = getJavaClassName(msg, parentMsgNames)
+    private void putMessageEntry(ImmutableMap.Builder<GString, GString> builder,
+                                 DescriptorProto msg,
+                                 Collection<String> parentMsgNames) {
+        final String typeUrl = getTypeUrl(msg.name, parentMsgNames)
+        final String javaClassName = getJavaClassName(msg.name, parentMsgNames)
         builder.put("$typeUrl", "$javaClassName")
-        final List<DescriptorProto> nestedTypes = msg.nestedTypeList
-        if (!nestedTypes.isEmpty()) {
-            parentMsgNames.add(msg.name)
-            putEntries(builder, nestedTypes, parentMsgNames)
+
+        parentMsgNames.add(msg.name)
+
+        final List<DescriptorProto> messagesNested = msg.nestedTypeList
+        if (!messagesNested.isEmpty()) {
+            putMessageEntries(builder, messagesNested, parentMsgNames)
+        }
+        final List<EnumDescriptorProto> enumsNested = msg.enumTypeList
+        if (!enumsNested.isEmpty()) {
+            putEnumEntries(builder, enumsNested, ImmutableList.copyOf(parentMsgNames))
         }
     }
 
-    private String getTypeUrl(DescriptorProto msg, Collection<String> parentMsgNames) {
+    private void putEnumEntries(ImmutableMap.Builder<GString, GString> builder,
+                                Iterable<EnumDescriptorProto> enums,
+                                Collection<String> parentMsgNames) {
+        for (EnumDescriptorProto msg : enums) {
+            final String typeUrl = getTypeUrl(msg.name, parentMsgNames)
+            final String javaClassName = getJavaClassName(msg.name, parentMsgNames)
+            builder.put("$typeUrl", "$javaClassName")
+        }
+    }
+
+    private String getTypeUrl(String messageName, Collection<String> parentMsgNames) {
         final String parentMessagesPrefix = getParentTypesPrefix(parentMsgNames, DOT)
-        final String result = typeUrlPrefix + protoPackagePrefix + parentMessagesPrefix + msg.name
+        final String result = typeUrlPrefix + protoPackagePrefix + parentMessagesPrefix + messageName
         return result
     }
 
-    private String getJavaClassName(DescriptorProto msg, Collection<String> parentTypeNames) {
+    private String getJavaClassName(String messageName, Collection<String> parentTypeNames) {
         final String parentClassesPrefix = getParentTypesPrefix(parentTypeNames, JAVA_INNER_CLASS_SEPARATOR)
-        final String result = javaPackagePrefix + commonOuterClassPrefix + parentClassesPrefix + msg.name
+        final String result = javaPackagePrefix + commonOuterClassPrefix + parentClassesPrefix + messageName
         return result
     }
 
