@@ -20,8 +20,8 @@
 
 package org.spine3.gradle.protobuf.lookup.proto
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Joiner
-import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import groovy.util.logging.Slf4j
 
@@ -46,7 +46,8 @@ class ProtoToJavaTypeMapper {
     /** A separator used in Protobuf type names and Java packages. */
     private static final String DOT = "."
 
-    private static final String GOOGLE_TYPE_URL_PREFIX = "type.googleapis.com"
+    @VisibleForTesting
+    static final String GOOGLE_TYPE_URL_PREFIX = "type.googleapis.com"
     private static final String PROTO_TYPE_URL_SEPARATOR = "/"
 
     private static final String PROTO_FILE_NAME_SEPARATOR = "_"
@@ -69,57 +70,97 @@ class ProtoToJavaTypeMapper {
     /** Returns a map from Protobuf type url to the corresponding fully-qualified Java class name. */
     Map<GString, GString> mapTypes() {
         final ImmutableMap.Builder<GString, GString> builder = ImmutableMap.builder()
-        putMessageEntries(builder, file.messageTypeList, newLinkedList())
-        putEnumEntries(builder, file.enumTypeList, newLinkedList())
+        putMessageEntries(file.messageTypeList, builder, newLinkedList())
+        putEnumEntries(file.enumTypeList, builder, newLinkedList())
         return builder.build()
     }
 
-    private void putMessageEntries(ImmutableMap.Builder<GString, GString> builder,
-                                   Iterable<DescriptorProto> messages,
+    private void putMessageEntries(Iterable<DescriptorProto> messages,
+                                   ImmutableMap.Builder<GString, GString> builder,
                                    Collection<String> parentMsgNames) {
         for (DescriptorProto msg : messages) {
-            putMessageEntry(builder, msg, parentMsgNames)
+            if (!isGeneratedMapEntryMsg(msg, parentMsgNames)) {
+                putMessageEntry(builder, msg, parentMsgNames)
+            }
         }
     }
 
-    private void putMessageEntry(ImmutableMap.Builder<GString, GString> builder,
-                                 DescriptorProto msg,
-                                 Collection<String> parentMsgNames) {
-        final String typeUrl = getTypeUrl(msg.name, parentMsgNames)
-        final String javaClassName = getJavaClassName(msg.name, parentMsgNames)
-        builder.put("$typeUrl", "$javaClassName")
-
-        parentMsgNames.add(msg.name)
-
-        final List<DescriptorProto> messagesNested = msg.nestedTypeList
-        if (!messagesNested.isEmpty()) {
-            putMessageEntries(builder, messagesNested, parentMsgNames)
-        }
-        final List<EnumDescriptorProto> enumsNested = msg.enumTypeList
-        if (!enumsNested.isEmpty()) {
-            putEnumEntries(builder, enumsNested, ImmutableList.copyOf(parentMsgNames))
-        }
-    }
-
-    private void putEnumEntries(ImmutableMap.Builder<GString, GString> builder,
-                                Iterable<EnumDescriptorProto> enums,
-                                Collection<String> parentMsgNames) {
-        for (EnumDescriptorProto msg : enums) {
-            final String typeUrl = getTypeUrl(msg.name, parentMsgNames)
-            final String javaClassName = getJavaClassName(msg.name, parentMsgNames)
-            builder.put("$typeUrl", "$javaClassName")
-        }
-    }
-
-    private String getTypeUrl(String messageName, Collection<String> parentMsgNames) {
-        final String parentMessagesPrefix = getParentTypesPrefix(parentMsgNames, DOT)
-        final String result = typeUrlPrefix + protoPackagePrefix + parentMessagesPrefix + messageName
+    /**
+     * Returns true if the message is generated map entry type, and thus is not user-defined type.
+     *
+     * <p>This happens if a field of type {@code map} is used in a message. For example:
+     *
+     * <pre>
+     * message Outer {
+     *     map&lt;string, int32&gt; my_map = 1;
+     * }
+     * </pre>
+     *
+     * In this case, the descriptor of the {@code Outer} message will contain an inner type {@code MyMap},
+     * which will contain two fields: {@code string} {@code key} and {@code int32} {@code value}.
+     *
+     * @param message a message to check
+     * @param parentMsgNames names of the parent messages
+     * @return true if the message is generated map entry type
+     */
+    private static boolean isGeneratedMapEntryMsg(DescriptorProto message, Collection<String> parentMsgNames) {
+        def fields = message.fieldList
+        final boolean result =
+                message.name.endsWith("Entry") &&
+                (fields.size() == 2) &&
+                (fields.get(0).name == "key") &&
+                (fields.get(1).name == "value") &&
+                !parentMsgNames.isEmpty()
         return result
     }
 
-    private String getJavaClassName(String messageName, Collection<String> parentTypeNames) {
+    /**
+     * Puts an entry for this message to the map builder.
+     * Then puts entries for all inner messages and enums of this message.
+     */
+    private void putMessageEntry(ImmutableMap.Builder<GString, GString> builder,
+                                 DescriptorProto msg,
+                                 Collection<String> parentMsgNames) {
+        final List<String> parentMsgNamesCopy = newLinkedList(parentMsgNames)
+        putEntry(msg.name, builder, parentMsgNames)
+
+        parentMsgNamesCopy.add(msg.name)
+
+        final List<DescriptorProto> messagesNested = msg.nestedTypeList
+        if (!messagesNested.isEmpty()) {
+            putMessageEntries(messagesNested, builder, parentMsgNamesCopy)
+        }
+        final List<EnumDescriptorProto> enumsNested = msg.enumTypeList
+        if (!enumsNested.isEmpty()) {
+            putEnumEntries(enumsNested, builder, parentMsgNamesCopy)
+        }
+    }
+
+    private void putEnumEntries(Iterable<EnumDescriptorProto> enums,
+                                ImmutableMap.Builder<GString, GString> builder,
+                                Collection<String> parentMsgNames) {
+        for (EnumDescriptorProto msg : enums) {
+            putEntry(msg.name, builder, parentMsgNames)
+        }
+    }
+
+    private void putEntry(String typeName,
+                          ImmutableMap.Builder<GString, GString> builder,
+                          Collection<String> parentMsgNames) {
+        final String typeUrl = getTypeUrl(typeName, parentMsgNames)
+        final String javaClassName = getJavaClassName(typeName, parentMsgNames)
+        builder.put("$typeUrl", "$javaClassName")
+    }
+
+    private String getTypeUrl(String typeName, Collection<String> parentMsgNames) {
+        final String parentMessagesPrefix = getParentTypesPrefix(parentMsgNames, DOT)
+        final String result = typeUrlPrefix + protoPackagePrefix + parentMessagesPrefix + typeName
+        return result
+    }
+
+    private String getJavaClassName(String typeName, Collection<String> parentTypeNames) {
         final String parentClassesPrefix = getParentTypesPrefix(parentTypeNames, JAVA_INNER_CLASS_SEPARATOR)
-        final String result = javaPackagePrefix + commonOuterClassPrefix + parentClassesPrefix + messageName
+        final String result = javaPackagePrefix + commonOuterClassPrefix + parentClassesPrefix + typeName
         return result
     }
 

@@ -25,8 +25,9 @@ import groovy.util.logging.Slf4j
 
 import java.util.regex.Pattern
 
+import static com.google.common.collect.Maps.newHashMap
 import static com.google.protobuf.DescriptorProtos.*
-import static java.util.Collections.*
+import static java.util.Collections.emptyMap
 
 /**
  * A utility class which helps to get "unknown" Protobuf option field numbers (as in option type declaration)
@@ -40,6 +41,13 @@ import static java.util.Collections.*
  * <p>An option is "unknown" and serialized if there is no dependency on the artifact
  * which contains the needed option definition.
  * For example, we should not depend on "Spine/core-java" project artifacts to avoid circular dependency.
+ *
+ * <p>There can be several option properties, and several same numbers in the options string:
+ *
+ * [(decimal_max).value = "64.5", (decimal_max).inclusive = true];
+ *
+ * Currently, we do not need options with several properties.
+ * So, only first option property values are obtained, and others are ignored.
  *
  * @author Alexander Litus
  */
@@ -89,6 +97,13 @@ class ProtobufOptionsUtil {
         return result
     }
 
+    /** Returns {@code true} if the field is marked with an option which has the given field number in its definition. */
+    static boolean hasUnknownOption(FieldDescriptorProto field, Long optionFieldNumber) {
+        final String optionsStr = field.getOptions().getUnknownFields().toString().trim()
+        final boolean result = optionsStr.contains(String.valueOf(optionFieldNumber))
+        return result
+    }
+
     /**
      * Returns a string value of "unknown" Protobuf option or {@code null} if no option with such field number found.
      */
@@ -103,15 +118,15 @@ class ProtobufOptionsUtil {
         if (optionsStr.trim().isEmpty()) {
             return emptyMap()
         }
-        final ImmutableMap.Builder<Long, String> result = ImmutableMap.builder()
+        final Map<Long, String> map = newHashMap()
         final String[] options = PATTERN_NEW_LINE.split(optionsStr);
         for (String option : options) {
-            parseAndPutNumberAndValue(option, result)
+            parseAndPutNumberAndValue(option, map)
         }
-        return result.build()
+        return ImmutableMap.copyOf(map)
     }
 
-    private static void parseAndPutNumberAndValue(String option, ImmutableMap.Builder<Long, String> builder) {
+    private static void parseAndPutNumberAndValue(String option, Map<Long, String> map) {
         // we need only two parts split by the first colon
         final int limit = 2
         final String[] numberAndValue = PATTERN_COLON.split(option, limit)
@@ -121,6 +136,9 @@ class ProtobufOptionsUtil {
         if (value.startsWith(QUOTE) && value.endsWith(QUOTE)) {
             value = value.substring(1, value.length() - 1)
         }
-        builder.put(number, value)
+        // Check for duplicates to avoid exceptions on immutable map creation. See the class docs for details.
+        if (!map.containsKey(number)) {
+            map.put(number, value)
+        }
     }
 }

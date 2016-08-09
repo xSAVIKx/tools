@@ -31,6 +31,7 @@ import static com.google.common.collect.Lists.newLinkedList
 import static com.google.protobuf.DescriptorProtos.*
 import static java.util.AbstractMap.SimpleEntry
 import static org.spine3.gradle.protobuf.util.ProtobufOptionsUtil.getUnknownOptionValue
+import static org.spine3.gradle.protobuf.util.ProtobufOptionsUtil.hasUnknownOption
 
 /**
  * Finds event enrichment Protobuf definitions.
@@ -167,7 +168,7 @@ class EnrichmentsFinder {
     }
 
     private static boolean hasOptionEnrichBy(FieldDescriptorProto field) {
-        final boolean hasOption = getUnknownOptionValue(field, OPTION_NUMBER_ENRICH_BY)
+        final boolean hasOption = hasUnknownOption(field, OPTION_NUMBER_ENRICH_BY)
         return hasOption
     }
 
