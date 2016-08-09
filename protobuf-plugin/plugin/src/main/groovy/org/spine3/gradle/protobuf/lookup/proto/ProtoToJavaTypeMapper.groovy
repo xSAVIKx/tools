@@ -20,7 +20,6 @@
 
 package org.spine3.gradle.protobuf.lookup.proto
 
-import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableMap
 import groovy.util.logging.Slf4j
@@ -28,7 +27,6 @@ import groovy.util.logging.Slf4j
 import static com.google.common.collect.Lists.newLinkedList
 import static com.google.protobuf.DescriptorProtos.*
 import static org.spine3.gradle.protobuf.util.ProtobufOptionsUtil.getUnknownOptionValue
-
 /**
  * Maps Protobuf message types from a file to the corresponding Java classes.
  */
@@ -42,12 +40,10 @@ class ProtoToJavaTypeMapper {
 
     private static final String JAVA_INNER_CLASS_SEPARATOR = "\$"
 
-    // TODO:2016-08-03:alexander.litus: DRY
     /** A separator used in Protobuf type names and Java packages. */
     private static final String DOT = "."
 
-    @VisibleForTesting
-    static final String GOOGLE_TYPE_URL_PREFIX = "type.googleapis.com"
+    private static final String GOOGLE_TYPE_URL_PREFIX = "type.googleapis.com"
     private static final String PROTO_TYPE_URL_SEPARATOR = "/"
 
     private static final String PROTO_FILE_NAME_SEPARATOR = "_"

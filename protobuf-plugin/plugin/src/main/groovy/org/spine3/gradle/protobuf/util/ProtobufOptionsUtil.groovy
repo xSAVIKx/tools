@@ -113,7 +113,6 @@ class ProtobufOptionsUtil {
         return result
     }
 
-    // TODO:2016-08-04:alexander.litus: tests
     private static Map<Long, String> parseOptions(String optionsStr) {
         if (optionsStr.trim().isEmpty()) {
             return emptyMap()
