@@ -7,6 +7,7 @@ allprojects {
         SPINE_VERSION = "0.5.1-SNAPSHOT"
         SPINE_PROTOBUF_PLUGIN_VERSION = "1.4.8"
         PROTOBUF_VERSION = "3.0.0"
+        SLF4J_VERSION = '1.7.12'
     }
 }
 
@@ -46,8 +47,10 @@ subprojects {
         // They depend on an old Guava version. Add them only in sub-projects which need these dependencies.
 
         compile "com.google.protobuf:protobuf-java:$PROTOBUF_VERSION"
-        compile group: 'org.slf4j', name:'slf4j-api', version: '1.7.12'
+        compile group: 'org.slf4j', name:'slf4j-api', version: SLF4J_VERSION
 
+        //Use jdk14 bindings for test purposes only.
+        testCompile group: 'org.slf4j', name: 'slf4j-jdk14', version: SLF4J_VERSION
         testCompile(group: 'junit', name: 'junit', version: '4.12')
     }
 

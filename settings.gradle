@@ -3,8 +3,11 @@ rootProject.name = 'tools'
 include 'protobuf-plugin'
 project(':protobuf-plugin').projectDir = "$rootDir/protobuf-plugin" as File
 
+include 'reflections-plugin'
+project(':reflections-plugin').projectDir = "$rootDir/reflections-plugin" as File
+
 include 'failures-gen-sample'
 project(':failures-gen-sample').projectDir = "$rootDir/failures-gen-sample" as File
 
-include 'reflections-plugin'
-project(':reflections-plugin').projectDir = "$rootDir/reflections-plugin" as File
+include 'map-proto-to-java-sample'
+project(':map-proto-to-java-sample').projectDir = "$rootDir/map-proto-to-java-sample" as File
