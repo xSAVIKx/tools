@@ -42,15 +42,13 @@ subprojects {
     }
 
     dependencies {
-        compile gradleApi()
-        compile localGroovy()
+        // NOTE: do not add `gradleApi()` or `localGroovy()` dependencies here to avoid problems.
+        // They depend on an old Guava version. Add them only in sub-projects which need these dependencies.
 
         compile "com.google.protobuf:protobuf-java:$PROTOBUF_VERSION"
         compile group: 'org.slf4j', name:'slf4j-api', version: '1.7.12'
 
-        testCompile(group: 'junit', name: 'junit', version: '4.12') {
-            exclude(module: 'hamcrest-core')
-        }
+        testCompile(group: 'junit', name: 'junit', version: '4.12')
     }
 
     final String SRC_DIR = "$projectDir/plugin/src"
