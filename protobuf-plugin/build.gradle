@@ -1,6 +1,2 @@
 group 'org.spine3.tools'
-version PROTOBUF_PLUGIN_VERSION
-
-dependencies {
-    compile 'com.google.protobuf:protobuf-java:3.0.0-beta-3'
-}
+version SPINE_PROTOBUF_PLUGIN_VERSION
