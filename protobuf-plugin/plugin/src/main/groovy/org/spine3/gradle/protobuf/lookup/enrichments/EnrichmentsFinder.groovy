@@ -25,12 +25,13 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import groovy.util.logging.Slf4j
 
-import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 import static com.google.common.collect.Lists.newLinkedList
 import static com.google.protobuf.DescriptorProtos.*
 import static java.util.AbstractMap.SimpleEntry
+import static org.spine3.gradle.protobuf.util.ProtobufOptionsUtil.getUnknownOptionValue
+import static org.spine3.gradle.protobuf.util.ProtobufOptionsUtil.hasUnknownOption
 
 /**
  * Finds event enrichment Protobuf definitions.
@@ -41,27 +42,22 @@ import static java.util.AbstractMap.SimpleEntry
 @SuppressWarnings("UnnecessaryQualifiedReference")
 class EnrichmentsFinder {
 
-    private static final String MSG_FQN_REGEX = /[a-zA-Z0-9._]+/
-
     /**
      * The field number of the field option `by` defined in `Spine/core-java`.
      */
-    private static final String OPTION_FIELD_NUMBER_ENRICH_BY = "57125"
-
-    private static final Pattern OPTION_PATTERN_ENRICH_BY =
-            Pattern.compile(/$OPTION_FIELD_NUMBER_ENRICH_BY: "($MSG_FQN_REGEX)"/)
+    private static final Long OPTION_NUMBER_ENRICH_BY = 57125L
 
     /**
      * The field number of the message option `enrichment_for` defined in `Spine/core-java`.
      */
-    private static final String OPTION_FIELD_NUMBER_ENRICHMENT_FOR = "57124"
+    private static final Long OPTION_NUMBER_ENRICHMENT_FOR = 57124L
 
     private static final Pattern PATTERN_SPACE = Pattern.compile(" ")
-    private static final Pattern PATTERN_QUOTE = Pattern.compile("\"")
+
+    private static final String EVENT_NAME_SEPARATOR = ","
+    private static final Pattern PATTERN_EVENT_NAME_SEPARATOR = Pattern.compile(EVENT_NAME_SEPARATOR)
 
     private static final String PROTO_TYPE_SEPARATOR = "."
-    private static final String EVENT_NAME_SEPARATOR = ","
-    private static final String COLON = ":"
 
     private final FileDescriptorProto file
     private final GString packagePrefix
@@ -73,7 +69,7 @@ class EnrichmentsFinder {
      */
     EnrichmentsFinder(FileDescriptorProto file) {
         this.file = file
-        this.packagePrefix = "${file.getPackage()}$PROTO_TYPE_SEPARATOR"
+        this.packagePrefix = "$file.package$PROTO_TYPE_SEPARATOR"
     }
 
     /**
@@ -113,7 +109,7 @@ class EnrichmentsFinder {
         if (!eventNames) {
             return null
         }
-        final GString enrichmentName = packagePrefix + msg.getName()
+        final GString enrichmentName = "$packagePrefix$msg.name"
         return new SimpleEntry<>(enrichmentName, eventNames)
     }
 
@@ -136,8 +132,8 @@ class EnrichmentsFinder {
         for (DescriptorProto innerMsg : msg.getNestedTypeList()) {
             for (FieldDescriptorProto field : innerMsg.getFieldList()) {
                 if (hasOptionEnrichBy(field)) {
-                    final GString outerEventName = "$packagePrefix${msg.getName()}"
-                    final GString enrichmentName = "$outerEventName$PROTO_TYPE_SEPARATOR${innerMsg.getName()}"
+                    final GString outerEventName = "$packagePrefix$msg.name"
+                    final GString enrichmentName = "$outerEventName$PROTO_TYPE_SEPARATOR$innerMsg.name"
                     return new SimpleEntry<>(enrichmentName, outerEventName)
                 }
             }
@@ -146,13 +142,12 @@ class EnrichmentsFinder {
     }
 
     private GString parseEventNamesFromMsgOption(DescriptorProto msg) {
-        // This needed option is "unknown" and serialized, but it is possible to print option field numbers and values.
-        final String optionsStr = msg.getOptions().getUnknownFields().toString().trim()
-        if (!optionsStr.contains(OPTION_FIELD_NUMBER_ENRICHMENT_FOR)) {
+        final String eventNamesStr = getUnknownOptionValue(msg, OPTION_NUMBER_ENRICHMENT_FOR)
+        if (!eventNamesStr) {
             return null
         }
-        final List<String> eventNamesPrimary = parseEventNames(optionsStr)
-        final List<String> eventNamesResult = newLinkedList()
+        final Collection<String> eventNamesPrimary = parseEventNames(eventNamesStr)
+        final Collection<String> eventNamesResult = newLinkedList()
         for (String eventName : eventNamesPrimary) {
             final boolean isFqn = eventName.contains(PROTO_TYPE_SEPARATOR)
             if (isFqn) {
@@ -165,41 +160,29 @@ class EnrichmentsFinder {
         return "$result"
     }
 
-    private static List<String> parseEventNames(String optionsStr) {
-        String opts = optionsStr
-        final int colonIndex = opts.indexOf(COLON)
-        opts = opts.substring(colonIndex + 1)
-        opts = PATTERN_SPACE.matcher(opts).replaceAll("")
-        opts = PATTERN_QUOTE.matcher(opts).replaceAll("")
-        final List<String> eventNames = ImmutableList.copyOf(opts.split(EVENT_NAME_SEPARATOR))
-        return eventNames
+    private static List<String> parseEventNames(String eventNames) {
+        String names = eventNames
+        names = PATTERN_SPACE.matcher(names).replaceAll("")
+        final String[] namesArray = PATTERN_EVENT_NAME_SEPARATOR.split(names)
+        return ImmutableList.copyOf(namesArray)
     }
 
     private static boolean hasOptionEnrichBy(FieldDescriptorProto field) {
-        final String optionsStr = getOptionsString(field)
-        final boolean result = optionsStr.contains(OPTION_FIELD_NUMBER_ENRICH_BY)
-        return result
+        final boolean hasOption = hasUnknownOption(field, OPTION_NUMBER_ENRICH_BY)
+        return hasOption
     }
 
     private static GString parseEventNameFromOptBy(FieldDescriptorProto field) {
-        final String optionsStr = getOptionsString(field)
-        final Matcher matcher = OPTION_PATTERN_ENRICH_BY.matcher(optionsStr)
-        if (!matcher.matches()) {
+        final String fieldFqn = getUnknownOptionValue(field, OPTION_NUMBER_ENRICH_BY)
+        if (!fieldFqn) {
             return null
         }
-        final String fieldFqn = matcher.group(1)
         final int index = fieldFqn.lastIndexOf(PROTO_TYPE_SEPARATOR)
         if (index < 0) {
             return null
         }
         final String eventName = fieldFqn.substring(0, index)
         return "$eventName"
-    }
-
-    private static String getOptionsString(FieldDescriptorProto field) {
-        // This needed option is "unknown" and serialized, but it is possible to print option field numbers and values.
-        final String optionsStr = field.getOptions().getUnknownFields().toString().trim()
-        return optionsStr
     }
 
     private static void put(Map.Entry<String, String> entry, ImmutableMap.Builder<String, String> mapBuilder) {

@@ -71,38 +71,6 @@ class ExtensionShould {
     }
 
     @Test
-    void return_default_mainProtoSrcDir_if_not_set() {
-        final GString dir = Extension.getMainProtoSrcDir(project)
-
-        assertNotEmptyAndIsInProjectDir(dir)
-    }
-
-    @Test
-    void return_mainProtoSrcDir_if_set() {
-        project.spineProtobuf.mainProtoSrcDir = newUuid()
-
-        final GString dir = Extension.getMainProtoSrcDir(project)
-
-        assertEquals(project.spineProtobuf.mainProtoSrcDir, dir)
-    }
-
-    @Test
-    void return_default_testProtoSrcDir_if_not_set() {
-        final GString dir = Extension.getTestProtoSrcDir(project)
-
-        assertNotEmptyAndIsInProjectDir(dir)
-    }
-
-    @Test
-    void return_testProtoSrcDir_if_set() {
-        project.spineProtobuf.testProtoSrcDir = newUuid()
-
-        final GString dir = Extension.getTestProtoSrcDir(project)
-
-        assertEquals(project.spineProtobuf.testProtoSrcDir, dir)
-    }
-
-    @Test
     void return_default_mainDescriptorSetPath_if_not_set() {
         final GString dir = Extension.getMainDescriptorSetPath(project)
 

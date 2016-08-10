@@ -1,17 +1,17 @@
-//noinspection GroovyLocalVariableNamingConvention
-final String CREDENTIALS_FILE_PATH = "credentials.properties"
-
-apply plugin: 'maven'
 
 allprojects {
     group = 'org.spine3.tools'
 
     project.ext {
         MAVEN_REPOSITORY_URL = 'http://maven.teamdev.com/repository/spine'
-        SPINE_VERSION = "0.5.1-SNAPSHOT"
+        SPINE_VERSION = '0.5.3-SNAPSHOT'
+        SPINE_PROTOBUF_PLUGIN_VERSION = '1.4.9'
+        PROTOBUF_VERSION = '3.0.0'
+        SLF4J_VERSION = '1.7.12'
     }
 }
 
+final String CREDENTIALS_FILE_PATH = "credentials.properties"
 def repositoryUserName = null
 def repositoryUserPassword = null
 Properties properties = new Properties()
@@ -43,28 +43,35 @@ subprojects {
     }
 
     dependencies {
-        compile gradleApi()
-        compile localGroovy()
+        // NOTE: do not add `gradleApi()` or `localGroovy()` dependencies here to avoid problems.
+        // They depend on an old Guava version. Add them only in sub-projects which need these dependencies.
 
-        compile group: 'org.slf4j', name:'slf4j-api', version: '1.7.12'
+        compile "com.google.protobuf:protobuf-java:$PROTOBUF_VERSION"
+        compile group: 'org.slf4j', name:'slf4j-api', version: SLF4J_VERSION
 
-        testCompile(group: 'junit', name: 'junit', version: '4.12') {
-            exclude(module: 'hamcrest-core')
-        }
+        //Use jdk14 bindings for test purposes only.
+        testCompile group: 'org.slf4j', name: 'slf4j-jdk14', version: SLF4J_VERSION
+        testCompile(group: 'junit', name: 'junit', version: '4.12')
     }
+
+    final String SRC_DIR = "$projectDir/plugin/src"
 
     sourceSets {
         main {
-            resources.srcDirs += files("plugin/src/main/resources")
-            groovy.srcDirs = ["plugin/src/main/groovy"]
+            groovy.srcDirs += "$SRC_DIR/main/groovy"
+            resources.srcDirs += "$SRC_DIR/main/resources"
+        }
+        test {
+            groovy.srcDirs += "$SRC_DIR/test/groovy"
+            resources.srcDirs += "$SRC_DIR/test/resources"
         }
     }
 
     publishing {
         publications {
             mavenJava(MavenPublication) {
-                groupId "${group}"
-                artifactId "${project.name}"
+                groupId "$group"
+                artifactId "$project.name"
                 version "${project.version}"
 
                 from components.java
@@ -75,8 +82,8 @@ subprojects {
         repositories {
             maven {
                 credentials {
-                    username "${repositoryUserName}"
-                    password "${repositoryUserPassword}"
+                    username "$repositoryUserName"
+                    password "$repositoryUserPassword"
                 }
                 url "${project.MAVEN_REPOSITORY_URL}"
             }

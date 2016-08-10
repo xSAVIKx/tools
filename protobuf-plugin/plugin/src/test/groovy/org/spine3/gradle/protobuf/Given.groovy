@@ -54,7 +54,6 @@ class Given {
     /** Creates a project with all required tasks. */
     static Project newProject() {
         final Project project = ProjectBuilder.builder()
-                .withProjectDir(new File("testProject"))
                 .build()
         project.task(CLEAN)
         project.task(PROCESS_RESOURCES)

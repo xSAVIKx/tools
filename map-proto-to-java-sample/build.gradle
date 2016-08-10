@@ -1,0 +1,74 @@
+
+group 'org.spine3.tools'
+version '1.0'
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven {
+            url = MAVEN_REPOSITORY_URL
+        }
+    }
+    dependencies {
+        classpath group: 'com.google.guava', name: 'guava', version: '19.0'
+        classpath ('com.google.protobuf:protobuf-gradle-plugin:0.7.7') {
+            // exclude old Guava version
+            exclude group: 'com.google.guava'
+        }
+        classpath group: "org.spine3.tools", name: "protobuf-plugin", version: SPINE_PROTOBUF_PLUGIN_VERSION
+    }
+    configurations.all({
+        resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
+    })
+}
+
+apply plugin: 'java'
+apply plugin: 'com.google.protobuf'
+apply plugin: 'org.spine3.tools.protobuf-plugin'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url = "$MAVEN_REPOSITORY_URL"
+    }
+}
+
+dependencies {
+    compile group: 'com.google.guava', name: 'guava', version: '19.0'
+    compile group: "org.spine3", name: "client", version: "$SPINE_VERSION", changing: true
+
+    configurations.all({
+        resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
+    })
+}
+
+protobuf {
+    generatedFilesBaseDir = "$projectDir/generated";
+    protoc {
+        artifact = "com.google.protobuf:protoc:$PROTOBUF_VERSION"
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.generateDescriptorSet = true
+            task.descriptorSetOptions.path = "${projectDir}/build/descriptors/${task.sourceSet.name}.desc"
+            task.descriptorSetOptions.includeImports = true
+        }
+    }
+}
+
+idea.module {
+    generatedSourceDirs += file("$projectDir/generated/test/java")
+}
+
+sourceSets {
+    test {
+        java.srcDirs = ["$projectDir/src/test/java", "$projectDir/generated/test/java"]
+        proto.srcDirs = ["$projectDir/src/test/proto"]
+        resources.srcDirs = ["$projectDir/generated/test/resources"]
+    }
+}

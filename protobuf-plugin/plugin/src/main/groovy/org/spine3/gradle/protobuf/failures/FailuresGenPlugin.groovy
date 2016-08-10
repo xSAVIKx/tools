@@ -19,6 +19,7 @@
  */
 
 package org.spine3.gradle.protobuf.failures
+
 import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -27,6 +28,7 @@ import org.gradle.api.Task
 import static com.google.protobuf.DescriptorProtos.*
 import static org.spine3.gradle.protobuf.Extension.*
 import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors
+
 /**
  * Plugin which generates Failures, based on failures.proto files.
  *
@@ -79,7 +81,7 @@ class FailuresGenPlugin implements Plugin<Project> {
 
     private List<FileDescriptorProto> getFailureProtoFileDescriptors(GString descFilePath) {
         final List<FileDescriptorProto> failureDescriptors = new LinkedList<>()
-        final List<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath)
+        final Collection<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath)
         for (FileDescriptorProto file : allDescriptors) {
             if (file.getName().endsWith("/failures.proto")) {
                 failureDescriptors.add(file)

@@ -20,6 +20,8 @@
 
 package org.spine3.gradle.protobuf.util
 
+import groovy.util.logging.Slf4j
+
 import static java.util.Map.Entry
 
 /**
@@ -27,6 +29,7 @@ import static java.util.Map.Entry
  *
  * @author Alexander Litus
  */
+@Slf4j
 class PropertiesWriter {
 
     private final GString propsFilePath
@@ -63,7 +66,11 @@ class PropertiesWriter {
             final Set<String> names = props.stringPropertyNames()
             for (Iterator<String> i = names.iterator(); i.hasNext();) {
                 final String propName = i.next()
-                props.setProperty(propName, props.getProperty(propName))
+                if (!props.containsKey(propName)) {
+                    props.setProperty(propName, props.getProperty(propName))
+                } else {
+                    log.warn("Duplicate key: $propName")
+                }
             }
         } else {
             file.parentFile.mkdirs()
@@ -72,7 +79,11 @@ class PropertiesWriter {
         for (Entry<GString, GString> entry : propertiesMap.entrySet()) {
             final String keyStr = entry.getKey().toString()
             final String valueStr = entry.getValue().toString()
-            props.setProperty(keyStr, valueStr)
+            if (!props.containsKey(keyStr)) {
+                props.setProperty(keyStr, valueStr)
+            } else {
+                log.warn("Duplicate key: $keyStr")
+            }
         }
         final BufferedWriter writer = file.newWriter()
         props.store(writer, /*comments=*/null)

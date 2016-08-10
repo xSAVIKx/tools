@@ -28,6 +28,7 @@ import org.spine3.gradle.protobuf.util.PropertiesWriter
 
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto
 import static org.spine3.gradle.protobuf.Extension.*
+import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.IsNotGoogleProto
 import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors
 
 /**
@@ -68,7 +69,7 @@ class EnrichmentLookupPlugin implements Plugin<Project> {
 
     private static void findEnrichmentsAndWriteProps(GString targetGeneratedResourcesDir, GString descriptorSetPath) {
         final Map<GString, GString> propsMap = new HashMap<>()
-        final List<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath)
+        final Collection<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath, new IsNotGoogleProto())
         for (FileDescriptorProto file : files) {
             final Map<GString, GString> enrichments = new EnrichmentsFinder(file).findEnrichments()
             propsMap.putAll(enrichments)
