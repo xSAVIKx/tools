@@ -41,16 +41,6 @@ class Extension {
     GString testTargetGenResourcesDir
 
     /**
-     * The absolute path to the main Protobuf sources directory.
-     */
-    GString mainProtoSrcDir
-
-    /**
-     * The absolute path to the test Protobuf sources directory.
-     */
-    GString testProtoSrcDir
-
-    /**
      * The absolute path to the main Protobuf descriptor set file.
      */
     GString mainDescriptorSetPath
