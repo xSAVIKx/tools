@@ -56,7 +56,7 @@ protobuf {
         all().each { task ->
             task.generateDescriptorSet = true
             task.descriptorSetOptions.path = "${projectDir}/build/descriptors/${task.sourceSet.name}.desc"
-            task.descriptorSetOptions.includeImports = false
+            task.descriptorSetOptions.includeImports = true
         }
     }
 }
