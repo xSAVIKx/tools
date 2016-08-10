@@ -20,8 +20,15 @@ public class ProtoToJavaMapperPluginShould {
     private static final String FIRST_MSG = "FirstMsg";
     private static final String SECOND_MSG = "SecondMsg";
     private static final String THIRD_MSG = "ThirdMsg";
+    private static final String FOURTH_MSG = "FourthMsg";
+
+    private static final String SECOND_ENUM = "SecondEnum";
+    private static final String THIRD_ENUM = "ThirdEnum";
+    private static final String FOURTH_ENUM = "FourthEnum";
 
     private static final String MSG_ONE = "Msg1";
+    private static final String MSG_TWO = "Msg2";
+    private static final String ENUM_TWO = "Enum2";
 
     @Test
     public void put_entry_for_simple_message() {
@@ -62,13 +69,13 @@ public class ProtoToJavaMapperPluginShould {
     @Test
     public void put_entry_for_second_level_messages() {
         assertIsKnownType(compose(FIRST_MSG, SECOND_MSG));
-        assertIsKnownType(compose(MSG_ONE, "Msg2"));
+        assertIsKnownType(compose(MSG_ONE, MSG_TWO));
     }
 
     @Test
     public void put_entry_for_second_level_enum() {
-        assertIsKnownType(compose(FIRST_MSG, "SecondEnum"));
-        assertIsKnownType(compose(MSG_ONE, "Enum2"));
+        assertIsKnownType(compose(FIRST_MSG, SECOND_ENUM));
+        assertIsKnownType(compose(MSG_ONE, ENUM_TWO));
     }
 
     @Test
@@ -78,17 +85,17 @@ public class ProtoToJavaMapperPluginShould {
 
     @Test
     public void put_entry_for_third_level_enum() {
-        assertIsKnownType(compose(FIRST_MSG, SECOND_MSG, "ThirdEnum"));
+        assertIsKnownType(compose(FIRST_MSG, SECOND_MSG, THIRD_ENUM));
     }
 
     @Test
     public void put_entry_for_fourth_level_msg() {
-        assertIsKnownType(compose(FIRST_MSG, SECOND_MSG, THIRD_MSG, "FourthMsg"));
+        assertIsKnownType(compose(FIRST_MSG, SECOND_MSG, THIRD_MSG, FOURTH_MSG));
     }
 
     @Test
     public void put_entry_for_fourth_level_enum() {
-        assertIsKnownType(compose(FIRST_MSG, SECOND_MSG, THIRD_MSG, "FourthEnum"));
+        assertIsKnownType(compose(FIRST_MSG, SECOND_MSG, THIRD_MSG, FOURTH_ENUM));
     }
 
     private static void assertIsKnownType(String protoTypeName, String javaClassName) {
