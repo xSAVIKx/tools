@@ -60,29 +60,28 @@ class PropertiesWriter {
         File file = null
         try {
             file = new File(propsFilePath)
-        } catch (FileNotFoundException ignored) {}
+        } catch (FileNotFoundException ignored) {
+            // The file may not exist at this stage.
+        }
+
         if (file.exists()) {
             props.load(file.newDataInputStream())
-            final Set<String> names = props.stringPropertyNames()
-            for (Iterator<String> i = names.iterator(); i.hasNext();) {
-                final String propName = i.next()
-                if (!props.containsKey(propName)) {
-                    props.setProperty(propName, props.getProperty(propName))
-                } else {
-                    log.warn("Duplicate key: $propName")
-                }
-            }
         } else {
             file.parentFile.mkdirs()
             file.createNewFile()
         }
+
         for (Entry<GString, GString> entry : propertiesMap.entrySet()) {
-            final String keyStr = entry.getKey().toString()
-            final String valueStr = entry.getValue().toString()
-            if (!props.containsKey(keyStr)) {
-                props.setProperty(keyStr, valueStr)
+            final String key = entry.getKey().toString()
+            final String value = entry.getValue().toString()
+            if (!props.containsKey(key)) {
+                props.setProperty(key, value)
             } else {
-                log.warn("Duplicate key: $keyStr")
+                final String currentValue = props.getProperty(key)
+                if (!currentValue.equals(value)) {
+                    log.warn("Entry with the key `$key` already exists. Value: `$currentValue`." +
+                             " New value `$value` was not set.")
+                }
             }
         }
         final BufferedWriter writer = file.newWriter()

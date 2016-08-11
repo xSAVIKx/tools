@@ -1,5 +1,4 @@
-group 'org.spine3.tools'
-version SPINE_PROTOBUF_PLUGIN_VERSION
+version spineProtobufPluginVersion
 
 dependencies {
     compile gradleApi()

@@ -1,5 +1,3 @@
-
-group 'org.spine3.tools'
 version '1.0'
 
 buildscript {
@@ -7,7 +5,7 @@ buildscript {
         mavenLocal()
         mavenCentral()
         maven {
-            url = MAVEN_REPOSITORY_URL
+            url = mavenRepository
         }
     }
     dependencies {
@@ -16,7 +14,7 @@ buildscript {
             // exclude old Guava version
             exclude group: 'com.google.guava'
         }
-        classpath group: "org.spine3.tools", name: "protobuf-plugin", version: SPINE_PROTOBUF_PLUGIN_VERSION
+        classpath group: "org.spine3.tools", name: "protobuf-plugin", version: spineProtobufPluginVersion
     }
     configurations.all({
         resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
@@ -34,13 +32,13 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven {
-        url = "$MAVEN_REPOSITORY_URL"
+        url = mavenRepository
     }
 }
 
 dependencies {
     compile group: 'com.google.guava', name: 'guava', version: '19.0'
-    compile group: "org.spine3", name: "client", version: "$SPINE_VERSION", changing: true
+    compile group: "org.spine3", name: "client", version: "$spineVersion", changing: true
 
     configurations.all({
         resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
@@ -50,7 +48,7 @@ dependencies {
 protobuf {
     generatedFilesBaseDir = "$projectDir/generated";
     protoc {
-        artifact = "com.google.protobuf:protoc:$PROTOBUF_VERSION"
+        artifact = "com.google.protobuf:protoc:$protobufVersion"
     }
     generateProtoTasks {
         all().each { task ->
