@@ -7,7 +7,7 @@ buildscript {
         mavenLocal()
         mavenCentral()
         maven {
-            url = MAVEN_REPOSITORY_URL
+            url = mavenRepository
         }
     }
     dependencies {
@@ -34,7 +34,7 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven {
-        url = "$MAVEN_REPOSITORY_URL"
+        url = mavenRepository
     }
 }
 

@@ -3,7 +3,7 @@ allprojects {
     group = 'org.spine3.tools'
 
     project.ext {
-        MAVEN_REPOSITORY_URL = 'http://maven.teamdev.com/repository/spine'
+        mavenRepository = 'http://maven.teamdev.com/repository/spine'
         SPINE_VERSION = '0.5.3-SNAPSHOT'
         SPINE_PROTOBUF_PLUGIN_VERSION = '1.4.9'
         PROTOBUF_VERSION = '3.0.0'
@@ -85,7 +85,7 @@ subprojects {
                     username "$repositoryUserName"
                     password "$repositoryUserPassword"
                 }
-                url "${project.MAVEN_REPOSITORY_URL}"
+                url "${project.mavenRepository}"
             }
         }
     }
