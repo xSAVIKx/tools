@@ -10,7 +10,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.7.7'
-        classpath "org.spine3.tools:protobuf-plugin:$SPINE_PROTOBUF_PLUGIN_VERSION"
+        classpath "org.spine3.tools:protobuf-plugin:$spineProtobufPluginVersion"
     }
     configurations.all({
         resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
@@ -30,13 +30,13 @@ repositories {
 }
 
 dependencies {
-    compile "org.spine3:server:$SPINE_VERSION"
+    compile "org.spine3:server:$spineVersion"
 }
 
 protobuf {
     generatedFilesBaseDir = "$projectDir/generated";
     protoc {
-        artifact = "com.google.protobuf:protoc:$PROTOBUF_VERSION"
+        artifact = "com.google.protobuf:protoc:$protobufVersion"
     }
     generateProtoTasks {
         all().each { task ->

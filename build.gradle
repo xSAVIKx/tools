@@ -4,10 +4,10 @@ allprojects {
 
     project.ext {
         mavenRepository = 'http://maven.teamdev.com/repository/spine'
-        SPINE_VERSION = '0.5.3-SNAPSHOT'
-        SPINE_PROTOBUF_PLUGIN_VERSION = '1.4.9'
-        PROTOBUF_VERSION = '3.0.0'
-        SLF4J_VERSION = '1.7.12'
+        spineVersion = '0.5.3-SNAPSHOT' // We need Spine run-time libraries for samples.
+        spineProtobufPluginVersion = '1.4.9'
+        protobufVersion = '3.0.0'
+        slf4JVersion = '1.7.12'
     }
 }
 
@@ -46,11 +46,11 @@ subprojects {
         // NOTE: do not add `gradleApi()` or `localGroovy()` dependencies here to avoid problems.
         // They depend on an old Guava version. Add them only in sub-projects which need these dependencies.
 
-        compile "com.google.protobuf:protobuf-java:$PROTOBUF_VERSION"
-        compile group: 'org.slf4j', name:'slf4j-api', version: SLF4J_VERSION
+        compile "com.google.protobuf:protobuf-java:$protobufVersion"
+        compile group: 'org.slf4j', name:'slf4j-api', version: slf4JVersion
 
         //Use jdk14 bindings for test purposes only.
-        testCompile group: 'org.slf4j', name: 'slf4j-jdk14', version: SLF4J_VERSION
+        testCompile group: 'org.slf4j', name: 'slf4j-jdk14', version: slf4JVersion
         testCompile(group: 'junit', name: 'junit', version: '4.12')
     }
 
