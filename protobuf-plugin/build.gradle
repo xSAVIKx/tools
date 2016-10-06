@@ -3,4 +3,13 @@ version spineProtobufPluginVersion
 dependencies {
     compile gradleApi()
     compile localGroovy()
+
+    compile group: 'com.google.guava', name: 'guava', version: '19.0'
+    testCompile 'org.testng:testng:+'
+}
+
+// This fixes the conflict of dependencies on `groovy-all`.
+// For more info see here: https://discuss.gradle.org/t/conflicting-module-versions-with-groovy-all/16935
+configurations {
+    all*.exclude group: 'org.codehaus.groovy', module: 'groovy-all'
 }
