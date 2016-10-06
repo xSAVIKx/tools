@@ -78,7 +78,7 @@ class FailureWriter {
         this.failureDescriptor = failureDescriptor
         this.outputFile = outputFile
         this.javaPackage = javaPackage
-        this.outerClassName = javaOuterClassName
+        this.outerClassName = javaOuterClassName == null || javaOuterClassName.isEmpty() ? "Failures" : javaOuterClassName
         this.className = failureDescriptor.name
         this.messageTypeMap = messageTypeMap
     }

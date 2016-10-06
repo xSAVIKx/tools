@@ -64,7 +64,8 @@ class FailuresGenPlugin implements Plugin<Project> {
 
         final Task generateTestFailures = project.task("generateTestFailures") << {
             final GString path = getTestDescriptorSetPath(project)
-            processDescriptors(getFailureProtoFileDescriptors(path))
+            def filesWithFailures = getFailureProtoFileDescriptors(path)
+            processDescriptors(filesWithFailures)
         }
         generateTestFailures.dependsOn("generateTestProto")
         project.tasks.getByPath("compileTestJava").dependsOn(generateTestFailures)
@@ -99,7 +100,12 @@ class FailuresGenPlugin implements Plugin<Project> {
             return false
         }
         final GString javaOuterClassName = "$descriptor.options.javaOuterClassname"
-        final boolean result = (javaOuterClassName && javaOuterClassName.endsWith("Failures"))
+        if (!javaOuterClassName) {
+            // There's no outer class name given in options.
+            // Assuming the file name ends with `failures.proto`, it's a good failures file.
+            return true;
+        }
+        final boolean result = javaOuterClassName.endsWith("Failures")
         return result
     }
 
