@@ -56,7 +56,8 @@ class FailuresGenPlugin implements Plugin<Project> {
 
         final Task generateFailures = project.task("generateFailures") << {
             final GString path = getMainDescriptorSetPath(project)
-            processDescriptors(getFailureProtoFileDescriptors(path))
+            def filesWithFailures = getFailureProtoFileDescriptors(path)
+            processDescriptors(filesWithFailures)
         }
         generateFailures.dependsOn("generateProto")
         project.tasks.getByPath("compileJava").dependsOn(generateFailures)
@@ -71,7 +72,7 @@ class FailuresGenPlugin implements Plugin<Project> {
 
     private void processDescriptors(List<FileDescriptorProto> descriptors) {
         descriptors.each { FileDescriptorProto file ->
-            if (validateFailures(file)) {
+            if (isFileWithFailures(file)) {
                 generateFailures(file, cachedMessageTypes)
             } else {
                 log.error("Invalid failures file: $file.name")
@@ -83,7 +84,8 @@ class FailuresGenPlugin implements Plugin<Project> {
         final List<FileDescriptorProto> failureDescriptors = new LinkedList<>()
         final Collection<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath)
         for (FileDescriptorProto file : allDescriptors) {
-            if (file.getName().endsWith("/failures.proto")) {
+            if (file.getName().endsWith("failures.proto")) {
+                log.info("Found failures file: $file.name")
                 failureDescriptors.add(file)
             }
             cacheTypes(file)
@@ -91,11 +93,13 @@ class FailuresGenPlugin implements Plugin<Project> {
         return failureDescriptors
     }
 
-    private static boolean validateFailures(FileDescriptorProto descriptor) {
-        final boolean javaMultipleFiles = descriptor.options.javaMultipleFiles
+    private static boolean isFileWithFailures(FileDescriptorProto descriptor) {
+        // By convention failures are generated into one file.
+        if (descriptor.options.javaMultipleFiles) {
+            return false
+        }
         final GString javaOuterClassName = "$descriptor.options.javaOuterClassname"
-        final boolean result = !(javaMultipleFiles ||
-                (javaOuterClassName && javaOuterClassName != "Failures"))
+        final boolean result = (javaOuterClassName && javaOuterClassName.endsWith("Failures"))
         return result
     }
 
@@ -145,12 +149,13 @@ class FailuresGenPlugin implements Plugin<Project> {
     private void generateFailures(FileDescriptorProto descriptor, Map<GString, GString> messageTypeMap) {
         final GString failuresRootDir = getTargetGenFailuresRootDir(project)
         final GString javaPackage = "$descriptor.options.javaPackage"
+        final String javaOuterClassName = descriptor.options.javaOuterClassname
         final GString packageDirs = "${javaPackage.replace(".", "/")}"
         final List<DescriptorProto> failures = descriptor.messageTypeList
         failures.each { DescriptorProto failure ->
             final GString failureJavaPath = "$failuresRootDir/$packageDirs/${failure.name}.java"
             final File outputFile = new File(failureJavaPath)
-            new FailureWriter(failure, outputFile, javaPackage, messageTypeMap).write()
+            new FailureWriter(failure, outputFile, javaPackage, javaOuterClassName, messageTypeMap).write()
         }
     }
 }
