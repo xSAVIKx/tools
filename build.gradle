@@ -4,8 +4,8 @@ allprojects {
 
     project.ext {
         mavenRepository = 'http://maven.teamdev.com/repository/spine'
-        spineVersion = '0.5.3-SNAPSHOT' // We need Spine run-time libraries for samples.
-        spineProtobufPluginVersion = '1.4.11'
+        spineVersion = '0.5.9-SNAPSHOT' // We need Spine run-time libraries for samples.
+        spineProtobufPluginVersion = '1.4.10'
         protobufVersion = '3.0.0'
         slf4JVersion = '1.7.21'
     }
