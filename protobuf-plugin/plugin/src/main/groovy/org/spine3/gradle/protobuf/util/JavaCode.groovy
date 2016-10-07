@@ -9,28 +9,18 @@ import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
  */
 class JavaCode {
 
-    //TODO:2016-10-07:alexander.yevsyukov: This method duplicates getJavaOuterClassName
-    static GString getOuterClassName(FileDescriptorProto descriptor) {
-        GString classname = "$descriptor.options.javaOuterClassname"
-        if (!classname.isEmpty()) {
-            return "$classname"
-        }
-        classname = "${descriptor.name.substring(descriptor.name.lastIndexOf('/') + 1, descriptor.name.lastIndexOf(".proto"))}"
-        final GString result = "${classname.charAt(0).toUpperCase()}${classname.substring(1)}"
-        return result
-    }
-
-    static String getJavaOuterClassName(FileDescriptorProto descriptor) {
+    static String getOuterClassName(FileDescriptorProto descriptor) {
         String outerClassNameFromOptions = descriptor.options.javaOuterClassname
         if (!outerClassNameFromOptions.isEmpty()) {
             return outerClassNameFromOptions;
         }
 
-        final String fullFileName = descriptor.getName()
-        final int lastBackslash = fullFileName.lastIndexOf('/')
-        final String onlyName = fullFileName.substring(lastBackslash + 1)
-                                            .replace(".proto", "")
-        return toCamelCase(onlyName)
+        final String fullFileName = descriptor.name
+        final int lastBackslashIndex = fullFileName.lastIndexOf('/')
+        final int extensionIndex = descriptor.name.lastIndexOf(".proto");
+        final String fileName = fullFileName.substring(lastBackslashIndex + 1, extensionIndex)
+        final String className = toCamelCase(fileName)
+        return className
     }
 
     static String toCamelCase(String fileName) {

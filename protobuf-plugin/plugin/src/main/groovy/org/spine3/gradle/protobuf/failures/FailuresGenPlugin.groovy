@@ -116,7 +116,7 @@ class FailuresGenPlugin implements Plugin<Project> {
         final GString protoPackage = !fileDescriptor.package.isEmpty() ? "${fileDescriptor.package}." : GString.EMPTY
         GString javaPackage = !fileDescriptor.options.javaPackage.isEmpty() ? "${fileDescriptor.options.javaPackage}." : GString.EMPTY
         if (!fileDescriptor.options.javaMultipleFiles) {
-            final GString singleFileSuffix = JavaCode.getOuterClassName(fileDescriptor)
+            final GString singleFileSuffix = "${JavaCode.getOuterClassName(fileDescriptor)}"
             javaPackage = "${javaPackage}${singleFileSuffix}."
         }
         fileDescriptor.messageTypeList.each { DescriptorProto msg ->
@@ -148,7 +148,7 @@ class FailuresGenPlugin implements Plugin<Project> {
     private void generateFailures(FileDescriptorProto descriptor, Map<GString, GString> messageTypeMap) {
         final GString failuresRootDir = getTargetGenFailuresRootDir(project)
         final GString javaPackage = "$descriptor.options.javaPackage"
-        final String javaOuterClassName = JavaCode.getJavaOuterClassName(descriptor)
+        final String javaOuterClassName = JavaCode.getOuterClassName(descriptor)
         final GString packageDir = "${javaPackage.replace(".", "/")}"
         final List<DescriptorProto> failures = descriptor.messageTypeList
         failures.each { DescriptorProto failure ->
