@@ -24,6 +24,7 @@ import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.spine3.gradle.protobuf.util.JavaCode
 
 import static com.google.protobuf.DescriptorProtos.*
 import static org.spine3.gradle.protobuf.Extension.*
@@ -32,6 +33,7 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
  * Plugin which generates Failures, based on failures.proto files.
  *
  * <p>Uses generated proto descriptors.
+ *
  * <p>Logs a warning if there are no protobuf descriptors generated.
  */
 @Slf4j
@@ -43,11 +45,12 @@ class FailuresGenPlugin implements Plugin<Project> {
     private Map<GString, GString> cachedMessageTypes = new HashMap<>()
 
     /**
-     * Applied to project.
+     * Applies the plug-in to a project.
      *
-     * <p>Adds :generateFailures and :generateTestFailures tasks.
-     * <p>Tasks depend on corresponding :generateProto tasks and are executed before corresponding
-     * :compileJava tasks.
+     * <p>Adds {@code :generateFailures} and {@code :generateTestFailures} tasks.
+     *
+     * <p>Tasks depend on corresponding {@code :generateProto} tasks and are executed before corresponding
+     * {@code :compileJava} tasks.
      */
     @Override
     void apply(Project project) {
@@ -70,6 +73,19 @@ class FailuresGenPlugin implements Plugin<Project> {
         project.tasks.getByPath("compileTestJava").dependsOn(generateTestFailures)
     }
 
+    private List<FileDescriptorProto> getFailureProtoFileDescriptors(GString descFilePath) {
+        final List<FileDescriptorProto> result = new LinkedList<>()
+        final Collection<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath)
+        for (FileDescriptorProto file : allDescriptors) {
+            if (file.getName().endsWith("failures.proto")) {
+                log.info("Found failures file: $file.name")
+                result.add(file)
+            }
+            cacheTypes(file)
+        }
+        return result
+    }
+
     private void processDescriptors(List<FileDescriptorProto> descriptors) {
         descriptors.each { FileDescriptorProto file ->
             if (isFileWithFailures(file)) {
@@ -78,19 +94,6 @@ class FailuresGenPlugin implements Plugin<Project> {
                 log.error("Invalid failures file: $file.name")
             }
         }
-    }
-
-    private List<FileDescriptorProto> getFailureProtoFileDescriptors(GString descFilePath) {
-        final List<FileDescriptorProto> failureDescriptors = new LinkedList<>()
-        final Collection<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath)
-        for (FileDescriptorProto file : allDescriptors) {
-            if (file.getName().endsWith("failures.proto")) {
-                log.info("Found failures file: $file.name")
-                failureDescriptors.add(file)
-            }
-            cacheTypes(file)
-        }
-        return failureDescriptors
     }
 
     private static boolean isFileWithFailures(FileDescriptorProto descriptor) {
@@ -108,29 +111,20 @@ class FailuresGenPlugin implements Plugin<Project> {
         return result
     }
 
+    //TODO:2016-10-07:alexander.yevsyukov: Move type loading routines into a separate class.
     private void cacheTypes(FileDescriptorProto fileDescriptor) {
-        final GString protoPrefix = !fileDescriptor.package.isEmpty() ? "${fileDescriptor.package}." : GString.EMPTY
-        GString javaPrefix = !fileDescriptor.options.javaPackage.isEmpty() ? "${fileDescriptor.options.javaPackage}." : GString.EMPTY
+        final GString protoPackage = !fileDescriptor.package.isEmpty() ? "${fileDescriptor.package}." : GString.EMPTY
+        GString javaPackage = !fileDescriptor.options.javaPackage.isEmpty() ? "${fileDescriptor.options.javaPackage}." : GString.EMPTY
         if (!fileDescriptor.options.javaMultipleFiles) {
-            final GString singleFileSuffix = getOuterClassName(fileDescriptor)
-            javaPrefix = "${javaPrefix}${singleFileSuffix}."
+            final GString singleFileSuffix = JavaCode.getOuterClassName(fileDescriptor)
+            javaPackage = "${javaPackage}${singleFileSuffix}."
         }
         fileDescriptor.messageTypeList.each { DescriptorProto msg ->
-            cacheMessageType(msg, protoPrefix, javaPrefix)
+            cacheMessageType(msg, protoPackage, javaPackage)
         }
         fileDescriptor.enumTypeList.each { EnumDescriptorProto enumType ->
-            cacheEnumType(enumType, protoPrefix, javaPrefix)
+            cacheEnumType(enumType, protoPackage, javaPackage)
         }
-    }
-
-    private static GString getOuterClassName(FileDescriptorProto descriptor) {
-        GString classname = "$descriptor.options.javaOuterClassname"
-        if (!classname.isEmpty()) {
-            return "$classname"
-        }
-        classname = "${descriptor.name.substring(descriptor.name.lastIndexOf('/') + 1, descriptor.name.lastIndexOf(".proto"))}"
-        final GString result = "${classname.charAt(0).toUpperCase()}${classname.substring(1)}"
-        return result
     }
 
     private void cacheEnumType(EnumDescriptorProto descriptor, GString protoPrefix, GString javaPrefix) {
@@ -151,42 +145,18 @@ class FailuresGenPlugin implements Plugin<Project> {
         }
     }
 
-    private static String getJavaOuterClassName(FileDescriptorProto descriptor) {
-        String outerClassNameFromOptions = descriptor.options.javaOuterClassname
-        if (!outerClassNameFromOptions.isEmpty()) {
-            return outerClassNameFromOptions;
-        }
-
-        final String fullFileName = descriptor.getName()
-        final int lastBackslash = fullFileName.lastIndexOf('/')
-        final String onlyName = fullFileName.substring(lastBackslash + 1)
-                                            .replace(".proto", "")
-        return toCamelCase(onlyName)
-    }
-
-    private static String toCamelCase(String fileName) {
-        final StringBuilder result = new StringBuilder(fileName.length());
-
-        for (final String word : fileName.split("_")) {
-            if (!word.isEmpty()) {
-                result.append(Character.toUpperCase(word.charAt(0)));
-                result.append(word.substring(1).toLowerCase());
-            }
-        }
-
-        return result.toString();
-    }
-
     private void generateFailures(FileDescriptorProto descriptor, Map<GString, GString> messageTypeMap) {
         final GString failuresRootDir = getTargetGenFailuresRootDir(project)
         final GString javaPackage = "$descriptor.options.javaPackage"
-        final String javaOuterClassName = getJavaOuterClassName(descriptor)
-        final GString packageDirs = "${javaPackage.replace(".", "/")}"
+        final String javaOuterClassName = JavaCode.getJavaOuterClassName(descriptor)
+        final GString packageDir = "${javaPackage.replace(".", "/")}"
         final List<DescriptorProto> failures = descriptor.messageTypeList
         failures.each { DescriptorProto failure ->
-            final GString failureJavaPath = "$failuresRootDir/$packageDirs/${failure.name}.java"
+            // The name of the generated ThrowableFailure will be the same as for the Protobuf message.
+            final GString failureJavaPath = "$failuresRootDir/$packageDir/${failure.name}.java"
             final File outputFile = new File(failureJavaPath)
-            new FailureWriter(failure, outputFile, javaPackage, javaOuterClassName, messageTypeMap).write()
+            final FailureWriter writer = new FailureWriter(failure, outputFile, javaPackage, javaOuterClassName, messageTypeMap)
+            writer.write()
         }
     }
 }
