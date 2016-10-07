@@ -28,7 +28,6 @@ import org.gradle.api.Task
 import static com.google.protobuf.DescriptorProtos.*
 import static org.spine3.gradle.protobuf.Extension.*
 import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors
-
 /**
  * Plugin which generates Failures, based on failures.proto files.
  *
@@ -152,10 +151,36 @@ class FailuresGenPlugin implements Plugin<Project> {
         }
     }
 
+    private static String getJavaOuterClassName(FileDescriptorProto descriptor) {
+        String outerClassNameFromOptions = descriptor.options.javaOuterClassname
+        if (!outerClassNameFromOptions.isEmpty()) {
+            return outerClassNameFromOptions;
+        }
+
+        final String fullFileName = descriptor.getName()
+        int lastBackslash = fullFileName.lastIndexOf('/')
+        final String onlyName = fullFileName.substring(lastBackslash + 1)
+                                            .replace(".proto", "")
+        return toCamelCase(onlyName)
+    }
+
+    private static String toCamelCase(String fileName) {
+        final StringBuilder result = new StringBuilder(fileName.length());
+
+        for (final String word : fileName.split("_")) {
+            if (!word.isEmpty()) {
+                result.append(Character.toUpperCase(word.charAt(0)));
+                result.append(word.substring(1).toLowerCase());
+            }
+        }
+
+        return result.toString();
+    }
+
     private void generateFailures(FileDescriptorProto descriptor, Map<GString, GString> messageTypeMap) {
         final GString failuresRootDir = getTargetGenFailuresRootDir(project)
         final GString javaPackage = "$descriptor.options.javaPackage"
-        final String javaOuterClassName = descriptor.options.javaOuterClassname
+        final String javaOuterClassName = getJavaOuterClassName(descriptor)
         final GString packageDirs = "${javaPackage.replace(".", "/")}"
         final List<DescriptorProto> failures = descriptor.messageTypeList
         failures.each { DescriptorProto failure ->
