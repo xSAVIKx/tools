@@ -158,7 +158,7 @@ class FailuresGenPlugin implements Plugin<Project> {
         }
 
         final String fullFileName = descriptor.getName()
-        int lastBackslash = fullFileName.lastIndexOf('/')
+        final int lastBackslash = fullFileName.lastIndexOf('/')
         final String onlyName = fullFileName.substring(lastBackslash + 1)
                                             .replace(".proto", "")
         return toCamelCase(onlyName)
