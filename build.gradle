@@ -4,10 +4,12 @@ allprojects {
 
     project.ext {
         mavenRepository = 'http://maven.teamdev.com/repository/spine'
-        spineVersion = '0.5.3-SNAPSHOT' // We need Spine run-time libraries for samples.
-        spineProtobufPluginVersion = '1.4.10'
+        spineVersion = '0.5.9-SNAPSHOT' // We need Spine run-time libraries for samples.
+        spineProtobufPluginVersion = '1.4.11'
         protobufVersion = '3.0.0'
         slf4JVersion = '1.7.21'
+        jUnitVersion = '4.12'
+        guavaVersion = '19.0'
     }
 }
 
@@ -51,7 +53,7 @@ subprojects {
 
         //Use jdk14 bindings for test purposes only.
         testCompile group: 'org.slf4j', name: 'slf4j-jdk14', version: slf4JVersion
-        testCompile(group: 'junit', name: 'junit', version: '4.12')
+        testCompile(group: 'junit', name: 'junit', version: jUnitVersion)
     }
 
     final String SRC_DIR = "$projectDir/plugin/src"

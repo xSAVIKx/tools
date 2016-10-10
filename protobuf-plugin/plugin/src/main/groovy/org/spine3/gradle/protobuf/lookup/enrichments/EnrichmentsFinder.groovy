@@ -30,8 +30,8 @@ import java.util.regex.Pattern
 import static com.google.common.collect.Lists.newLinkedList
 import static com.google.protobuf.DescriptorProtos.*
 import static java.util.AbstractMap.SimpleEntry
-import static org.spine3.gradle.protobuf.util.ProtobufOptionsUtil.getUnknownOptionValue
-import static org.spine3.gradle.protobuf.util.ProtobufOptionsUtil.hasUnknownOption
+import static org.spine3.gradle.protobuf.util.UnknownOptions.getUnknownOptionValue
+import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption
 
 /**
  * Finds event enrichment Protobuf definitions.

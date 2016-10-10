@@ -24,15 +24,16 @@ import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.spine3.gradle.protobuf.util.JavaCode
 
 import static com.google.protobuf.DescriptorProtos.*
 import static org.spine3.gradle.protobuf.Extension.*
 import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors
-
 /**
  * Plugin which generates Failures, based on failures.proto files.
  *
  * <p>Uses generated proto descriptors.
+ *
  * <p>Logs a warning if there are no protobuf descriptors generated.
  */
 @Slf4j
@@ -44,11 +45,12 @@ class FailuresGenPlugin implements Plugin<Project> {
     private Map<GString, GString> cachedMessageTypes = new HashMap<>()
 
     /**
-     * Applied to project.
+     * Applies the plug-in to a project.
      *
-     * <p>Adds :generateFailures and :generateTestFailures tasks.
-     * <p>Tasks depend on corresponding :generateProto tasks and are executed before corresponding
-     * :compileJava tasks.
+     * <p>Adds {@code :generateFailures} and {@code :generateTestFailures} tasks.
+     *
+     * <p>Tasks depend on corresponding {@code :generateProto} tasks and are executed before corresponding
+     * {@code :compileJava} tasks.
      */
     @Override
     void apply(Project project) {
@@ -56,22 +58,37 @@ class FailuresGenPlugin implements Plugin<Project> {
 
         final Task generateFailures = project.task("generateFailures") << {
             final GString path = getMainDescriptorSetPath(project)
-            processDescriptors(getFailureProtoFileDescriptors(path))
+            def filesWithFailures = getFailureProtoFileDescriptors(path)
+            processDescriptors(filesWithFailures)
         }
         generateFailures.dependsOn("generateProto")
         project.tasks.getByPath("compileJava").dependsOn(generateFailures)
 
         final Task generateTestFailures = project.task("generateTestFailures") << {
             final GString path = getTestDescriptorSetPath(project)
-            processDescriptors(getFailureProtoFileDescriptors(path))
+            def filesWithFailures = getFailureProtoFileDescriptors(path)
+            processDescriptors(filesWithFailures)
         }
         generateTestFailures.dependsOn("generateTestProto")
         project.tasks.getByPath("compileTestJava").dependsOn(generateTestFailures)
     }
 
+    private List<FileDescriptorProto> getFailureProtoFileDescriptors(GString descFilePath) {
+        final List<FileDescriptorProto> result = new LinkedList<>()
+        final Collection<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath)
+        for (FileDescriptorProto file : allDescriptors) {
+            if (file.getName().endsWith("failures.proto")) {
+                log.info("Found failures file: $file.name")
+                result.add(file)
+            }
+            cacheTypes(file)
+        }
+        return result
+    }
+
     private void processDescriptors(List<FileDescriptorProto> descriptors) {
         descriptors.each { FileDescriptorProto file ->
-            if (validateFailures(file)) {
+            if (isFileWithFailures(file)) {
                 generateFailures(file, cachedMessageTypes)
             } else {
                 log.error("Invalid failures file: $file.name")
@@ -79,49 +96,35 @@ class FailuresGenPlugin implements Plugin<Project> {
         }
     }
 
-    private List<FileDescriptorProto> getFailureProtoFileDescriptors(GString descFilePath) {
-        final List<FileDescriptorProto> failureDescriptors = new LinkedList<>()
-        final Collection<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath)
-        for (FileDescriptorProto file : allDescriptors) {
-            if (file.getName().endsWith("/failures.proto")) {
-                failureDescriptors.add(file)
-            }
-            cacheTypes(file)
+    private static boolean isFileWithFailures(FileDescriptorProto descriptor) {
+        // By convention failures are generated into one file.
+        if (descriptor.options.javaMultipleFiles) {
+            return false
         }
-        return failureDescriptors
-    }
-
-    private static boolean validateFailures(FileDescriptorProto descriptor) {
-        final boolean javaMultipleFiles = descriptor.options.javaMultipleFiles
         final GString javaOuterClassName = "$descriptor.options.javaOuterClassname"
-        final boolean result = !(javaMultipleFiles ||
-                (javaOuterClassName && javaOuterClassName != "Failures"))
+        if (!javaOuterClassName) {
+            // There's no outer class name given in options.
+            // Assuming the file name ends with `failures.proto`, it's a good failures file.
+            return true;
+        }
+        final boolean result = javaOuterClassName.endsWith("Failures")
         return result
     }
 
+    //TODO:2016-10-07:alexander.yevsyukov: Move type loading routines into a separate class.
     private void cacheTypes(FileDescriptorProto fileDescriptor) {
-        final GString protoPrefix = !fileDescriptor.package.isEmpty() ? "${fileDescriptor.package}." : GString.EMPTY
-        GString javaPrefix = !fileDescriptor.options.javaPackage.isEmpty() ? "${fileDescriptor.options.javaPackage}." : GString.EMPTY
+        final GString protoPackage = !fileDescriptor.package.isEmpty() ? "${fileDescriptor.package}." : GString.EMPTY
+        GString javaPackage = !fileDescriptor.options.javaPackage.isEmpty() ? "${fileDescriptor.options.javaPackage}." : GString.EMPTY
         if (!fileDescriptor.options.javaMultipleFiles) {
-            final GString singleFileSuffix = getOuterClassName(fileDescriptor)
-            javaPrefix = "${javaPrefix}${singleFileSuffix}."
+            final GString singleFileSuffix = "${JavaCode.getOuterClassName(fileDescriptor)}"
+            javaPackage = "${javaPackage}${singleFileSuffix}."
         }
         fileDescriptor.messageTypeList.each { DescriptorProto msg ->
-            cacheMessageType(msg, protoPrefix, javaPrefix)
+            cacheMessageType(msg, protoPackage, javaPackage)
         }
         fileDescriptor.enumTypeList.each { EnumDescriptorProto enumType ->
-            cacheEnumType(enumType, protoPrefix, javaPrefix)
+            cacheEnumType(enumType, protoPackage, javaPackage)
         }
-    }
-
-    private static GString getOuterClassName(FileDescriptorProto descriptor) {
-        GString classname = "$descriptor.options.javaOuterClassname"
-        if (!classname.isEmpty()) {
-            return "$classname"
-        }
-        classname = "${descriptor.name.substring(descriptor.name.lastIndexOf('/') + 1, descriptor.name.lastIndexOf(".proto"))}"
-        final GString result = "${classname.charAt(0).toUpperCase()}${classname.substring(1)}"
-        return result
     }
 
     private void cacheEnumType(EnumDescriptorProto descriptor, GString protoPrefix, GString javaPrefix) {
@@ -145,12 +148,15 @@ class FailuresGenPlugin implements Plugin<Project> {
     private void generateFailures(FileDescriptorProto descriptor, Map<GString, GString> messageTypeMap) {
         final GString failuresRootDir = getTargetGenFailuresRootDir(project)
         final GString javaPackage = "$descriptor.options.javaPackage"
-        final GString packageDirs = "${javaPackage.replace(".", "/")}"
+        final String javaOuterClassName = JavaCode.getOuterClassName(descriptor)
+        final GString packageDir = "${javaPackage.replace(".", "/")}"
         final List<DescriptorProto> failures = descriptor.messageTypeList
         failures.each { DescriptorProto failure ->
-            final GString failureJavaPath = "$failuresRootDir/$packageDirs/${failure.name}.java"
+            // The name of the generated ThrowableFailure will be the same as for the Protobuf message.
+            final GString failureJavaPath = "$failuresRootDir/$packageDir/${failure.name}.java"
             final File outputFile = new File(failureJavaPath)
-            new FailureWriter(failure, outputFile, javaPackage, messageTypeMap).write()
+            final FailureWriter writer = new FailureWriter(failure, outputFile, javaPackage, javaOuterClassName, messageTypeMap)
+            writer.write()
         }
     }
 }

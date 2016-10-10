@@ -35,7 +35,8 @@ class FailureWriter {
     private final File outputFile
     private final GString javaPackage
 
-    private String className
+    private final String outerClassName
+    private final String className
 
     /** A map from Protobuf type name to Java class FQN. */
     private Map<GString, GString> messageTypeMap
@@ -68,13 +69,17 @@ class FailureWriter {
      * @param javaPackage Failure's java package
      * @param messageTypeMap pre-scanned map with proto types and their appropriate Java classes
      */
+    @SuppressWarnings("GroovyMethodParameterCount")
     FailureWriter(DescriptorProto failureDescriptor,
                   File outputFile,
                   GString javaPackage,
+                  String javaOuterClassName,
                   Map<GString, GString> messageTypeMap) {
         this.failureDescriptor = failureDescriptor
         this.outputFile = outputFile
         this.javaPackage = javaPackage
+        this.outerClassName = javaOuterClassName
+        this.className = failureDescriptor.name
         this.messageTypeMap = messageTypeMap
     }
 
@@ -110,8 +115,6 @@ class FailureWriter {
     }
 
     private void writeClassName(OutputStreamWriter writer) {
-        this.className = failureDescriptor.name
-
         writer.write("@javax.annotation.Generated(\"by Spine compiler\")\n")
         writer.write("public class $className extends FailureThrowable {\n\n")
 
@@ -120,8 +123,8 @@ class FailureWriter {
 
     private void writeGetFailure(OutputStreamWriter writer) {
         writer.write("\n\t@Override\n")
-        writer.write("\tpublic Failures.$className getFailure() {\n")
-        writer.write("\t\treturn (Failures.$className) super.getFailure();\n\t}\n")
+        writer.write("\tpublic $outerClassName.$className getFailure() {\n")
+        writer.write("\t\treturn ($outerClassName.$className) super.getFailure();\n\t}\n")
     }
 
     private void writeConstructor(OutputStreamWriter writer) {
@@ -136,7 +139,7 @@ class FailureWriter {
             }
         }
         writer.write(") {\n")
-        writer.write("\t\tsuper(Failures.${className}.newBuilder()")
+        writer.write("\t\tsuper($outerClassName.${className}.newBuilder()")
         for (Map.Entry<GString, GString> field : fieldsEntries) {
             final GString upperCaseName = getJavaFieldName(field.key, true)
             writer.write(".set${upperCaseName}(${getJavaFieldName(field.key, false)})")
