@@ -76,17 +76,16 @@ subprojects {
         }
     }
 
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                groupId "$group"
-                artifactId "$project.name"
-                version "${project.version}"
-
-                from components.java
-            }
-        }
+    task sourceJar(type: Jar) {
+        from sourceSets.main.allJava
+        classifier "sources"
     }
+
+    task testOutputJar(type: Jar) {
+        from sourceSets.test.output
+        classifier "test"
+    }
+
     publishing {
         repositories {
             maven {
@@ -104,22 +103,4 @@ repositories {
     mavenCentral()
 }
 
-task readPublishingCredentials << {
-    if (repositoryUserName == null || repositoryUserPassword == null) {
-        throw new InvalidUserDataException("Please set up valid credentials. " +
-                "Credentials should be set in ${CREDENTIALS_FILE_PATH} file in the project\'s root.")
-    }
-    println "Publishing build as ${repositoryUserName}"
-}
-
-task publish << {}
-
-subprojects.each { project ->
-    def credentialsTask = getTasksByName("readPublishingCredentials", false)
-    project.getTasksByName("publish", false).each { task ->
-        task.dependsOn credentialsTask
-    }
-    publish.dependsOn project.getTasksByName("publish", false)
-}
-
-apply form: publishPlugin
+apply from: publishPlugin
