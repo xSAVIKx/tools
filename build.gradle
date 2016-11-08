@@ -1,11 +1,12 @@
+def SPINE_VERSION = '0.6.2-SNAPSHOT'
 
 allprojects {
     group = 'org.spine3.tools'
+    version = SPINE_VERSION
 
     project.ext {
         mavenRepository = 'http://maven.teamdev.com/repository/spine'
-        spineVersion = '0.6.0' // We need Spine run-time libraries for samples.
-        spineProtobufPluginVersion = '1.4.11'
+        spineVersion = SPINE_VERSION
         protobufVersion = '3.0.0'
         slf4JVersion = '1.7.21'
         jUnitVersion = '4.12'
