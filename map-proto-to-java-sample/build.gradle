@@ -1,5 +1,3 @@
-version '1.0'
-
 buildscript {
     repositories {
         mavenLocal()
@@ -14,7 +12,9 @@ buildscript {
             // exclude old Guava version
             exclude group: 'com.google.guava'
         }
-        classpath group: "org.spine3.tools", name: "protobuf-plugin", version: spineProtobufPluginVersion
+        // TODO:08-11-16:dmytro.dashenkov: Switch dependencies when plugins v0.6.0 are released.
+       // classpath group: "org.spine3.tools", name: "protobuf-plugin", version: spineVersion
+        classpath group: "org.spine3.tools", name: "protobuf-plugin", version: '1.4.11'
     }
     configurations.all({
         resolutionStrategy.cacheChangingModulesFor(0, 'seconds')

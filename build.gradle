@@ -1,11 +1,12 @@
+def SPINE_VERSION = '0.6.0'
 
 allprojects {
     group = 'org.spine3.tools'
+    version = SPINE_VERSION
 
     project.ext {
         mavenRepository = 'http://maven.teamdev.com/repository/spine'
-        spineVersion = '0.6.0' // We need Spine run-time libraries for samples.
-        spineProtobufPluginVersion = '1.4.11'
+        spineVersion = SPINE_VERSION
         protobufVersion = '3.0.0'
         slf4JVersion = '1.7.21'
         jUnitVersion = '4.12'
@@ -22,6 +23,13 @@ if (credentialsFile.exists()) {
     properties.load(credentialsFile.newDataInputStream())
     repositoryUserName = properties.getProperty("user.name")
     repositoryUserPassword = properties.getProperty("user.password")
+}
+
+ext {
+    publishPlugin = "$rootDir/scripts/publish.gradle"
+
+    credentialsPropertyFile = 'credentials.properties'
+    projectsToPublish = ['protobuf-plugin', 'reflections-plugin']
 }
 
 subprojects {
@@ -69,17 +77,16 @@ subprojects {
         }
     }
 
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                groupId "$group"
-                artifactId "$project.name"
-                version "${project.version}"
-
-                from components.java
-            }
-        }
+    task sourceJar(type: Jar) {
+        from sourceSets.main.allJava
+        classifier "sources"
     }
+
+    task testOutputJar(type: Jar) {
+        from sourceSets.test.output
+        classifier "test"
+    }
+
     publishing {
         repositories {
             maven {
@@ -97,20 +104,4 @@ repositories {
     mavenCentral()
 }
 
-task readPublishingCredentials << {
-    if (repositoryUserName == null || repositoryUserPassword == null) {
-        throw new InvalidUserDataException("Please set up valid credentials. " +
-                "Credentials should be set in ${CREDENTIALS_FILE_PATH} file in the project\'s root.")
-    }
-    println "Publishing build as ${repositoryUserName}"
-}
-
-task publish << {}
-
-subprojects.each { project ->
-    def credentialsTask = getTasksByName("readPublishingCredentials", false)
-    project.getTasksByName("publish", false).each { task ->
-        task.dependsOn credentialsTask
-    }
-    publish.dependsOn project.getTasksByName("publish", false)
-}
+apply from: publishPlugin

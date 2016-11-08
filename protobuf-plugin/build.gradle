@@ -1,5 +1,3 @@
-version spineProtobufPluginVersion
-
 dependencies {
     compile gradleApi()
     compile localGroovy()

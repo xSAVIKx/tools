@@ -2,3 +2,7 @@ language: groovy
 
 before_install:
   - chmod +x gradlew
+
+after_success:
+  - chmod +x ./scripts/publish_artifacts.sh
+  - ./scripts/publish_artifacts.sh
