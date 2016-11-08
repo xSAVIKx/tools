@@ -24,6 +24,13 @@ if (credentialsFile.exists()) {
     repositoryUserPassword = properties.getProperty("user.password")
 }
 
+ext {
+    publishPlugin = "$rootDir/scripts/publish.gradle"
+
+    credentialsPropertyFile = 'credentials.properties'
+    projectsToPublish = ['protobuf-plugin', 'reflections-plugin']
+}
+
 subprojects {
     apply plugin: 'maven'
     apply plugin: 'groovy'
@@ -114,3 +121,5 @@ subprojects.each { project ->
     }
     publish.dependsOn project.getTasksByName("publish", false)
 }
+
+apply form: publishPlugin
