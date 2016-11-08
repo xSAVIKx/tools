@@ -8,8 +8,8 @@ buildscript {
     }
     dependencies {
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.7.7'
-        classpath "org.spine3.tools:protobuf-plugin:$spineVersion"
-       // classpath "org.spine3.tools:protobuf-plugin:1.4.11"
+       // classpath "org.spine3.tools:protobuf-plugin:$spineVersion"
+        classpath "org.spine3.tools:protobuf-plugin:1.4.11"
 
     }
     configurations.all({

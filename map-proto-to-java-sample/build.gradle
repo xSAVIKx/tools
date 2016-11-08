@@ -12,8 +12,8 @@ buildscript {
             // exclude old Guava version
             exclude group: 'com.google.guava'
         }
-        classpath group: "org.spine3.tools", name: "protobuf-plugin", version: spineVersion
-       // classpath group: "org.spine3.tools", name: "protobuf-plugin", version: '1.4.11'
+       // classpath group: "org.spine3.tools", name: "protobuf-plugin", version: spineVersion
+        classpath group: "org.spine3.tools", name: "protobuf-plugin", version: '1.4.11'
     }
     configurations.all({
         resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
