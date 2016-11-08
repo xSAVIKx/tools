@@ -4,4 +4,5 @@ before_install:
   - chmod +x gradlew
 
 after_success:
+  - chomd +x ./scripts/publish_artifacts.sh
   - ./scripts/publish_artifacts.sh
