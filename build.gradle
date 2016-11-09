@@ -87,18 +87,6 @@ subprojects {
         from sourceSets.test.output
         classifier "test"
     }
-
-    publishing {
-        repositories {
-            maven {
-                credentials {
-                    username "$repositoryUserName"
-                    password "$repositoryUserPassword"
-                }
-                url "${project.mavenRepository}"
-            }
-        }
-    }
 }
 
 repositories {
