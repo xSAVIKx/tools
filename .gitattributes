@@ -12,12 +12,16 @@
 *.properties text
 *.bat text
 *.rtf text
+*.sh text
 
 # SQL scripts
 *.sql text
 
 # Java sources
 *.java text
+
+# Groovy sources
+*.groovy text
 
 # Jsf sources
 *.jsf text
@@ -32,6 +36,7 @@
 # Gradle build files
 *.gradle text
 gradlew.bat
+gradlew
 
 # Google protocol buffers
 *.proto text
