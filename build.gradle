@@ -1,11 +1,12 @@
-def SPINE_VERSION = '0.6.0'
+def SPINE_VERSION = '0.6.2-SNAPSHOT'
 
 allprojects {
     group = 'org.spine3.tools'
     version = SPINE_VERSION
 
     project.ext {
-        mavenRepository = 'http://maven.teamdev.com/repository/spine'
+        spineRepository = 'http://maven.teamdev.com/repository/spine'
+        spineSnapshotRepository = 'http://maven.teamdev.com/repository/spine-snapshots'
         spineVersion = SPINE_VERSION
         protobufVersion = '3.0.0'
         slf4JVersion = '1.7.21'
@@ -85,18 +86,6 @@ subprojects {
     task testOutputJar(type: Jar) {
         from sourceSets.test.output
         classifier "test"
-    }
-
-    publishing {
-        repositories {
-            maven {
-                credentials {
-                    username "$repositoryUserName"
-                    password "$repositoryUserPassword"
-                }
-                url "${project.mavenRepository}"
-            }
-        }
     }
 }
 

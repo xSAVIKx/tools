@@ -2,9 +2,8 @@ buildscript {
     repositories {
         mavenLocal()
         mavenCentral()
-        maven {
-            url = mavenRepository
-        }
+        maven { url = spineRepository }
+        maven { url = spineSnapshotRepository }
     }
     dependencies {
         classpath group: 'com.google.guava', name: 'guava', version: '19.0'
@@ -31,9 +30,9 @@ targetCompatibility = 1.7
 repositories {
     mavenLocal()
     mavenCentral()
-    maven {
-        url = mavenRepository
-    }
+
+    maven { url = spineRepository }
+    maven { url = spineSnapshotRepository }
 }
 
 dependencies {

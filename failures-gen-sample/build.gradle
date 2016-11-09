@@ -2,9 +2,9 @@ buildscript {
     repositories {
         mavenLocal()
         mavenCentral()
-        maven {
-            url = mavenRepository
-        }
+        maven { url = spineRepository }
+        maven { url = spineSnapshotRepository }
+
     }
     dependencies {
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.7.7'
@@ -24,10 +24,10 @@ apply plugin: 'org.spine3.tools.protobuf-plugin'
 
 repositories {
     mavenLocal()
-    maven {
-        url = mavenRepository
-    }
     mavenCentral()
+
+    maven { url = spineRepository }
+    maven { url = spineSnapshotRepository }
 }
 
 dependencies {
