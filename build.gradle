@@ -1,4 +1,4 @@
-def SPINE_VERSION = '0.6.0'
+def SPINE_VERSION = '0.6.2-SNAPSHOT'
 
 allprojects {
     group = 'org.spine3.tools'
