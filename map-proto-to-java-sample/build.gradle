@@ -30,9 +30,9 @@ targetCompatibility = 1.7
 repositories {
     mavenLocal()
     mavenCentral()
-    maven {
-        url = spineRepository
-    }
+
+    maven { url = spineRepository }
+    maven { url = spineSnapshotRepository }
 }
 
 dependencies {
