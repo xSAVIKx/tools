@@ -5,7 +5,8 @@ allprojects {
     version = SPINE_VERSION
 
     project.ext {
-        mavenRepository = 'http://maven.teamdev.com/repository/spine'
+        spineRepository = 'http://maven.teamdev.com/repository/spine'
+        spineSnapshotRepository = 'http://maven.teamdev.com/repository/spine-snapshots'
         spineVersion = SPINE_VERSION
         protobufVersion = '3.0.0'
         slf4JVersion = '1.7.21'
