@@ -8,10 +8,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.7.7'
-        // TODO:08-11-16:dmytro.dashenkov: Switch dependencies when plugins v0.6.0 are released.
-       // classpath "org.spine3.tools:protobuf-plugin:$spineVersion"
-        classpath "org.spine3.tools:protobuf-plugin:1.4.11"
-
+        classpath "org.spine3.tools:protobuf-plugin:$spineVersion"
     }
     configurations.all({
         resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
