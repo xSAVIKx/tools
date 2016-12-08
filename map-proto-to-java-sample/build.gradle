@@ -35,7 +35,7 @@ repositories {
 
 dependencies {
     compile group: 'com.google.guava', name: 'guava', version: guavaVersion
-    compile group: "org.spine3", name: "client", version: "$spineVersion", changing: true
+    compile group: 'org.spine3', name: 'client', version: spineVersion, changing: true
 
     configurations.all({
         resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
@@ -43,9 +43,9 @@ dependencies {
 }
 
 protobuf {
-    generatedFilesBaseDir = "$projectDir/generated";
+    generatedFilesBaseDir = "${projectDir}/generated";
     protoc {
-        artifact = "com.google.protobuf:protoc:$protobufVersion"
+        artifact = "com.google.protobuf:protoc:${protobufVersion}"
     }
     generateProtoTasks {
         all().each { task ->
@@ -57,13 +57,13 @@ protobuf {
 }
 
 idea.module {
-    generatedSourceDirs += file("$projectDir/generated/test/java")
+    generatedSourceDirs += file("${projectDir}/generated/test/java")
 }
 
 sourceSets {
     test {
-        java.srcDirs = ["$projectDir/src/test/java", "$projectDir/generated/test/java"]
-        proto.srcDirs = ["$projectDir/src/test/proto"]
-        resources.srcDirs = ["$projectDir/generated/test/resources"]
+        java.srcDirs = ["${projectDir}/src/test/java", "${projectDir}/generated/test/java"]
+        proto.srcDirs = ["${projectDir}/src/test/proto"]
+        resources.srcDirs = ["${projectDir}/generated/test/resources"]
     }
 }
