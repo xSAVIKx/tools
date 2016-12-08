@@ -1,5 +1,11 @@
 def SPINE_VERSION = '0.6.5-SNAPSHOT'
 
+buildscript {
+    ext {
+        protobufGradlePluginVersion = '0.8.0' // Make sure the same constant is used in the `plugins` block below.
+    }
+}
+
 allprojects {
     group = 'org.spine3.tools'
     version = SPINE_VERSION
