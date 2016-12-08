@@ -6,7 +6,7 @@ buildscript {
         maven { url = spineSnapshotRepository }
     }
     dependencies {
-        classpath group: 'com.google.guava', name: 'guava', version: '19.0'
+        classpath group: 'com.google.guava', name: 'guava', version: '20.0'
         classpath ('com.google.protobuf:protobuf-gradle-plugin:0.7.7') {
             // exclude old Guava version
             exclude group: 'com.google.guava'
@@ -36,7 +36,7 @@ repositories {
 }
 
 dependencies {
-    compile group: 'com.google.guava', name: 'guava', version: '19.0'
+    compile group: 'com.google.guava', name: 'guava', version: '20.0'
     compile group: "org.spine3", name: "client", version: "$spineVersion", changing: true
 
     configurations.all({
