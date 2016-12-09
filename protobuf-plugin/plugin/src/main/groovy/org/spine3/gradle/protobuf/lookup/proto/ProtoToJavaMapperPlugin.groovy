@@ -51,16 +51,16 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
      */
     @Override
     void apply(Project project) {
-        final Task mapProtoToJava = project.task("mapProtoToJava") << {
+        final Task mapProtoToJava = project.task("mapProtoToJava").doLast({
             mapProtoToJavaAndWriteProps(getMainTargetGenResourcesDir(project), getMainDescriptorSetPath(project))
-        }
+        })
         mapProtoToJava.dependsOn("generateProto")
         final Task processResources = project.tasks.getByPath("processResources")
         processResources.dependsOn(mapProtoToJava)
 
-        final Task mapTestProtoToJava = project.task("mapTestProtoToJava") << {
+        final Task mapTestProtoToJava = project.task("mapTestProtoToJava").doLast({
             mapProtoToJavaAndWriteProps(getTestTargetGenResourcesDir(project), getTestDescriptorSetPath(project))
-        }
+        })
         mapTestProtoToJava.dependsOn("generateTestProto")
         final Task processTestResources = project.tasks.getByPath("processTestResources")
         processTestResources.dependsOn(mapTestProtoToJava)

@@ -6,14 +6,12 @@ buildscript {
         maven { url = spineSnapshotRepository }
     }
     dependencies {
-        classpath group: 'com.google.guava', name: 'guava', version: '19.0'
-        classpath ('com.google.protobuf:protobuf-gradle-plugin:0.7.7') {
+        classpath group: 'com.google.guava', name: 'guava', version: guavaVersion
+        classpath ("com.google.protobuf:protobuf-gradle-plugin:${protobufGradlePluginVersion}") {
             // exclude old Guava version
             exclude group: 'com.google.guava'
         }
-        // TODO:08-11-16:dmytro.dashenkov: Switch dependencies when plugins v0.6.0 are released.
-       // classpath group: "org.spine3.tools", name: "protobuf-plugin", version: spineVersion
-        classpath group: "org.spine3.tools", name: "protobuf-plugin", version: '1.4.11'
+        classpath group: "org.spine3.tools", name: "protobuf-plugin", version: spineVersion
     }
     configurations.all({
         resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
@@ -36,8 +34,8 @@ repositories {
 }
 
 dependencies {
-    compile group: 'com.google.guava', name: 'guava', version: '19.0'
-    compile group: "org.spine3", name: "client", version: "$spineVersion", changing: true
+    compile group: 'com.google.guava', name: 'guava', version: guavaVersion
+    compile group: 'org.spine3', name: 'client', version: spineVersion, changing: true
 
     configurations.all({
         resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
@@ -45,9 +43,9 @@ dependencies {
 }
 
 protobuf {
-    generatedFilesBaseDir = "$projectDir/generated";
+    generatedFilesBaseDir = "${projectDir}/generated";
     protoc {
-        artifact = "com.google.protobuf:protoc:$protobufVersion"
+        artifact = "com.google.protobuf:protoc:${protobufVersion}"
     }
     generateProtoTasks {
         all().each { task ->
@@ -59,13 +57,13 @@ protobuf {
 }
 
 idea.module {
-    generatedSourceDirs += file("$projectDir/generated/test/java")
+    generatedSourceDirs += file("${projectDir}/generated/test/java")
 }
 
 sourceSets {
     test {
-        java.srcDirs = ["$projectDir/src/test/java", "$projectDir/generated/test/java"]
-        proto.srcDirs = ["$projectDir/src/test/proto"]
-        resources.srcDirs = ["$projectDir/generated/test/resources"]
+        java.srcDirs = ["${projectDir}/src/test/java", "${projectDir}/generated/test/java"]
+        proto.srcDirs = ["${projectDir}/src/test/proto"]
+        resources.srcDirs = ["${projectDir}/generated/test/resources"]
     }
 }

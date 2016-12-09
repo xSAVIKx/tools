@@ -29,6 +29,7 @@ import org.spine3.gradle.protobuf.util.JavaCode
 import static com.google.protobuf.DescriptorProtos.*
 import static org.spine3.gradle.protobuf.Extension.*
 import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors
+
 /**
  * Plugin which generates Failures, based on failures.proto files.
  *
@@ -56,19 +57,19 @@ class FailuresGenPlugin implements Plugin<Project> {
     void apply(Project project) {
         this.project = project
 
-        final Task generateFailures = project.task("generateFailures") << {
+        final Task generateFailures = project.task("generateFailures").doLast({
             final GString path = getMainDescriptorSetPath(project)
             def filesWithFailures = getFailureProtoFileDescriptors(path)
             processDescriptors(filesWithFailures)
-        }
+        })
         generateFailures.dependsOn("generateProto")
         project.tasks.getByPath("compileJava").dependsOn(generateFailures)
 
-        final Task generateTestFailures = project.task("generateTestFailures") << {
+        final Task generateTestFailures = project.task("generateTestFailures").doLast({
             final GString path = getTestDescriptorSetPath(project)
             def filesWithFailures = getFailureProtoFileDescriptors(path)
             processDescriptors(filesWithFailures)
-        }
+        })
         generateTestFailures.dependsOn("generateTestProto")
         project.tasks.getByPath("compileTestJava").dependsOn(generateTestFailures)
     }
@@ -105,7 +106,7 @@ class FailuresGenPlugin implements Plugin<Project> {
         if (!javaOuterClassName) {
             // There's no outer class name given in options.
             // Assuming the file name ends with `failures.proto`, it's a good failures file.
-            return true;
+            return true
         }
         final boolean result = javaOuterClassName.endsWith("Failures")
         return result

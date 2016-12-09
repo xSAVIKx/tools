@@ -37,9 +37,9 @@ class CleaningPlugin implements Plugin<Project> {
      */
     @Override
     void apply(Project project) {
-        final Task preClean = project.task("preClean") << {
+        final Task preClean = project.task("preClean").doLast({
             deleteDirs(getDirsToClean(project))
-        }
+        })
         final TaskContainer tasks = project.getTasks()
         tasks.getByPath("clean").dependsOn(preClean)
     }

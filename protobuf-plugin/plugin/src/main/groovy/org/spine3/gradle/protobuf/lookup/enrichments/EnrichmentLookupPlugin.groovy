@@ -52,16 +52,16 @@ class EnrichmentLookupPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        final Task findEnrichmentsTask = project.task("findEnrichments") << {
+        final Task findEnrichmentsTask = project.task("findEnrichments").doLast({
             findEnrichmentsAndWriteProps(getMainTargetGenResourcesDir(project), getMainDescriptorSetPath(project))
-        }
+        })
         findEnrichmentsTask.dependsOn("compileJava")
         final Task processResources = project.tasks.getByPath("processResources")
         processResources.dependsOn(findEnrichmentsTask)
 
-        final Task findTestEnrichmentsTask = project.task("findTestEnrichments") << {
+        final Task findTestEnrichmentsTask = project.task("findTestEnrichments").doLast({
             findEnrichmentsAndWriteProps(getTestTargetGenResourcesDir(project), getTestDescriptorSetPath(project))
-        }
+        })
         findTestEnrichmentsTask.dependsOn("compileTestJava")
         final Task processTestResources = project.tasks.getByPath("processTestResources")
         processTestResources.dependsOn(findTestEnrichmentsTask)
