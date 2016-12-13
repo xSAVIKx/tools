@@ -40,7 +40,7 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption
  */
 @Slf4j
 @SuppressWarnings("UnnecessaryQualifiedReference")
-class EnrichmentsFinder {
+class GroovyEnrichmentsFinder {
 
     /**
      * The field number of the field option `by` defined in `Spine/core-java`.
@@ -52,10 +52,16 @@ class EnrichmentsFinder {
      */
     private static final Long OPTION_NUMBER_ENRICHMENT_FOR = 57124L
 
+    /**
+     * The field number of the message option `enrichment` defined in `Spine/core-java`.
+     */
+    private static final Long OPTION_NUMBER_ENRICHMENT = 57126L
+
+
     private static final Pattern PATTERN_SPACE = Pattern.compile(" ")
 
-    private static final String EVENT_NAME_SEPARATOR = ","
-    private static final Pattern PATTERN_EVENT_NAME_SEPARATOR = Pattern.compile(EVENT_NAME_SEPARATOR)
+    private static final String TARGET_NAME_SEPARATOR = ","
+    private static final Pattern PATTERN_TARGET_NAME_SEPARATOR = Pattern.compile(TARGET_NAME_SEPARATOR)
 
     private static final String PROTO_TYPE_SEPARATOR = "."
 
@@ -67,7 +73,7 @@ class EnrichmentsFinder {
      *
      * @param file a file to search enrichments in
      */
-    EnrichmentsFinder(FileDescriptorProto file) {
+    GroovyEnrichmentsFinder(FileDescriptorProto file) {
         this.file = file
         this.packagePrefix = "$file.package$PROTO_TYPE_SEPARATOR"
     }
@@ -88,9 +94,11 @@ class EnrichmentsFinder {
     }
 
     private void putEntry(ImmutableMap.Builder<GString, GString> mapBuilder, DescriptorProto msg) {
-        final Map.Entry<GString, GString> entry = scanMsg(msg)
-        if (entry) {
+        final Map<GString, GString> entries = scanMsg(msg)
+        for (Map.Entry<GString, GString> entry : entries.entrySet()) {
             put(entry, mapBuilder)
+        }
+        if(!entries.isEmpty()) {
             return
         }
         final Map.Entry<GString, GString> entryFromField = scanFields(msg)
@@ -104,13 +112,23 @@ class EnrichmentsFinder {
         }
     }
 
-    private Map.Entry<GString, GString> scanMsg(DescriptorProto msg) {
+    private Map<GString, GString> scanMsg(DescriptorProto msg) {
+        final ImmutableMap.Builder<GString, GString> msgScanResultBuilder = ImmutableMap.builder()
+        final GString messageName = "$packagePrefix$msg.name"
+
+        // Treating current {@code msg} as an enrichment object.
         final GString eventNames = parseEventNamesFromMsgOption(msg)
-        if (!eventNames) {
-            return null
+        if (eventNames) {
+            msgScanResultBuilder.put(messageName, eventNames)
         }
-        final GString enrichmentName = "$packagePrefix$msg.name"
-        return new SimpleEntry<>(enrichmentName, eventNames)
+
+        // Treating current {@code msg} as a target for enrichment (e.g. Spine event).
+        final List<String> enrichmentNames = parseEnrichmentNamesFromMsgOption(msg)
+        for (String enrichmentName : enrichmentNames) {
+            msgScanResultBuilder.put("${enrichmentName}", messageName)
+        }
+
+        return msgScanResultBuilder.build();
     }
 
     private Map.Entry<GString, GString> scanFields(DescriptorProto msg) {
@@ -146,7 +164,7 @@ class EnrichmentsFinder {
         if (!eventNamesStr) {
             return null
         }
-        final Collection<String> eventNamesPrimary = parseEventNames(eventNamesStr)
+        final Collection<String> eventNamesPrimary = parseTargetNames(eventNamesStr)
         final Collection<String> eventNamesResult = newLinkedList()
         for (String eventName : eventNamesPrimary) {
             final boolean isFqn = eventName.contains(PROTO_TYPE_SEPARATOR)
@@ -156,14 +174,32 @@ class EnrichmentsFinder {
                 eventNamesResult.add(packagePrefix + eventName)
             }
         }
-        final String result = Joiner.on(EVENT_NAME_SEPARATOR).join(eventNamesResult)
+        final String result = Joiner.on(TARGET_NAME_SEPARATOR).join(eventNamesResult)
         return "$result"
     }
 
-    private static List<String> parseEventNames(String eventNames) {
-        String names = eventNames
+    private List<String> parseEnrichmentNamesFromMsgOption(DescriptorProto msg) {
+        final String enrichmentNames = getUnknownOptionValue(msg, OPTION_NUMBER_ENRICHMENT)
+        if (!enrichmentNames) {
+            return null
+        }
+        final Collection<String> enrichmentNamesPrimary = parseTargetNames(enrichmentNames)
+        final Collection<String> enrichmentNamesResult = newLinkedList()
+        for (String enrichmentName : enrichmentNamesPrimary) {
+            final boolean isFqn = enrichmentName.contains(PROTO_TYPE_SEPARATOR)
+            if (isFqn) {
+                enrichmentNamesResult.add(enrichmentName)
+            } else {
+                enrichmentNamesResult.add(packagePrefix + enrichmentName)
+            }
+        }
+        return enrichmentNamesResult
+    }
+
+    private static List<String> parseTargetNames(String targetNames) {
+        String names = targetNames
         names = PATTERN_SPACE.matcher(names).replaceAll("")
-        final String[] namesArray = PATTERN_EVENT_NAME_SEPARATOR.split(names)
+        final String[] namesArray = PATTERN_TARGET_NAME_SEPARATOR.split(names)
         return ImmutableList.copyOf(namesArray)
     }
 

@@ -21,10 +21,9 @@
 package org.spine3.gradle.protobuf.lookup.enrichments
 
 import groovy.util.logging.Slf4j
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.spine3.gradle.protobuf.util.PropertiesWriter
+import org.spine3.gradle.protobuf.util.GroovyPropertiesWriter
 
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto
 import static org.spine3.gradle.protobuf.Extension.*
@@ -43,14 +42,15 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
  * @author Alexander Litus
  */
 @Slf4j
-class EnrichmentLookupPlugin implements Plugin<Project> {
+class GroovyEnrichmentLookupPlugin //        implements Plugin<Project>
+    {
 
     /**
      * The name of the file to populate. NOTE: also change its name used in the `core-java` project on changing.
      */
     private static final String PROPS_FILE_NAME = "enrichments.properties"
 
-    @Override
+//    @Override
     void apply(Project project) {
         final Task findEnrichmentsTask = project.task("findEnrichments").doLast({
             findEnrichmentsAndWriteProps(getMainTargetGenResourcesDir(project), getMainDescriptorSetPath(project))
@@ -71,13 +71,13 @@ class EnrichmentLookupPlugin implements Plugin<Project> {
         final Map<GString, GString> propsMap = new HashMap<>()
         final Collection<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath, new IsNotGoogleProto())
         for (FileDescriptorProto file : files) {
-            final Map<GString, GString> enrichments = new EnrichmentsFinder(file).findEnrichments()
+            final Map<GString, GString> enrichments = new GroovyEnrichmentsFinder(file).findEnrichments()
             propsMap.putAll(enrichments)
         }
         if (propsMap.isEmpty()) {
             return
         }
-        final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir, PROPS_FILE_NAME)
+        final GroovyPropertiesWriter writer = new GroovyPropertiesWriter(targetGeneratedResourcesDir, PROPS_FILE_NAME)
         writer.write(propsMap)
     }
 }
