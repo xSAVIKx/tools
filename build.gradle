@@ -10,7 +10,6 @@ buildscript {
 allprojects {
     group = 'org.spine3.tools'
     version = '0.6.6-SNAPSHOT'
-//    version = SPINE_VERSION
 
     project.ext {
         spineRepository = 'http://maven.teamdev.com/repository/spine'
@@ -20,17 +19,6 @@ allprojects {
         slf4JVersion = '1.7.21'
         jUnitVersion = '4.12'
     }
-}
-
-final String CREDENTIALS_FILE_PATH = "credentials.properties"
-def repositoryUserName = null
-def repositoryUserPassword = null
-Properties properties = new Properties()
-File credentialsFile = file(CREDENTIALS_FILE_PATH)
-if (credentialsFile.exists()) {
-    properties.load(credentialsFile.newDataInputStream())
-    repositoryUserName = properties.getProperty("user.name")
-    repositoryUserPassword = properties.getProperty("user.password")
 }
 
 ext {
