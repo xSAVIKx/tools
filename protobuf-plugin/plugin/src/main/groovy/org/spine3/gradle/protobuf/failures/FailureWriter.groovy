@@ -29,7 +29,7 @@ import static com.google.protobuf.DescriptorProtos.FieldDescriptorProto
  * Class, which writes Failure java code, based on it's descriptor.
  */
 @Slf4j
-class FailureWriter {
+class GroovyFailureWriter {
 
     private final DescriptorProto failureDescriptor
     private final File outputFile
@@ -70,7 +70,7 @@ class FailureWriter {
      * @param messageTypeMap pre-scanned map with proto types and their appropriate Java classes
      */
     @SuppressWarnings("GroovyMethodParameterCount")
-    FailureWriter(DescriptorProto failureDescriptor,
+    GroovyFailureWriter(DescriptorProto failureDescriptor,
                   File outputFile,
                   GString javaPackage,
                   String javaOuterClassName,

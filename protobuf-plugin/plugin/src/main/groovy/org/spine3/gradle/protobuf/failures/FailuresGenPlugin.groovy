@@ -38,7 +38,7 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
  * <p>Logs a warning if there are no protobuf descriptors generated.
  */
 @Slf4j
-class FailuresGenPlugin implements Plugin<Project> {
+class GroovyFailuresGenPlugin implements Plugin<Project> {
 
     private Project project
 
