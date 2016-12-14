@@ -24,7 +24,7 @@ import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.spine3.gradle.protobuf.util.PropertiesWriter
+import org.spine3.gradle.protobuf.util.GroovyPropertiesWriter
 
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto
 import static org.spine3.gradle.protobuf.Extension.*
@@ -76,7 +76,7 @@ class ProtoToJavaMapperPlugin implements Plugin<Project> {
         if (propsMap.isEmpty()) {
             return
         }
-        final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir, PROPERTIES_FILE_NAME)
+        final GroovyPropertiesWriter writer = new GroovyPropertiesWriter(targetGeneratedResourcesDir, PROPERTIES_FILE_NAME)
         writer.write(propsMap)
     }
 }

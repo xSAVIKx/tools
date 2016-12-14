@@ -120,6 +120,6 @@ public class ProtoToJavaMapperPluginShould {
     }
 
     private static FluentIterable<String> compose(String... elems) {
-        return FluentIterable.of(elems);
+        return FluentIterable.from(elems);
     }
 }

@@ -30,7 +30,7 @@ import static java.util.Map.Entry
  * @author Alexander Litus
  */
 @Slf4j
-class PropertiesWriter {
+class GroovyPropertiesWriter {
 
     private final GString propsFilePath
     private final GString rootDirPath
@@ -41,7 +41,7 @@ class PropertiesWriter {
      * @param rootDirPath a path to a directory where the {@code .properties} file is (or will be) located
      * @param propsFileName a name of the {@code .properties} file to write to (can be non-existing)
      */
-    PropertiesWriter(GString rootDirPath, String propsFileName) {
+    GroovyPropertiesWriter(GString rootDirPath, String propsFileName) {
         this.rootDirPath = rootDirPath
         this.propsFilePath = "$rootDirPath/$propsFileName"
     }

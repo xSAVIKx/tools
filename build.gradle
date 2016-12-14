@@ -9,7 +9,7 @@ buildscript {
 
 allprojects {
     group = 'org.spine3.tools'
-    version = SPINE_VERSION
+    version = '0.6.6-SNAPSHOT'
 
     project.ext {
         spineRepository = 'http://maven.teamdev.com/repository/spine'
@@ -19,17 +19,6 @@ allprojects {
         slf4JVersion = '1.7.21'
         jUnitVersion = '4.12'
     }
-}
-
-final String CREDENTIALS_FILE_PATH = "credentials.properties"
-def repositoryUserName = null
-def repositoryUserPassword = null
-Properties properties = new Properties()
-File credentialsFile = file(CREDENTIALS_FILE_PATH)
-if (credentialsFile.exists()) {
-    properties.load(credentialsFile.newDataInputStream())
-    repositoryUserName = properties.getProperty("user.name")
-    repositoryUserPassword = properties.getProperty("user.password")
 }
 
 ext {
@@ -42,6 +31,7 @@ ext {
 subprojects {
     apply plugin: 'maven'
     apply plugin: 'groovy'
+    apply plugin: 'java'
     apply plugin: 'idea'
     apply plugin: 'maven-publish'
 
@@ -75,11 +65,19 @@ subprojects {
 
     sourceSets {
         main {
+            // As per http://stackoverflow.com/questions/22369033/how-to-use-gradle-java-and-groovy-together
+            // java.srcDirs += "$SRC_DIR/main/java"
+            java.srcDirs = []
             groovy.srcDirs += "$SRC_DIR/main/groovy"
+            groovy.srcDirs += "$SRC_DIR/main/java"
             resources.srcDirs += "$SRC_DIR/main/resources"
         }
         test {
+            // As per http://stackoverflow.com/questions/22369033/how-to-use-gradle-java-and-groovy-together
+            // java.srcDirs += "$SRC_DIR/main/java"
+            java.srcDirs = []
             groovy.srcDirs += "$SRC_DIR/test/groovy"
+            groovy.srcDirs += "$SRC_DIR/test/java"
             resources.srcDirs += "$SRC_DIR/test/resources"
         }
     }
