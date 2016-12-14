@@ -78,7 +78,6 @@ public class PropertiesWriter {
             if (!result && !file.getParentFile().exists() && !file.getParentFile().isDirectory()) {
                 throw new RuntimeException("Cannot create a new folder at " + file.getParentFile().getParentFile());
             }
-//            file.createNewFile();
         }
 
         for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
@@ -106,7 +105,7 @@ public class PropertiesWriter {
     }
 
     /**
-     * Returns {@link Properties} instance, which has it's key set sorted by names.
+     * Returns {@link Properties} instance, which has its key set sorted by names.
      */
     private static Properties createSortedProperties() {
         return new Properties() {
