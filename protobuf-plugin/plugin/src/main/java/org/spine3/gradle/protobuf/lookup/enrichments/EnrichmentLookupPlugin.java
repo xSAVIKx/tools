@@ -21,7 +21,6 @@
  */
 package org.spine3.gradle.protobuf.lookup.enrichments;
 
-
 import com.google.protobuf.DescriptorProtos;
 import groovy.lang.GString;
 import groovy.util.logging.Slf4j;
@@ -33,10 +32,13 @@ import org.spine3.gradle.protobuf.util.DescriptorSetUtil;
 import org.spine3.gradle.protobuf.util.PropertiesWriter;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
-import static org.spine3.gradle.protobuf.Extension.*;
+import static com.google.common.collect.Maps.newHashMap;
+import static org.spine3.gradle.protobuf.Extension.getMainDescriptorSetPath;
+import static org.spine3.gradle.protobuf.Extension.getMainTargetGenResourcesDir;
+import static org.spine3.gradle.protobuf.Extension.getTestDescriptorSetPath;
+import static org.spine3.gradle.protobuf.Extension.getTestTargetGenResourcesDir;
 import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors;
 
 /**
@@ -57,33 +59,77 @@ public class EnrichmentLookupPlugin implements Plugin<Project> {
      */
     private static final String PROPS_FILE_NAME = "enrichments.properties";
 
+    /**
+     * The name of the enrichment lookup task to be added to the Gradle lifecycle.
+     *
+     * <p>Relates to `main` classes and resources scope.
+     */
+    private static final String FIND_ENRICHMENTS_TASK_NAME = "findEnrichments";
+
+    /**
+     * The name of the enrichment lookup task to be added to the Gradle lifecycle.
+     *
+     * <p>Relates to `test` classes and resources scope.
+     */
+    private static final String FIND_TEST_ENRICHMENTS_TASK_NAME = "findTestEnrichments";
+
+    /**
+     * Standard Gradle task names serving as anchors for the enrichment lookup plugin execution.
+     **/
+    private static final String COMPILE_JAVA_TASK_NAME = "compileJava";
+    private static final String PROCESS_RESOURCES_TASK_NAME = "processResources";
+    private static final String COMPILE_TEST_JAVA_TASK_NAME = "compileTestJava";
+    private static final String PROCESS_TEST_RESOURCES_TASK_NAME = "processTestResources";
+
     @Override
     public void apply(final Project project) {
-        final Task findEnrichmentsTask = project.task("findEnrichments").doLast(new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                findEnrichmentsAndWriteProps(getMainTargetGenResourcesDir(project), getMainDescriptorSetPath(project));
-            }
-        });
-        findEnrichmentsTask.dependsOn("compileJava");
-        final Task processResources = project.getTasks().getByPath("processResources");
-        processResources.dependsOn(findEnrichmentsTask);
+        final Action<Task> findEnrichmentsAction = mainScopeActionFor(project);
+        addToProjectLifecycle(project, findEnrichmentsAction, FIND_ENRICHMENTS_TASK_NAME,
+                              COMPILE_JAVA_TASK_NAME, PROCESS_RESOURCES_TASK_NAME);
 
-        final Task findTestEnrichmentsTask = project.task("findTestEnrichments").doLast(new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                findEnrichmentsAndWriteProps(getTestTargetGenResourcesDir(project), getTestDescriptorSetPath(project));
-            }
-        });
-        findTestEnrichmentsTask.dependsOn("compileTestJava");
-        final Task processTestResources = project.getTasks().getByPath("processTestResources");
-        processTestResources.dependsOn(findTestEnrichmentsTask);
+        final Action<Task> findTestEnrichmentsAction = testScopeActionFor(project);
+        addToProjectLifecycle(project, findTestEnrichmentsAction, FIND_TEST_ENRICHMENTS_TASK_NAME,
+                              COMPILE_TEST_JAVA_TASK_NAME, PROCESS_TEST_RESOURCES_TASK_NAME);
     }
 
-    private static void findEnrichmentsAndWriteProps(GString targetGeneratedResourcesDir, GString descriptorSetPath) {
-        final Map<String, String> propsMap = new HashMap<>();
+    private static Action<Task> testScopeActionFor(final Project project) {
+        return new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                findEnrichmentsAndWriteProps(getTestTargetGenResourcesDir(project),
+                                             getTestDescriptorSetPath(project));
+            }
+        };
+    }
+
+    private static Action<Task> mainScopeActionFor(final Project project) {
+        return new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                findEnrichmentsAndWriteProps(getMainTargetGenResourcesDir(project),
+                                             getMainDescriptorSetPath(project));
+            }
+        };
+    }
+
+    private static void addToProjectLifecycle(Project project, Action<Task> taskAction,
+                                              String newTaskName, String taskBeforeNew, String taskAfterNew) {
+        final Task findEnrichmentsTask = project.task(newTaskName)
+                                                .doLast(taskAction);
+        findEnrichmentsTask.dependsOn(taskBeforeNew);
+        final Task processResources = project.getTasks()
+                                             .getByPath(taskAfterNew);
+        processResources.dependsOn(findEnrichmentsTask);
+    }
+
+    private static void findEnrichmentsAndWriteProps(
+            // It's important to have a self-explanatory name for this variable.
+            @SuppressWarnings("MethodParameterNamingConvention") GString targetGeneratedResourcesDir,
+            GString descriptorSetPath) {
+        final Map<String, String> propsMap = newHashMap();
+        final DescriptorSetUtil.IsNotGoogleProto protoFilter = new DescriptorSetUtil.IsNotGoogleProto();
         final Collection<DescriptorProtos.FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath,
-                new DescriptorSetUtil.IsNotGoogleProto());
+                                                                                               protoFilter);
         for (DescriptorProtos.FileDescriptorProto file : files) {
             final Map<String, String> enrichments = new EnrichmentsFinder(file).findEnrichments();
             propsMap.putAll(enrichments);
