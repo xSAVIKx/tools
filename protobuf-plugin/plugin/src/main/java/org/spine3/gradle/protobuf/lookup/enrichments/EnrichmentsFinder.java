@@ -260,5 +260,4 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
         throw new RuntimeException("Field of message `" + msgName + "` has invalid 'by' option value, " +
                 "which must be the fully-qualified field reference.");
     }
-
 }

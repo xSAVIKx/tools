@@ -125,5 +125,4 @@ public class PropertiesWriter {
         @SuppressWarnings("NonSerializableFieldInSerializableClass")
         private final Logger value = LoggerFactory.getLogger(GroovyPropertiesWriter.class);
     }
-
 }
