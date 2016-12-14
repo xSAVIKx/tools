@@ -44,7 +44,7 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
  *
  * <p>{@code ENRICHMENT_TYPE_NAME=EVENT_TO_ENRICH_TYPE_NAME}
  *
- * There can be several event types:
+ * <p>There can be several event types:
  *
  * <p>{@code ENRICHMENT_TYPE_NAME=FIRST_EVENT_TYPE_NAME,SECOND_EVENT_TYPE_NAME}
  *
