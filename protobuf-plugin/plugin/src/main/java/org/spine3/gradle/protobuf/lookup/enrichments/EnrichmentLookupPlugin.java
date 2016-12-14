@@ -19,7 +19,7 @@
  */
 package org.spine3.gradle.protobuf.lookup.enrichments;
 
-import com.google.protobuf.DescriptorProtos;
+import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import groovy.lang.GString;
 import groovy.util.logging.Slf4j;
 import org.gradle.api.Action;
@@ -127,9 +127,9 @@ public class EnrichmentLookupPlugin implements Plugin<Project> {
             GString descriptorSetPath) {
         final Map<String, String> propsMap = newHashMap();
         final DescriptorSetUtil.IsNotGoogleProto protoFilter = new DescriptorSetUtil.IsNotGoogleProto();
-        final Collection<DescriptorProtos.FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath,
-                                                                                               protoFilter);
-        for (DescriptorProtos.FileDescriptorProto file : files) {
+        final Collection<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath,
+                                                                              protoFilter);
+        for (FileDescriptorProto file : files) {
             final Map<String, String> enrichments = new EnrichmentsFinder(file).findEnrichments();
             propsMap.putAll(enrichments);
         }

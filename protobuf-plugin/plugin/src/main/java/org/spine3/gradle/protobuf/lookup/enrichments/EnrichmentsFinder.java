@@ -25,6 +25,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.google.protobuf.DescriptorProtos;
+import com.google.protobuf.DescriptorProtos.DescriptorProto;
+import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 
 import java.util.AbstractMap;
 import java.util.Collection;
@@ -93,8 +95,8 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
      */
     /* package */ Map<String, String> findEnrichments() {
         final HashMultimap<String, String> result = HashMultimap.create();
-        final List<DescriptorProtos.DescriptorProto> messages = file.getMessageTypeList();
-        for (DescriptorProtos.DescriptorProto msg : messages) {
+        final List<DescriptorProto> messages = file.getMessageTypeList();
+        for (DescriptorProto msg : messages) {
             putEntry(result, msg);
         }
         return mergeDuplicateValues(result);
@@ -127,7 +129,7 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
         return mergedResult.build();
     }
 
-    private void putEntry(Multimap<String, String> targetMap, DescriptorProtos.DescriptorProto msg) {
+    private void putEntry(Multimap<String, String> targetMap, DescriptorProto msg) {
         final Map<String, String> entries = scanMsg(msg);
         for (Map.Entry<String, String> entry : entries.entrySet()) {
             put(entry, targetMap);
@@ -146,7 +148,7 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
         }
     }
 
-    private Map<String, String> scanMsg(DescriptorProtos.DescriptorProto msg) {
+    private Map<String, String> scanMsg(DescriptorProto msg) {
         final ImmutableMap.Builder<String, String> msgScanResultBuilder = ImmutableMap.builder();
         final String messageName = packagePrefix + msg.getName();
 
@@ -167,9 +169,9 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
         return msgScanResultBuilder.build();
     }
 
-    private Map.Entry<String, String> scanFields(DescriptorProtos.DescriptorProto msg) {
+    private Map.Entry<String, String> scanFields(DescriptorProto msg) {
         final String msgName = msg.getName();
-        for (DescriptorProtos.FieldDescriptorProto field : msg.getFieldList()) {
+        for (FieldDescriptorProto field : msg.getFieldList()) {
             if (hasOptionEnrichBy(field)) {
                 final String eventNameFromBy = parseEventNameFromOptBy(field);
                 if (ANY_BY_OPTION_TARGET.equals(eventNameFromBy)) {
@@ -188,9 +190,9 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
     }
 
     @SuppressWarnings("MethodWithMultipleLoops")    // It's fine in this case.
-    private Map.Entry<String, String> scanInnerMessages(DescriptorProtos.DescriptorProto msg) {
-        for (DescriptorProtos.DescriptorProto innerMsg : msg.getNestedTypeList()) {
-            for (DescriptorProtos.FieldDescriptorProto field : innerMsg.getFieldList()) {
+    private Map.Entry<String, String> scanInnerMessages(DescriptorProto msg) {
+        for (DescriptorProto innerMsg : msg.getNestedTypeList()) {
+            for (FieldDescriptorProto field : innerMsg.getFieldList()) {
                 if (hasOptionEnrichBy(field)) {
                     final String outerEventName = packagePrefix + msg.getName();
                     final String enrichmentName = outerEventName + PROTO_TYPE_SEPARATOR + innerMsg.getName();
@@ -201,7 +203,7 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
         return null;
     }
 
-    private String parseEventNamesFromMsgOption(DescriptorProtos.DescriptorProto msg) {
+    private String parseEventNamesFromMsgOption(DescriptorProto msg) {
         final String eventNamesStr = getUnknownOptionValue(msg, OPTION_NUMBER_ENRICHMENT_FOR);
         if (eventNamesStr == null) {
             return null;
@@ -212,7 +214,7 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
     }
 
     @SuppressWarnings("InstanceMethodNamingConvention")     // It's important to keep naming self-explanatory.
-    private Collection<String> parseEnrichmentNamesFromMsgOption(DescriptorProtos.DescriptorProto msg) {
+    private Collection<String> parseEnrichmentNamesFromMsgOption(DescriptorProto msg) {
         final String enrichmentNames = getUnknownOptionValue(msg, OPTION_NUMBER_ENRICHMENT);
         if (enrichmentNames == null) {
             return null;
@@ -247,11 +249,11 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
         return ImmutableList.copyOf(namesArray);
     }
 
-    private static boolean hasOptionEnrichBy(DescriptorProtos.FieldDescriptorProto field) {
+    private static boolean hasOptionEnrichBy(FieldDescriptorProto field) {
         return hasUnknownOption(field, OPTION_NUMBER_ENRICH_BY);
     }
 
-    private static String parseEventNameFromOptBy(DescriptorProtos.FieldDescriptorProto field) {
+    private static String parseEventNameFromOptBy(FieldDescriptorProto field) {
         final String fieldFqn = getUnknownOptionValue(field, OPTION_NUMBER_ENRICH_BY);
         if (fieldFqn == null) {
             return null;
