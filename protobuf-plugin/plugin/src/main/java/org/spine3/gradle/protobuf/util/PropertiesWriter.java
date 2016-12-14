@@ -118,6 +118,12 @@ public class PropertiesWriter {
 
     /**
      * Customized {@link Properties}, which key set is sorted.
+     *
+     * <p>The instance of this class is used to maintain the alphanumerical order in the {@code .properties} files
+     * generated out of the instance contents.
+     *
+     * <p>Such a trick simplifies the resulting {@code .properties} file navigation
+     * and makes any potential debugging easier.
      */
     @SuppressWarnings("ClassExtendsConcreteCollection")     //It's the best (and still readable) way for customization.
     private static final class SortedProperties extends Properties {
