@@ -125,18 +125,17 @@ public class PropertiesWriter {
      * <p>Such a trick simplifies the resulting {@code .properties} file navigation
      * and makes any potential debugging easier.
      */
-    @SuppressWarnings("ClassExtendsConcreteCollection")     //It's the best (and still readable) way for customization.
+    @SuppressWarnings("ClassExtendsConcreteCollection")     // It's the best (and still readable) way for customization.
     private static final class SortedProperties extends Properties {
 
         // Generated automatically.
         private static final long serialVersionUID = -4508611340425795981L;
 
-        @SuppressWarnings("RefusedBequest")     //as we replace `keys()` with a completely different behavior.
+        @SuppressWarnings("RefusedBequest")     // as we replace `keys()` with a completely different behavior.
         @Override
         public synchronized Enumeration<Object> keys() {
             return Collections.enumeration(new TreeSet<>(keySet()));
         }
-
     }
 
     private static Logger log() {
