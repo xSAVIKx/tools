@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2016, TeamDev Ltd. All rights reserved.
  *
  * Redistribution and use in source and/or binary forms, with or without
@@ -17,17 +16,25 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 package org.spine3.gradle.protobuf.util;
 
+import com.google.common.io.Files;
 import groovy.lang.GString;
 import groovy.util.logging.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeSet;
 
 /**
  * A utility class for writing to {@code .properties} file.
@@ -58,27 +65,11 @@ public class PropertiesWriter {
      */
     public void write(Map<String, String> propertiesMap) {
         final File rootDir = new File(rootDirPath);
-        if (!rootDir.exists()) {
-            final boolean result = rootDir.mkdirs();
-            if (!result && !rootDir.exists() && !rootDir.isDirectory()) {
-                throw new RuntimeException("Cannot create a new folder at " + rootDir.getAbsolutePath());
-            }
-        }
-        final Properties props = createSortedProperties();
-        final File file = new File(propsFilePath);
+        createParentFolders(rootDir);
 
-        if (file.exists()) {
-            try {
-                props.load(new FileInputStream(file));
-            } catch (IOException e) {
-                throw new RuntimeException("Error opening the file at " + file.getAbsolutePath());
-            }
-        } else {
-            final boolean result = file.getParentFile().mkdirs();
-            if (!result && !file.getParentFile().exists() && !file.getParentFile().isDirectory()) {
-                throw new RuntimeException("Cannot create a new folder at " + file.getParentFile().getParentFile());
-            }
-        }
+        final Properties props = new SortedProperties();
+        final File file = new File(propsFilePath);
+        prepareTargetFile(props, file);
 
         for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
             final String key = entry.getKey();
@@ -89,7 +80,7 @@ public class PropertiesWriter {
                 final String currentValue = props.getProperty(key);
                 if (!currentValue.equals(value)) {
                     log().warn("Entry with the key `%s` already exists. Value: `%s`." +
-                            " New value `%s` was not set.", key, currentValue, value);
+                                       " New value `%s` was not set.", key, currentValue, value);
                 }
             }
         }
@@ -104,16 +95,42 @@ public class PropertiesWriter {
         }
     }
 
-    /**
-     * Returns {@link Properties} instance, which has its key set sorted by names.
-     */
-    private static Properties createSortedProperties() {
-        return new Properties() {
-            @Override
-            public synchronized Enumeration<Object> keys() {
-                return Collections.enumeration(new TreeSet<>(super.keySet()));
+    private static void prepareTargetFile(Properties props, File file) {
+        if (file.exists()) {
+            try {
+                final FileInputStream fis = new FileInputStream(file);
+                props.load(fis);
+            } catch (@SuppressWarnings("OverlyBroadCatchBlock") IOException e) {
+                throw new RuntimeException("Error loading the properties from the file: " + file.getAbsolutePath(), e);
             }
-        };
+        } else {
+            createParentFolders(file);
+        }
+    }
+
+    private static void createParentFolders(File file) {
+        try {
+            Files.createParentDirs(file);
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot create parent folders at " + file.getAbsolutePath(), e);
+        }
+    }
+
+    /**
+     * Customized {@link Properties}, which key set is sorted.
+     */
+    @SuppressWarnings("ClassExtendsConcreteCollection")     //It's the best (and still readable) way for customization.
+    private static final class SortedProperties extends Properties {
+
+        // Generated automatically.
+        private static final long serialVersionUID = -4508611340425795981L;
+
+        @SuppressWarnings("RefusedBequest")     //as we replace `keys()` with a completely different behavior.
+        @Override
+        public synchronized Enumeration<Object> keys() {
+            return Collections.enumeration(new TreeSet<>(keySet()));
+        }
+
     }
 
     private static Logger log() {
@@ -123,6 +140,6 @@ public class PropertiesWriter {
     private enum LogSingleton {
         INSTANCE;
         @SuppressWarnings("NonSerializableFieldInSerializableClass")
-        private final Logger value = LoggerFactory.getLogger(GroovyPropertiesWriter.class);
+        private final Logger value = LoggerFactory.getLogger(PropertiesWriter.class);
     }
 }

@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2016, TeamDev Ltd. All rights reserved.
  *
  * Redistribution and use in source and/or binary forms, with or without
@@ -17,7 +16,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 package org.spine3.gradle.protobuf.lookup.enrichments;
 
@@ -50,7 +48,8 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
  *
  * <p>{@code ENRICHMENT_TYPE_NAME=FIRST_EVENT_TYPE_NAME,SECOND_EVENT_TYPE_NAME}
  *
- * @author Alexander Litus, Alex Tymchenko
+ * @author Alexander Litus
+ * @author Alex Tymchenko
  */
 @Slf4j
 public class EnrichmentLookupPlugin implements Plugin<Project> {

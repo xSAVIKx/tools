@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2016, TeamDev Ltd. All rights reserved.
  *
  * Redistribution and use in source and/or binary forms, with or without
@@ -17,7 +16,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 package org.spine3.gradle.protobuf.lookup.enrichments;
 
@@ -28,7 +26,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.google.protobuf.DescriptorProtos;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import static com.google.common.collect.Lists.newLinkedList;
@@ -38,7 +40,8 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
 /**
  * Finds event enrichment Protobuf definitions.
  *
- * @author Alexander Litus, Alex Tymchenko
+ * @author Alexander Litus
+ * @author Alex Tymchenko
  */
 /* package */ class EnrichmentsFinder {
 
@@ -78,7 +81,7 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
      *
      * @param file a file to search enrichments in
      */
-    EnrichmentsFinder(DescriptorProtos.FileDescriptorProto file) {
+    /* package */ EnrichmentsFinder(DescriptorProtos.FileDescriptorProto file) {
         this.file = file;
         this.packagePrefix = file.getPackage() + PROTO_TYPE_SEPARATOR;
     }
@@ -88,29 +91,35 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
      *
      * @return a map from enrichment type name to event to enrich type name
      */
-    Map<String, String> findEnrichments() {
+    /* package */ Map<String, String> findEnrichments() {
         final HashMultimap<String, String> result = HashMultimap.create();
         final List<DescriptorProtos.DescriptorProto> messages = file.getMessageTypeList();
         for (DescriptorProtos.DescriptorProto msg : messages) {
             putEntry(result, msg);
         }
+        return mergeDuplicateValues(result);
+    }
 
-        /**
-         * Merge duplicate key values, if any.
-         *
-         * <p>That may happen when the wildcard `By` option values are handled,
-         * i.e. same enrichment as a key, but multiple target event types.
-         **/
-
+    /**
+     * Merge duplicate values into a single value for the same key.
+     *
+     * <p>The values are joined with {@link EnrichmentsFinder#TARGET_NAME_SEPARATOR}.
+     *
+     * <p>Merging may be required when the wildcard `By` option values are handled,
+     * i.e. when processing a single enrichment type as a mao key, but multiple target event types as values.
+     **/
+    private static Map<String, String> mergeDuplicateValues(HashMultimap<String, String> source) {
         final ImmutableMap.Builder<String, String> mergedResult = ImmutableMap.builder();
-        for (String key : result.keySet()) {
-            final Set<String> valuesPerKey = result.get(key);
+        for (String key : source.keySet()) {
+            final Set<String> valuesPerKey = source.get(key);
 
             final String mergedValue;
             if (valuesPerKey.size() > 1) {
-                mergedValue = Joiner.on(TARGET_NAME_SEPARATOR).join(valuesPerKey);
+                mergedValue = Joiner.on(TARGET_NAME_SEPARATOR)
+                                    .join(valuesPerKey);
             } else {
-                mergedValue = valuesPerKey.iterator().next();
+                mergedValue = valuesPerKey.iterator()
+                                          .next();
             }
             mergedResult.put(key, mergedValue);
         }
@@ -178,6 +187,7 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
         return null;
     }
 
+    @SuppressWarnings("MethodWithMultipleLoops")    // It's fine in this case.
     private Map.Entry<String, String> scanInnerMessages(DescriptorProtos.DescriptorProto msg) {
         for (DescriptorProtos.DescriptorProto innerMsg : msg.getNestedTypeList()) {
             for (DescriptorProtos.FieldDescriptorProto field : innerMsg.getFieldList()) {
@@ -197,9 +207,11 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
             return null;
         }
         final Collection<String> eventNamesResult = normalizeTypeNames(eventNamesStr);
-        return Joiner.on(TARGET_NAME_SEPARATOR).join(eventNamesResult);
+        return Joiner.on(TARGET_NAME_SEPARATOR)
+                     .join(eventNamesResult);
     }
 
+    @SuppressWarnings("InstanceMethodNamingConvention")     // It's important to keep naming self-explanatory.
     private Collection<String> parseEnrichmentNamesFromMsgOption(DescriptorProtos.DescriptorProto msg) {
         final String enrichmentNames = getUnknownOptionValue(msg, OPTION_NUMBER_ENRICHMENT);
         if (enrichmentNames == null) {
@@ -229,7 +241,8 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
     }
 
     private static List<String> parseTargetNames(String targetNames) {
-        final String names = PATTERN_SPACE.matcher(targetNames).replaceAll("");
+        final String names = PATTERN_SPACE.matcher(targetNames)
+                                          .replaceAll("");
         final String[] namesArray = PATTERN_TARGET_NAME_SEPARATOR.split(names);
         return ImmutableList.copyOf(namesArray);
     }
@@ -252,12 +265,12 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
     }
 
     private static void put(Map.Entry<String, String> entry, Multimap<String, String> targetMap) {
-        // put key and value separately to avoid an error
+        // Put key and value separately to avoid an error.
         targetMap.put(entry.getKey(), entry.getValue());
     }
 
     private static RuntimeException invalidByOptionValue(String msgName) {
         throw new RuntimeException("Field of message `" + msgName + "` has invalid 'by' option value, " +
-                "which must be the fully-qualified field reference.");
+                                           "which must be a fully-qualified field reference.");
     }
 }
