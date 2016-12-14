@@ -22,14 +22,13 @@
 package org.spine3.gradle.protobuf.lookup.enrichments;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimap;
 import com.google.protobuf.DescriptorProtos;
 
-import java.util.AbstractMap;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.google.common.collect.Lists.newLinkedList;
@@ -90,31 +89,51 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
      * @return a map from enrichment type name to event to enrich type name
      */
     Map<String, String> findEnrichments() {
-        // Do not name this method "find" to avoid a confusion with "DefaultGroovyMethods.find()".
-        final ImmutableMap.Builder<String, String> result = ImmutableMap.builder();
+        final HashMultimap<String, String> result = HashMultimap.create();
         final List<DescriptorProtos.DescriptorProto> messages = file.getMessageTypeList();
         for (DescriptorProtos.DescriptorProto msg : messages) {
             putEntry(result, msg);
         }
-        return result.build();
+
+        /**
+         * Merge duplicate key values, if any.
+         *
+         * <p>That may happen when the wildcard `By` option values are handled,
+         * i.e. same enrichment as a key, but multiple target event types.
+         **/
+
+        final ImmutableMap.Builder<String, String> mergedResult = ImmutableMap.builder();
+        for (String key : result.keySet()) {
+            final Set<String> valuesPerKey = result.get(key);
+
+            final String mergedValue;
+            if (valuesPerKey.size() > 1) {
+                mergedValue = Joiner.on(TARGET_NAME_SEPARATOR).join(valuesPerKey);
+            } else {
+                mergedValue = valuesPerKey.iterator().next();
+            }
+            mergedResult.put(key, mergedValue);
+        }
+
+        return mergedResult.build();
     }
 
-    private void putEntry(ImmutableMap.Builder<String, String> mapBuilder, DescriptorProtos.DescriptorProto msg) {
+    private void putEntry(Multimap<String, String> targetMap, DescriptorProtos.DescriptorProto msg) {
         final Map<String, String> entries = scanMsg(msg);
         for (Map.Entry<String, String> entry : entries.entrySet()) {
-            put(entry, mapBuilder);
+            put(entry, targetMap);
         }
         if (!entries.isEmpty()) {
             return;
         }
         final Map.Entry<String, String> entryFromField = scanFields(msg);
         if (entryFromField != null) {
-            put(entryFromField, mapBuilder);
+            put(entryFromField, targetMap);
             return;
         }
         final Map.Entry<String, String> entryFromInnerMsg = scanInnerMessages(msg);
         if (entryFromInnerMsg != null) {
-            put(entryFromInnerMsg, mapBuilder);
+            put(entryFromInnerMsg, targetMap);
         }
     }
 
@@ -232,9 +251,9 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
         return result;
     }
 
-    private static void put(Map.Entry<String, String> entry, ImmutableMap.Builder<String, String> mapBuilder) {
+    private static void put(Map.Entry<String, String> entry, Multimap<String, String> targetMap) {
         // put key and value separately to avoid an error
-        mapBuilder.put(entry.getKey(), entry.getValue());
+        targetMap.put(entry.getKey(), entry.getValue());
     }
 
     private static RuntimeException invalidByOptionValue(String msgName) {
