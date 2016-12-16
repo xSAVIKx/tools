@@ -34,7 +34,7 @@ import static java.util.Collections.emptyList
  * @author Alexander Litus
  */
 @Slf4j
-class DescriptorSetUtil {
+class GroovyDescriptorSetUtil {
 
     private static final String MSG_ENABLE_DESCRIPTOR_SET_GENERATION =
             "Please enable descriptor set generation. See an appropriate section at " +

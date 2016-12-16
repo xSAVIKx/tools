@@ -52,7 +52,7 @@ import static java.util.Collections.emptyMap
  * @author Alexander Litus
  */
 @Slf4j
-class UnknownOptions {
+class GroovyUnknownOptions {
 
     private static final Pattern PATTERN_COLON = Pattern.compile(":")
     private static final Pattern PATTERN_NEW_LINE = Pattern.compile("\n")

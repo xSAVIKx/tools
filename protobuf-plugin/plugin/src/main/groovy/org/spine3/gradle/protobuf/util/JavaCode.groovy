@@ -3,12 +3,8 @@ package org.spine3.gradle.protobuf.util
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 
-/**
- * Utilities for working with Protobuf when generating Java code.
- *
- * @author Alexander Yevsyukov
- */
-class JavaCode {
+
+class GrJavaCode {
 
     /**
      * Calculates a name of an outer Java class for types declared in the file represented
