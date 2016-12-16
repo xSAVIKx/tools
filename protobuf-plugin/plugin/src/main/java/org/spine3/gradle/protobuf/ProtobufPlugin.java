@@ -1,4 +1,5 @@
 /*
+ *
  * Copyright 2016, TeamDev Ltd. All rights reserved.
  *
  * Redistribution and use in source and/or binary forms, with or without
@@ -16,29 +17,32 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+package org.spine3.gradle.protobuf;
 
-package org.spine3.gradle.protobuf
-
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.spine3.gradle.protobuf.cleaning.CleaningPlugin
-import org.spine3.gradle.protobuf.failures.FailuresGenPlugin
-import org.spine3.gradle.protobuf.lookup.enrichments.EnrichmentLookupPlugin
-import org.spine3.gradle.protobuf.lookup.proto.ProtoToJavaMapperPlugin
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.spine3.gradle.protobuf.cleaning.CleaningPlugin;
+import org.spine3.gradle.protobuf.failures.FailuresGenPlugin;
+import org.spine3.gradle.protobuf.lookup.enrichments.EnrichmentLookupPlugin;
+import org.spine3.gradle.protobuf.lookup.proto.ProtoToJavaMapperPlugin;
 
 /**
- * Root plugin, which aggregates other plugins.
+ * @author Alexander Litus
+ * @author Mikhail Mikhaylov
  */
-class GroovyProtobufPlugin // implements Plugin<Project>
-{
+public class ProtobufPlugin implements Plugin<Project> {
 
-//    @Override
-    void apply(Project project) {
-        project.extensions.create("spineProtobuf", Extension.class)
-        new CleaningPlugin().apply(project)
-        new ProtoToJavaMapperPlugin().apply(project)
-        new EnrichmentLookupPlugin().apply(project)
-        new FailuresGenPlugin().apply(project)
+    private static final String SPINE_PROTOBUF_EXTENSION_NAME = "spineProtobuf";
+
+    @Override
+    public void apply(Project project) {
+        project.getExtensions()
+               .create(SPINE_PROTOBUF_EXTENSION_NAME, Extension.class);
+        new CleaningPlugin().apply(project);
+        new ProtoToJavaMapperPlugin().apply(project);
+        new EnrichmentLookupPlugin().apply(project);
+        new FailuresGenPlugin().apply(project);
     }
 }
