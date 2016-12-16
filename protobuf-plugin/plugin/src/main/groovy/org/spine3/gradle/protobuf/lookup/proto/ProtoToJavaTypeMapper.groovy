@@ -31,7 +31,7 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.getUnknownOptionVal
  * Maps Protobuf message types from a file to the corresponding Java classes.
  */
 @Slf4j
-class ProtoToJavaTypeMapper {
+class GroovyProtoToJavaTypeMapper {
 
     /**
      * The field number of the file option `type_url_prefix` defined in the `Spine/core-java` project.
@@ -55,7 +55,7 @@ class ProtoToJavaTypeMapper {
     private final String typeUrlPrefix
     private final String commonOuterClassPrefix
 
-    ProtoToJavaTypeMapper(FileDescriptorProto file) {
+    GroovyProtoToJavaTypeMapper(FileDescriptorProto file) {
         this.file = file
         this.protoPackagePrefix = getProtoPackagePrefix(file)
         this.javaPackagePrefix = getJavaPackagePrefix(file)

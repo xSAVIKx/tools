@@ -37,6 +37,8 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 
+import static org.spine3.gradle.GradleTasks.CLEAN;
+import static org.spine3.gradle.GradleTasks.PRE_CLEAN;
 import static org.spine3.gradle.protobuf.Extension.getDirsToClean;
 
 /**
@@ -49,9 +51,6 @@ import static org.spine3.gradle.protobuf.Extension.getDirsToClean;
  */
 public class CleaningPlugin implements Plugin<Project> {
 
-    private static final String PRE_CLEAN_TASK_NAME = "preClean";
-    private static final String CLEAN_TASK_NAME = "clean";
-
     @Override
     public void apply(final Project project) {
         final Action<Task> additionalCleaning = new Action<Task>() {
@@ -60,10 +59,10 @@ public class CleaningPlugin implements Plugin<Project> {
                 deleteDirs(getDirsToClean(project));
             }
         };
-        final Task preClean = project.task(PRE_CLEAN_TASK_NAME)
+        final Task preClean = project.task(PRE_CLEAN.getName())
                                      .doLast(additionalCleaning);
         final TaskContainer tasks = project.getTasks();
-        tasks.getByPath(CLEAN_TASK_NAME)
+        tasks.getByPath(CLEAN.getName())
              .dependsOn(preClean);
     }
 

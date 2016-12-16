@@ -39,7 +39,7 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
  * <p>{@code PROTO_TYPE_URL=JAVA_FULL_CLASS_NAME}
  */
 @Slf4j
-class ProtoToJavaMapperPlugin implements Plugin<Project> {
+class GroovyProtoToJavaMapperPlugin implements Plugin<Project> {
 
     /**
      * The name of the file to populate. NOTE: also change its name used in the `core-java` project on changing.

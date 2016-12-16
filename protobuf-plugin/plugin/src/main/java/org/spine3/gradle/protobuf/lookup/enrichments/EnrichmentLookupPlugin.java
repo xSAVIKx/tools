@@ -33,6 +33,12 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.newHashMap;
+import static org.spine3.gradle.GradleTasks.COMPILE_JAVA;
+import static org.spine3.gradle.GradleTasks.COMPILE_TEST_JAVA;
+import static org.spine3.gradle.GradleTasks.FIND_ENRICHMENTS;
+import static org.spine3.gradle.GradleTasks.FIND_TEST_ENRICHMENTS;
+import static org.spine3.gradle.GradleTasks.PROCESS_RESOURCES;
+import static org.spine3.gradle.GradleTasks.PROCESS_TEST_RESOURCES;
 import static org.spine3.gradle.protobuf.Extension.getMainDescriptorSetPath;
 import static org.spine3.gradle.protobuf.Extension.getMainTargetGenResourcesDir;
 import static org.spine3.gradle.protobuf.Extension.getTestDescriptorSetPath;
@@ -54,41 +60,22 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
 @Slf4j
 public class EnrichmentLookupPlugin implements Plugin<Project> {
     /**
-     * The name of the file to populate. NOTE: also change its name used in the `core-java` project on changing.
+     * The name of the file to populate.
+     *
+     * <p>NOTE: the filename is referenced by `core-java` as well,
+     * make sure to update `core-java` project upon changing this value.
      */
     private static final String PROPS_FILE_NAME = "enrichments.properties";
-
-    /**
-     * The name of the enrichment lookup task to be added to the Gradle lifecycle.
-     *
-     * <p>Relates to `main` classes and resources scope.
-     */
-    private static final String FIND_ENRICHMENTS_TASK_NAME = "findEnrichments";
-
-    /**
-     * The name of the enrichment lookup task to be added to the Gradle lifecycle.
-     *
-     * <p>Relates to `test` classes and resources scope.
-     */
-    private static final String FIND_TEST_ENRICHMENTS_TASK_NAME = "findTestEnrichments";
-
-    /**
-     * Standard Gradle task names serving as anchors for the enrichment lookup plugin execution.
-     **/
-    private static final String COMPILE_JAVA_TASK_NAME = "compileJava";
-    private static final String PROCESS_RESOURCES_TASK_NAME = "processResources";
-    private static final String COMPILE_TEST_JAVA_TASK_NAME = "compileTestJava";
-    private static final String PROCESS_TEST_RESOURCES_TASK_NAME = "processTestResources";
 
     @Override
     public void apply(final Project project) {
         final Action<Task> findEnrichmentsAction = mainScopeActionFor(project);
-        addToProjectLifecycle(project, findEnrichmentsAction, FIND_ENRICHMENTS_TASK_NAME,
-                              COMPILE_JAVA_TASK_NAME, PROCESS_RESOURCES_TASK_NAME);
+        addToProjectLifecycle(project, findEnrichmentsAction, FIND_ENRICHMENTS.getName(),
+                              COMPILE_JAVA.getName(), PROCESS_RESOURCES.getName());
 
         final Action<Task> findTestEnrichmentsAction = testScopeActionFor(project);
-        addToProjectLifecycle(project, findTestEnrichmentsAction, FIND_TEST_ENRICHMENTS_TASK_NAME,
-                              COMPILE_TEST_JAVA_TASK_NAME, PROCESS_TEST_RESOURCES_TASK_NAME);
+        addToProjectLifecycle(project, findTestEnrichmentsAction, FIND_TEST_ENRICHMENTS.getName(),
+                              COMPILE_TEST_JAVA.getName(), PROCESS_TEST_RESOURCES.getName());
     }
 
     private static Action<Task> testScopeActionFor(final Project project) {

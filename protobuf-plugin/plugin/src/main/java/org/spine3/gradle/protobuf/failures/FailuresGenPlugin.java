@@ -31,6 +31,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spine3.gradle.GradleTasks;
 import org.spine3.gradle.protobuf.util.JavaCode;
 
 import java.io.File;
@@ -43,6 +44,9 @@ import java.util.regex.Pattern;
 
 import static com.google.common.collect.Maps.newHashMap;
 import static java.io.File.separatorChar;
+import static org.spine3.gradle.GradleTasks.GENERATE_FAILURES;
+import static org.spine3.gradle.GradleTasks.GENERATE_PROTO;
+import static org.spine3.gradle.GradleTasks.GENERATE_TEST_FAILURES;
 import static org.spine3.gradle.protobuf.Extension.getMainDescriptorSetPath;
 import static org.spine3.gradle.protobuf.Extension.getTargetGenFailuresRootDir;
 import static org.spine3.gradle.protobuf.Extension.getTestDescriptorSetPath;
@@ -80,7 +84,7 @@ public class FailuresGenPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         this.project = project;
 
-        final Task generateFailures = project.task("generateFailures")
+        final Task generateFailures = project.task(GENERATE_FAILURES.getName())
                                              .doLast(new Action<Task>() {
                                                  @Override
                                                  public void execute(Task task) {
@@ -90,12 +94,12 @@ public class FailuresGenPlugin implements Plugin<Project> {
                                                  }
                                              });
 
-        generateFailures.dependsOn("generateProto");
+        generateFailures.dependsOn(GENERATE_PROTO.getName());
         project.getTasks()
-               .getByPath("compileJava")
+               .getByPath(GradleTasks.COMPILE_JAVA.getName())
                .dependsOn(generateFailures);
 
-        final Task generateTestFailures = project.task("generateTestFailures")
+        final Task generateTestFailures = project.task(GENERATE_TEST_FAILURES.getName())
                                                  .doLast(new Action<Task>() {
                                                      @Override
                                                      public void execute(Task task) {
@@ -104,9 +108,9 @@ public class FailuresGenPlugin implements Plugin<Project> {
                                                          processDescriptors(filesWithFailures);
                                                      }
                                                  });
-        generateTestFailures.dependsOn("generateTestProto");
+        generateTestFailures.dependsOn(GradleTasks.GENERATE_TEST_PROTO.getName());
         project.getTasks()
-               .getByPath("compileTestJava")
+               .getByPath(GradleTasks.COMPILE_TEST_JAVA.getName())
                .dependsOn(generateTestFailures);
     }
 
