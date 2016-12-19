@@ -96,7 +96,7 @@ public class FailuresGenPlugin extends SpinePlugin {
         final GradleTask generateFailures = newTask(GENERATE_FAILURES,
                                                     mainScopeAction).insertAfterTask(GENERATE_PROTO)
                                                                     .insertBeforeTask(COMPILE_JAVA)
-                                                                    .applyTo(project);
+                                                                    .applyNowTo(project);
 
         final Action<Task> testScopeAction = new Action<Task>() {
             @Override
@@ -110,7 +110,7 @@ public class FailuresGenPlugin extends SpinePlugin {
         final GradleTask generateTestFailures = newTask(GENERATE_TEST_FAILURES,
                                                         testScopeAction).insertAfterTask(GENERATE_TEST_PROTO)
                                                                         .insertBeforeTask(COMPILE_TEST_JAVA)
-                                                                        .applyTo(project);
+                                                                        .applyNowTo(project);
         log().debug("Failure generation phase initialized with tasks: {}, {}", generateFailures, generateTestFailures);
     }
 

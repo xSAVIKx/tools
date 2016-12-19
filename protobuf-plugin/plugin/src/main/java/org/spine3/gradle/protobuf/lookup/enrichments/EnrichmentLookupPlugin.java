@@ -75,13 +75,13 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
         final GradleTask findEnrichments = newTask(FIND_ENRICHMENTS,
                                                    mainScopeAction).insertAfterTask(COMPILE_JAVA)
                                                                    .insertBeforeTask(PROCESS_RESOURCES)
-                                                                   .applyTo(project);
+                                                                   .applyNowTo(project);
 
         final Action<Task> testScopeAction = testScopeActionFor(project);
         final GradleTask findTestEnrichments = newTask(FIND_TEST_ENRICHMENTS,
                                                        testScopeAction).insertAfterTask(COMPILE_TEST_JAVA)
                                                                        .insertBeforeTask(PROCESS_TEST_RESOURCES)
-                                                                       .applyTo(project);
+                                                                       .applyNowTo(project);
 
         log().debug("Enrichment lookup phase initialized with tasks: {}, {}", findEnrichments, findTestEnrichments);
     }

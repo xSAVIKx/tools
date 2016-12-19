@@ -42,12 +42,12 @@ public abstract class SpinePlugin implements Plugin<Project> {
     /**
      * Create a new instance of {@link GradleTask.Builder}.
      *
-     * <p>NOTE: the Gradle build steps are NOT modified until {@link GradleTask.Builder#applyTo(Project)} is invoked.
+     * <p>NOTE: the Gradle build steps are NOT modified until {@link GradleTask.Builder#applyNowTo(Project)} is invoked.
      *
      * @param name   the name for the new task
      * @param action the action to invoke during the new task processing
      * @return the instance of {@code Builder}
-     * @see GradleTask.Builder#applyTo(Project)
+     * @see GradleTask.Builder#applyNowTo(Project)
      */
     protected GradleTask.Builder newTask(TaskName name, Action<Task> action) {
         final GradleTask.Builder result = new GradleTask.Builder(name, action);
@@ -83,8 +83,8 @@ public abstract class SpinePlugin implements Plugin<Project> {
          * A builder for {@link GradleTask}.
          *
          * <p>NOTE: unlike most classes following the {@code Builder} pattern,
-         * this one provides {@link #applyTo(Project)} method instead of {@code build(..)}. This is done to provide
-         * an additional semantic value to such an important action.
+         * this one provides {@link #applyNowTo(Project)} method instead of {@code build(..)}. This is done to add
+         * some additional semantics to such an irreversible action like this.
          */
         public static final class Builder {
             private final TaskName name;
@@ -141,7 +141,7 @@ public abstract class SpinePlugin implements Plugin<Project> {
              * @param project the target Gradle project
              * @return the newly created Gradle task
              */
-            public GradleTask applyTo(Project project) {
+            public GradleTask applyNowTo(Project project) {
                 checkNotNull(project, "Project is not specified for the new Gradle task: " + name);
 
                 if (followingTask == null && previousTask == null) {

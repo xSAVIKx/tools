@@ -61,7 +61,7 @@ public class CleaningPlugin extends SpinePlugin {
                                                         deleteDirs(getDirsToClean(project));
                                                     }
                                                 }).insertBeforeTask(CLEAN)
-                                                  .applyTo(project);
+                                                  .applyNowTo(project);
         log().debug("Pre-clean phase initialized: {}", preCleanTask);
     }
 
