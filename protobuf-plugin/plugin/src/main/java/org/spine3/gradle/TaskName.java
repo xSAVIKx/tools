@@ -30,7 +30,7 @@ import com.google.common.base.MoreObjects;
  *
  * @author Alex Tymchenko
  */
-public enum GradleTasks {
+public enum TaskName {
 
     CLEAN("clean"),
 
@@ -69,20 +69,21 @@ public enum GradleTasks {
     MAP_PROTO_TO_JAVA("mapProtoToJava"),
     MAP_TEST_PROTO_TO_JAVA("mapTestProtoToJava");
 
-    GradleTasks(String name) {
-        this.name = name;
+    TaskName(String value) {
+        this.value = value;
     }
 
-    private final String name;
+    private final String value;
 
-    public String getName() {
-        return name;
+    public String getValue() {
+        return value;
     }
 
+    @SuppressWarnings("DuplicateStringLiteralInspection")
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                          .add("name", name)
+                          .add("value", value)
                           .toString();
     }
 }

@@ -79,8 +79,8 @@ public class PropertiesWriter {
             } else {
                 final String currentValue = props.getProperty(key);
                 if (!currentValue.equals(value)) {
-                    log().warn("Entry with the key `%s` already exists. Value: `%s`." +
-                                       " New value `%s` was not set.", key, currentValue, value);
+                    log().warn("Entry with the key `{}` already exists. Value: `{}`." +
+                                       " New value `{}` was not set.", key, currentValue, value);
                 }
             }
         }

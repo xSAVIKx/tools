@@ -26,12 +26,11 @@ import com.google.protobuf.DescriptorProtos.EnumDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import groovy.lang.GString;
 import org.gradle.api.Action;
-import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spine3.gradle.GradleTasks;
+import org.spine3.gradle.SpinePlugin;
 import org.spine3.gradle.protobuf.util.JavaCode;
 
 import java.io.File;
@@ -44,9 +43,12 @@ import java.util.regex.Pattern;
 
 import static com.google.common.collect.Maps.newHashMap;
 import static java.io.File.separatorChar;
-import static org.spine3.gradle.GradleTasks.GENERATE_FAILURES;
-import static org.spine3.gradle.GradleTasks.GENERATE_PROTO;
-import static org.spine3.gradle.GradleTasks.GENERATE_TEST_FAILURES;
+import static org.spine3.gradle.TaskName.COMPILE_JAVA;
+import static org.spine3.gradle.TaskName.COMPILE_TEST_JAVA;
+import static org.spine3.gradle.TaskName.GENERATE_FAILURES;
+import static org.spine3.gradle.TaskName.GENERATE_PROTO;
+import static org.spine3.gradle.TaskName.GENERATE_TEST_FAILURES;
+import static org.spine3.gradle.TaskName.GENERATE_TEST_PROTO;
 import static org.spine3.gradle.protobuf.Extension.getMainDescriptorSetPath;
 import static org.spine3.gradle.protobuf.Extension.getTargetGenFailuresRootDir;
 import static org.spine3.gradle.protobuf.Extension.getTestDescriptorSetPath;
@@ -64,7 +66,7 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
  * @author Alexander Litus
  * @author Alex Tymchenko
  */
-public class FailuresGenPlugin implements Plugin<Project> {
+public class FailuresGenPlugin extends SpinePlugin {
 
     private static final Pattern COMPILE = Pattern.compile(".", Pattern.LITERAL);
     private Project project;
@@ -83,35 +85,33 @@ public class FailuresGenPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         this.project = project;
+        final Action<Task> mainScopeAction = new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                final GString path = getMainDescriptorSetPath(project);
+                List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
+                processDescriptors(filesWithFailures);
+            }
+        };
+        final GradleTask generateFailures = newTask(GENERATE_FAILURES,
+                                                    mainScopeAction).insertAfterTask(GENERATE_PROTO)
+                                                                    .insertBeforeTask(COMPILE_JAVA)
+                                                                    .applyTo(project);
 
-        final Task generateFailures = project.task(GENERATE_FAILURES.getName())
-                                             .doLast(new Action<Task>() {
-                                                 @Override
-                                                 public void execute(Task task) {
-                                                     final GString path = getMainDescriptorSetPath(project);
-                                                     List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
-                                                     processDescriptors(filesWithFailures);
-                                                 }
-                                             });
+        final Action<Task> testScopeAction = new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                final GString path = getTestDescriptorSetPath(project);
+                List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
+                processDescriptors(filesWithFailures);
+            }
+        };
 
-        generateFailures.dependsOn(GENERATE_PROTO.getName());
-        project.getTasks()
-               .getByPath(GradleTasks.COMPILE_JAVA.getName())
-               .dependsOn(generateFailures);
-
-        final Task generateTestFailures = project.task(GENERATE_TEST_FAILURES.getName())
-                                                 .doLast(new Action<Task>() {
-                                                     @Override
-                                                     public void execute(Task task) {
-                                                         final GString path = getTestDescriptorSetPath(project);
-                                                         List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
-                                                         processDescriptors(filesWithFailures);
-                                                     }
-                                                 });
-        generateTestFailures.dependsOn(GradleTasks.GENERATE_TEST_PROTO.getName());
-        project.getTasks()
-               .getByPath(GradleTasks.COMPILE_TEST_JAVA.getName())
-               .dependsOn(generateTestFailures);
+        final GradleTask generateTestFailures = newTask(GENERATE_TEST_FAILURES,
+                                                        testScopeAction).insertAfterTask(GENERATE_TEST_PROTO)
+                                                                        .insertBeforeTask(COMPILE_TEST_JAVA)
+                                                                        .applyTo(project);
+        log().debug("Failure generation phase initialized with tasks: {}, {}", generateFailures, generateTestFailures);
     }
 
     private List<FileDescriptorProto> getFailureProtoFileDescriptors(GString descFilePath) {
@@ -120,7 +120,7 @@ public class FailuresGenPlugin implements Plugin<Project> {
         for (FileDescriptorProto file : allDescriptors) {
             if (file.getName()
                     .endsWith("failures.proto")) {
-                log().info("Found failures file: %s", file.getName());
+                log().info("Found failures file: {}", file.getName());
                 result.add(file);
             }
             cacheTypes(file);
@@ -133,7 +133,7 @@ public class FailuresGenPlugin implements Plugin<Project> {
             if (isFileWithFailures(file)) {
                 generateFailures(file, cachedMessageTypes);
             } else {
-                log().error("Invalid failures file: %s", file.getName());
+                log().error("Invalid failures file: {}", file.getName());
             }
         }
     }
@@ -144,7 +144,8 @@ public class FailuresGenPlugin implements Plugin<Project> {
                       .getJavaMultipleFiles()) {
             return false;
         }
-        final String javaOuterClassName = "$descriptor.options.javaOuterClassname";
+        final String javaOuterClassName = descriptor.getOptions()
+                                                    .getJavaOuterClassname();
         if (javaOuterClassName.isEmpty()) {
             // There's no outer class name given in options.
             // Assuming the file name ends with `failures.proto`, it's a good failures file.

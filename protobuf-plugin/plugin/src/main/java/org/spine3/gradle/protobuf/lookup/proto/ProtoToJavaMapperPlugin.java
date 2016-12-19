@@ -24,22 +24,24 @@ package org.spine3.gradle.protobuf.lookup.proto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import groovy.lang.GString;
 import org.gradle.api.Action;
-import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.spine3.gradle.protobuf.util.DescriptorSetUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spine3.gradle.SpinePlugin;
+import org.spine3.gradle.protobuf.util.DescriptorSetUtil.IsNotGoogleProto;
 import org.spine3.gradle.protobuf.util.PropertiesWriter;
 
 import java.util.Collection;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.newHashMap;
-import static org.spine3.gradle.GradleTasks.GENERATE_PROTO;
-import static org.spine3.gradle.GradleTasks.GENERATE_TEST_PROTO;
-import static org.spine3.gradle.GradleTasks.MAP_PROTO_TO_JAVA;
-import static org.spine3.gradle.GradleTasks.MAP_TEST_PROTO_TO_JAVA;
-import static org.spine3.gradle.GradleTasks.PROCESS_RESOURCES;
-import static org.spine3.gradle.GradleTasks.PROCESS_TEST_RESOURCES;
+import static org.spine3.gradle.TaskName.GENERATE_PROTO;
+import static org.spine3.gradle.TaskName.GENERATE_TEST_PROTO;
+import static org.spine3.gradle.TaskName.MAP_PROTO_TO_JAVA;
+import static org.spine3.gradle.TaskName.MAP_TEST_PROTO_TO_JAVA;
+import static org.spine3.gradle.TaskName.PROCESS_RESOURCES;
+import static org.spine3.gradle.TaskName.PROCESS_TEST_RESOURCES;
 import static org.spine3.gradle.protobuf.Extension.getMainDescriptorSetPath;
 import static org.spine3.gradle.protobuf.Extension.getMainTargetGenResourcesDir;
 import static org.spine3.gradle.protobuf.Extension.getTestDescriptorSetPath;
@@ -58,7 +60,7 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
  * @author Alexander Litus
  * @author Alex Tymchenko
  */
-public class ProtoToJavaMapperPlugin implements Plugin<Project> {
+public class ProtoToJavaMapperPlugin extends SpinePlugin {
 
     /**
      * The name of the file to populate. NOTE: also change its name used in the `core-java` project on changing.
@@ -70,37 +72,43 @@ public class ProtoToJavaMapperPlugin implements Plugin<Project> {
      */
     @Override
     public void apply(final Project project) {
-        final Action<Task> mainSrcAction = new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                mapProtoToJavaAndWriteProps(getMainTargetGenResourcesDir(project), getMainDescriptorSetPath(project));
-            }
-        };
-        final Task mapProtoToJava = project.task(MAP_PROTO_TO_JAVA.getName())
-                                           .doLast(mainSrcAction);
-        mapProtoToJava.dependsOn(GENERATE_PROTO.getName());
-        final Task processResources = project.getTasks()
-                                             .getByPath(PROCESS_RESOURCES.getName());
-        processResources.dependsOn(mapProtoToJava);
+        final Action<Task> mainScopeAction = mainScopeActionFor(project);
+        final GradleTask mainScopeTask = newTask(MAP_PROTO_TO_JAVA, mainScopeAction).insertAfterTask(GENERATE_PROTO)
+                                                                                    .insertBeforeTask(PROCESS_RESOURCES)
+                                                                                    .applyTo(project);
 
-        final Action<Task> testSrcAction = new Action<Task>() {
+        final Action<Task> testScopeAction = testScopeActionFor(project);
+        final GradleTask testScopeTask = newTask(MAP_TEST_PROTO_TO_JAVA,
+                                                 testScopeAction).insertAfterTask(GENERATE_TEST_PROTO)
+                                                                 .insertBeforeTask(PROCESS_TEST_RESOURCES)
+                                                                 .applyTo(project);
+
+        log().debug("Proto-to-Java mapping phase initialized with tasks: {}, {}", mainScopeTask, testScopeTask);
+    }
+
+    private static Action<Task> testScopeActionFor(final Project project) {
+        return new Action<Task>() {
             @Override
             public void execute(Task task) {
                 mapProtoToJavaAndWriteProps(getTestTargetGenResourcesDir(project), getTestDescriptorSetPath(project));
             }
         };
-        final Task mapTestProtoToJava = project.task(MAP_TEST_PROTO_TO_JAVA.getName())
-                                               .doLast(testSrcAction);
-        mapTestProtoToJava.dependsOn(GENERATE_TEST_PROTO.getName());
-        final Task processTestResources = project.getTasks()
-                                                 .getByPath(PROCESS_TEST_RESOURCES.getName());
-        processTestResources.dependsOn(mapTestProtoToJava);
+    }
+
+    private static Action<Task> mainScopeActionFor(final Project project) {
+        return new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                mapProtoToJavaAndWriteProps(getMainTargetGenResourcesDir(project), getMainDescriptorSetPath(project));
+            }
+        };
     }
 
     @SuppressWarnings("MethodParameterNamingConvention")
     private static void mapProtoToJavaAndWriteProps(GString targetGeneratedResourcesDir, GString descriptorSetPath) {
         final Map<String, String> propsMap = newHashMap();
-        final Collection<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath, new DescriptorSetUtil.IsNotGoogleProto());
+        final Collection<FileDescriptorProto> files =
+                getProtoFileDescriptors(descriptorSetPath, new IsNotGoogleProto());
         for (FileDescriptorProto file : files) {
             final Map<String, String> types = new ProtoToJavaTypeMapper(file).mapTypes();
             propsMap.putAll(types);
@@ -112,4 +120,13 @@ public class ProtoToJavaMapperPlugin implements Plugin<Project> {
         writer.write(propsMap);
     }
 
+    private static Logger log() {
+        return LogSingleton.INSTANCE.value;
+    }
+
+    private enum LogSingleton {
+        INSTANCE;
+        @SuppressWarnings("NonSerializableFieldInSerializableClass")
+        private final Logger value = LoggerFactory.getLogger(ProtoToJavaMapperPlugin.class);
+    }
 }

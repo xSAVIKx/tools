@@ -23,10 +23,11 @@ package org.spine3.gradle.protobuf.cleaning;
 
 import groovy.lang.GString;
 import org.gradle.api.Action;
-import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.TaskContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spine3.gradle.SpinePlugin;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,8 +38,8 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 
-import static org.spine3.gradle.GradleTasks.CLEAN;
-import static org.spine3.gradle.GradleTasks.PRE_CLEAN;
+import static org.spine3.gradle.TaskName.CLEAN;
+import static org.spine3.gradle.TaskName.PRE_CLEAN;
 import static org.spine3.gradle.protobuf.Extension.getDirsToClean;
 
 /**
@@ -49,21 +50,19 @@ import static org.spine3.gradle.protobuf.Extension.getDirsToClean;
  * @author Mikhail Mikhaylov
  * @author Alex Tymchenko
  */
-public class CleaningPlugin implements Plugin<Project> {
+public class CleaningPlugin extends SpinePlugin {
 
     @Override
     public void apply(final Project project) {
-        final Action<Task> additionalCleaning = new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                deleteDirs(getDirsToClean(project));
-            }
-        };
-        final Task preClean = project.task(PRE_CLEAN.getName())
-                                     .doLast(additionalCleaning);
-        final TaskContainer tasks = project.getTasks();
-        tasks.getByPath(CLEAN.getName())
-             .dependsOn(preClean);
+        final GradleTask preCleanTask = newTask(PRE_CLEAN,
+                                                new Action<Task>() {
+                                                    @Override
+                                                    public void execute(Task task) {
+                                                        deleteDirs(getDirsToClean(project));
+                                                    }
+                                                }).insertBeforeTask(CLEAN)
+                                                  .applyTo(project);
+        log().debug("Pre-clean phase initialized: {}", preCleanTask);
     }
 
     private static void deleteDirs(List<GString> dirs) {
@@ -111,5 +110,15 @@ public class CleaningPlugin implements Plugin<Project> {
                 throw e;
             }
         }
+    }
+
+    private static Logger log() {
+        return LogSingleton.INSTANCE.value;
+    }
+
+    private enum LogSingleton {
+        INSTANCE;
+        @SuppressWarnings("NonSerializableFieldInSerializableClass")
+        private final Logger value = LoggerFactory.getLogger(CleaningPlugin.class);
     }
 }

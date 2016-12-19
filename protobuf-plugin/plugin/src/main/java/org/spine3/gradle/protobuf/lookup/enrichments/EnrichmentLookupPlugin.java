@@ -23,9 +23,11 @@ import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import groovy.lang.GString;
 import groovy.util.logging.Slf4j;
 import org.gradle.api.Action;
-import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spine3.gradle.SpinePlugin;
 import org.spine3.gradle.protobuf.util.DescriptorSetUtil;
 import org.spine3.gradle.protobuf.util.PropertiesWriter;
 
@@ -33,12 +35,12 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.newHashMap;
-import static org.spine3.gradle.GradleTasks.COMPILE_JAVA;
-import static org.spine3.gradle.GradleTasks.COMPILE_TEST_JAVA;
-import static org.spine3.gradle.GradleTasks.FIND_ENRICHMENTS;
-import static org.spine3.gradle.GradleTasks.FIND_TEST_ENRICHMENTS;
-import static org.spine3.gradle.GradleTasks.PROCESS_RESOURCES;
-import static org.spine3.gradle.GradleTasks.PROCESS_TEST_RESOURCES;
+import static org.spine3.gradle.TaskName.COMPILE_JAVA;
+import static org.spine3.gradle.TaskName.COMPILE_TEST_JAVA;
+import static org.spine3.gradle.TaskName.FIND_ENRICHMENTS;
+import static org.spine3.gradle.TaskName.FIND_TEST_ENRICHMENTS;
+import static org.spine3.gradle.TaskName.PROCESS_RESOURCES;
+import static org.spine3.gradle.TaskName.PROCESS_TEST_RESOURCES;
 import static org.spine3.gradle.protobuf.Extension.getMainDescriptorSetPath;
 import static org.spine3.gradle.protobuf.Extension.getMainTargetGenResourcesDir;
 import static org.spine3.gradle.protobuf.Extension.getTestDescriptorSetPath;
@@ -58,7 +60,7 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
  * @author Alex Tymchenko
  */
 @Slf4j
-public class EnrichmentLookupPlugin implements Plugin<Project> {
+public class EnrichmentLookupPlugin extends SpinePlugin {
     /**
      * The name of the file to populate.
      *
@@ -69,13 +71,19 @@ public class EnrichmentLookupPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        final Action<Task> findEnrichmentsAction = mainScopeActionFor(project);
-        addToProjectLifecycle(project, findEnrichmentsAction, FIND_ENRICHMENTS.getName(),
-                              COMPILE_JAVA.getName(), PROCESS_RESOURCES.getName());
+        final Action<Task> mainScopeAction = mainScopeActionFor(project);
+        final GradleTask findEnrichments = newTask(FIND_ENRICHMENTS,
+                                                   mainScopeAction).insertAfterTask(COMPILE_JAVA)
+                                                                   .insertBeforeTask(PROCESS_RESOURCES)
+                                                                   .applyTo(project);
 
-        final Action<Task> findTestEnrichmentsAction = testScopeActionFor(project);
-        addToProjectLifecycle(project, findTestEnrichmentsAction, FIND_TEST_ENRICHMENTS.getName(),
-                              COMPILE_TEST_JAVA.getName(), PROCESS_TEST_RESOURCES.getName());
+        final Action<Task> testScopeAction = testScopeActionFor(project);
+        final GradleTask findTestEnrichments = newTask(FIND_TEST_ENRICHMENTS,
+                                                       testScopeAction).insertAfterTask(COMPILE_TEST_JAVA)
+                                                                       .insertBeforeTask(PROCESS_TEST_RESOURCES)
+                                                                       .applyTo(project);
+
+        log().debug("Enrichment lookup phase initialized with tasks: {}, {}", findEnrichments, findTestEnrichments);
     }
 
     private static Action<Task> testScopeActionFor(final Project project) {
@@ -98,16 +106,6 @@ public class EnrichmentLookupPlugin implements Plugin<Project> {
         };
     }
 
-    private static void addToProjectLifecycle(Project project, Action<Task> taskAction,
-                                              String newTaskName, String taskBeforeNew, String taskAfterNew) {
-        final Task findEnrichmentsTask = project.task(newTaskName)
-                                                .doLast(taskAction);
-        findEnrichmentsTask.dependsOn(taskBeforeNew);
-        final Task processResources = project.getTasks()
-                                             .getByPath(taskAfterNew);
-        processResources.dependsOn(findEnrichmentsTask);
-    }
-
     private static void findEnrichmentsAndWriteProps(
             // It's important to have a self-explanatory name for this variable.
             @SuppressWarnings("MethodParameterNamingConvention") GString targetGeneratedResourcesDir,
@@ -125,5 +123,15 @@ public class EnrichmentLookupPlugin implements Plugin<Project> {
         }
         final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir, PROPS_FILE_NAME);
         writer.write(propsMap);
+    }
+
+    private static Logger log() {
+        return LogSingleton.INSTANCE.value;
+    }
+
+    private enum LogSingleton {
+        INSTANCE;
+        @SuppressWarnings("NonSerializableFieldInSerializableClass")
+        private final Logger value = LoggerFactory.getLogger(EnrichmentLookupPlugin.class);
     }
 }

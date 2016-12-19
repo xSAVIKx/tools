@@ -56,10 +56,12 @@ class Given {
         final Project project = ProjectBuilder.builder()
                 .build()
         project.task(CLEAN)
-        project.task(PROCESS_RESOURCES)
-        project.task(PROCESS_TEST_RESOURCES)
+        project.task(GENERATE_PROTO)
+        project.task(GENERATE_TEST_PROTO)
         project.task(COMPILE_JAVA)
         project.task(COMPILE_TEST_JAVA)
+        project.task(PROCESS_RESOURCES)
+        project.task(PROCESS_TEST_RESOURCES)
         return project
     }
 
