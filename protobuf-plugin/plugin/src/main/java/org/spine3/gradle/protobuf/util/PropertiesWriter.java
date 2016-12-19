@@ -20,7 +20,6 @@
 package org.spine3.gradle.protobuf.util;
 
 import com.google.common.io.Files;
-import groovy.lang.GString;
 import groovy.util.logging.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,8 +52,8 @@ public class PropertiesWriter {
      * @param rootDirPath   a path to a directory where the {@code .properties} file is (or will be) located
      * @param propsFileName a name of the {@code .properties} file to write to (can be non-existing)
      */
-    public PropertiesWriter(GString rootDirPath, String propsFileName) {
-        this.rootDirPath = rootDirPath.toString();
+    public PropertiesWriter(String rootDirPath, String propsFileName) {
+        this.rootDirPath = rootDirPath;
         this.propsFilePath = rootDirPath + File.separator + propsFileName;
     }
 

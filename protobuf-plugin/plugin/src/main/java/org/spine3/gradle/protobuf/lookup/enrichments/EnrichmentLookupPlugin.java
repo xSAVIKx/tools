@@ -20,7 +20,6 @@
 package org.spine3.gradle.protobuf.lookup.enrichments;
 
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
-import groovy.lang.GString;
 import groovy.util.logging.Slf4j;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -108,8 +107,8 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
 
     private static void findEnrichmentsAndWriteProps(
             // It's important to have a self-explanatory name for this variable.
-            @SuppressWarnings("MethodParameterNamingConvention") GString targetGeneratedResourcesDir,
-            GString descriptorSetPath) {
+            @SuppressWarnings("MethodParameterNamingConvention") String targetGeneratedResourcesDir,
+            String descriptorSetPath) {
         final Map<String, String> propsMap = newHashMap();
         final DescriptorSetUtil.IsNotGoogleProto protoFilter = new DescriptorSetUtil.IsNotGoogleProto();
         final Collection<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath,

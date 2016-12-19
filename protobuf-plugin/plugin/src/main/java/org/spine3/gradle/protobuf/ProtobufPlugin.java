@@ -34,7 +34,7 @@ import org.spine3.gradle.protobuf.lookup.proto.ProtoToJavaMapperPlugin;
  */
 public class ProtobufPlugin implements Plugin<Project> {
 
-    private static final String SPINE_PROTOBUF_EXTENSION_NAME = "spineProtobuf";
+    public static final String SPINE_PROTOBUF_EXTENSION_NAME = "spineProtobuf";
 
     @Override
     public void apply(Project project) {

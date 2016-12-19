@@ -22,7 +22,6 @@
 package org.spine3.gradle.protobuf.lookup.proto;
 
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
-import groovy.lang.GString;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -105,7 +104,7 @@ public class ProtoToJavaMapperPlugin extends SpinePlugin {
     }
 
     @SuppressWarnings("MethodParameterNamingConvention")
-    private static void mapProtoToJavaAndWriteProps(GString targetGeneratedResourcesDir, GString descriptorSetPath) {
+    private static void mapProtoToJavaAndWriteProps(String targetGeneratedResourcesDir, String descriptorSetPath) {
         final Map<String, String> propsMap = newHashMap();
         final Collection<FileDescriptorProto> files =
                 getProtoFileDescriptors(descriptorSetPath, new IsNotGoogleProto());

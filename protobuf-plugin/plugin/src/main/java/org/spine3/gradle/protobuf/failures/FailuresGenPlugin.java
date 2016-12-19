@@ -24,7 +24,6 @@ package org.spine3.gradle.protobuf.failures;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.EnumDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
-import groovy.lang.GString;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -88,7 +87,7 @@ public class FailuresGenPlugin extends SpinePlugin {
         final Action<Task> mainScopeAction = new Action<Task>() {
             @Override
             public void execute(Task task) {
-                final GString path = getMainDescriptorSetPath(project);
+                final String path = getMainDescriptorSetPath(project);
                 List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
                 processDescriptors(filesWithFailures);
             }
@@ -101,7 +100,7 @@ public class FailuresGenPlugin extends SpinePlugin {
         final Action<Task> testScopeAction = new Action<Task>() {
             @Override
             public void execute(Task task) {
-                final GString path = getTestDescriptorSetPath(project);
+                final String path = getTestDescriptorSetPath(project);
                 List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
                 processDescriptors(filesWithFailures);
             }
@@ -114,7 +113,7 @@ public class FailuresGenPlugin extends SpinePlugin {
         log().debug("Failure generation phase initialized with tasks: {}, {}", generateFailures, generateTestFailures);
     }
 
-    private List<FileDescriptorProto> getFailureProtoFileDescriptors(GString descFilePath) {
+    private List<FileDescriptorProto> getFailureProtoFileDescriptors(String descFilePath) {
         final List<FileDescriptorProto> result = new LinkedList<>();
         final Collection<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath);
         for (FileDescriptorProto file : allDescriptors) {
@@ -151,6 +150,9 @@ public class FailuresGenPlugin extends SpinePlugin {
             // Assuming the file name ends with `failures.proto`, it's a good failures file.
             return true;
         }
+
+        // it's OK, since a duplicated piece is totally unrelated and is located in the test codebase.
+        @SuppressWarnings("DuplicateStringLiteralInspection")
         final boolean result = javaOuterClassName.endsWith("Failures");
         return result;
     }
@@ -201,7 +203,7 @@ public class FailuresGenPlugin extends SpinePlugin {
     }
 
     private void generateFailures(FileDescriptorProto descriptor, Map<String, String> messageTypeMap) {
-        final GString failuresRootDir = getTargetGenFailuresRootDir(project);
+        final String failuresRootDir = getTargetGenFailuresRootDir(project);
         final String javaPackage = descriptor.getOptions()
                                              .getJavaPackage();
         final String javaOuterClassName = JavaCode.getOuterClassName(descriptor);
@@ -210,7 +212,7 @@ public class FailuresGenPlugin extends SpinePlugin {
         final List<DescriptorProto> failures = descriptor.getMessageTypeList();
         for (DescriptorProto failure : failures) {
             // The name of the generated ThrowableFailure will be the same as for the Protobuf message.
-            final String failureJavaPath = failuresRootDir.toString() + separatorChar
+            final String failureJavaPath = failuresRootDir + separatorChar
                     + packageDir + separatorChar + failure.getName() + ".java";
             final File outputFile = new File(failureJavaPath);
             final FailureWriter writer = new FailureWriter(failure, outputFile, javaPackage, javaOuterClassName, messageTypeMap);

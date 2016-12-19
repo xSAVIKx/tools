@@ -65,9 +65,9 @@ public class CleaningPlugin extends SpinePlugin {
         log().debug("Pre-clean phase initialized: {}", preCleanTask);
     }
 
-    private static void deleteDirs(List<GString> dirs) {
-        for (GString dirPath : dirs) {
-            final File file = new File(dirPath.toString());
+    private static void deleteDirs(List<String> dirs) {
+        for (String dirPath : dirs) {
+            final File file = new File(dirPath);
             if (file.exists() && file.isDirectory()) {
                 deleteRecursively(file.toPath());
             }

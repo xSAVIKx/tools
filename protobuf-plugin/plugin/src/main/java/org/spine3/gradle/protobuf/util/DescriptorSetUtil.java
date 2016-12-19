@@ -25,7 +25,6 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
-import groovy.lang.GString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +61,7 @@ public class DescriptorSetUtil {
      * @return a list of descriptors
      */
     @SuppressWarnings("MethodParameterNamingConvention")
-    public static Collection<FileDescriptorProto> getProtoFileDescriptors(GString descriptorSetFilePath) {
+    public static Collection<FileDescriptorProto> getProtoFileDescriptors(String descriptorSetFilePath) {
         return getProtoFileDescriptors(descriptorSetFilePath, Predicates.<FileDescriptorProto>alwaysTrue());
     }
 
@@ -76,17 +75,16 @@ public class DescriptorSetUtil {
      * @return a list of descriptors
      */
     @SuppressWarnings("MethodParameterNamingConvention")
-    public static Collection<FileDescriptorProto> getProtoFileDescriptors(GString descriptorSetFilePath,
+    public static Collection<FileDescriptorProto> getProtoFileDescriptors(String descriptorSetFilePath,
                                                                           Predicate<FileDescriptorProto> filter) {
-        final String filePath = descriptorSetFilePath.toString();
-        if (!new File(filePath).exists()) {
+        if (!new File(descriptorSetFilePath).exists()) {
             log().warn(MSG_ENABLE_DESCRIPTOR_SET_GENERATION);
             return emptyList();
         }
         final List<FileDescriptorProto> fileDescriptors = new LinkedList<>();
 
         try {
-            final FileInputStream fis = new FileInputStream(filePath);
+            final FileInputStream fis = new FileInputStream(descriptorSetFilePath);
             final FileDescriptorSet fileDescriptorSet = FileDescriptorSet.parseFrom(fis);
             for (FileDescriptorProto file : fileDescriptorSet.getFileList()) {
                 if (filter.apply(file)) {

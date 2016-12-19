@@ -1,4 +1,5 @@
 /*
+ *
  * Copyright 2016, TeamDev Ltd. All rights reserved.
  *
  * Redistribution and use in source and/or binary forms, with or without
@@ -16,29 +17,23 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+package org.spine3.gradle.protobuf.util;
 
-package org.spine3.gradle.protobuf
+import org.junit.Test;
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.spine3.gradle.protobuf.cleaning.CleaningPlugin
-import org.spine3.gradle.protobuf.failures.FailuresGenPlugin
-import org.spine3.gradle.protobuf.lookup.enrichments.EnrichmentLookupPlugin
-import org.spine3.gradle.protobuf.lookup.proto.ProtoToJavaMapperPlugin
+import static org.junit.Assert.assertEquals;
 
 /**
- * Root plugin, which aggregates other plugins.
+ * @author Alexander Yevsyukov
  */
-class GroovyProtobufPlugin // implements Plugin<Project>
-{
-
-//    @Override
-    void apply(Project project) {
-        project.extensions.create("spineProtobuf", Extension.class)
-        new CleaningPlugin().apply(project)
-        new ProtoToJavaMapperPlugin().apply(project)
-        new EnrichmentLookupPlugin().apply(project)
-        new FailuresGenPlugin().apply(project)
+public class JavaCodeShould {
+    @SuppressWarnings("DuplicateStringLiteralInspection")
+    @Test
+    public void calculate_outer_class_name() {
+        assertEquals("Failures", JavaCode.toCamelCase("failures"));
+        assertEquals("ManyFailures", JavaCode.toCamelCase("many_failures"));
+        assertEquals("ManyMoreFailures", JavaCode.toCamelCase("many_more_failures"));
     }
 }
