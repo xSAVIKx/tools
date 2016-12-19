@@ -32,6 +32,10 @@ import com.google.common.base.MoreObjects;
  */
 public enum TaskName {
 
+    /**
+     * Gradle-own and 3rd-party task names.
+     **********************/
+
     CLEAN("clean"),
 
     COMPILE_JAVA("compileJava"),
@@ -44,29 +48,54 @@ public enum TaskName {
     PROCESS_TEST_RESOURCES("processTestResources"),
 
     /**
-     * Spine tasks
+     * Spine custom task names.
      **********************/
 
+    /**
+     * The name of the additional cleanup task added to the Gradle lifecycle.
+     */
     PRE_CLEAN("preClean"),
 
+    /**
+     * The name of the failure generation task added to the Gradle lifecycle..
+     *
+     * <p>Relates to `main` classes and resources scope.
+     */
     GENERATE_FAILURES("generateFailures"),
+
+    /**
+     * The name of the failure generation task added to the Gradle lifecycle..
+     *
+     * <p>Relates to `test` classes and resources scope.
+     */
     GENERATE_TEST_FAILURES("generateTestFailures"),
 
     /**
-     * The name of the enrichment lookup task to be added to the Gradle lifecycle.
+     * The name of the enrichment lookup task added to the Gradle lifecycle..
      *
      * <p>Relates to `main` classes and resources scope.
      */
     FIND_ENRICHMENTS("findEnrichments"),
 
     /**
-     * The name of the enrichment lookup task to be added to the Gradle lifecycle.
+     * The name of the enrichment lookup task added to the Gradle lifecycle..
      *
      * <p>Relates to `test` classes and resources scope.
      */
     FIND_TEST_ENRICHMENTS("findTestEnrichments"),
 
+    /**
+     * The name of the {@code .proto}-to-Java mapping task added to the Gradle lifecycle..
+     *
+     * <p>Relates to `main` classes and resources scope.
+     */
     MAP_PROTO_TO_JAVA("mapProtoToJava"),
+
+    /**
+     * The name of the {@code .proto}-to-Java mapping task added to the Gradle lifecycle..
+     *
+     * <p>Relates to `test` classes and resources scope.
+     */
     MAP_TEST_PROTO_TO_JAVA("mapTestProtoToJava");
 
     TaskName(String value) {
