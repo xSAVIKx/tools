@@ -35,7 +35,7 @@ import static com.google.common.collect.Lists.newLinkedList;
 import static org.spine3.gradle.protobuf.util.UnknownOptions.getUnknownOptionValue;
 
 /**
- * Maps Protobuf message types from a file to the corresponding Java classes.
+ * Maps Protobuf message types from a {@code .proto} file to the corresponding Java classes.
  *
  * @author Alexander Litus
  * @author Alex Tymchenko
