@@ -20,7 +20,6 @@
 package org.spine3.gradle.protobuf.util;
 
 import com.google.common.io.Files;
-import groovy.util.logging.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +39,6 @@ import java.util.TreeSet;
  *
  * @author Alexander Litus, Alex Tymchenko
  */
-@Slf4j
 public class PropertiesWriter {
 
     private final String propsFilePath;

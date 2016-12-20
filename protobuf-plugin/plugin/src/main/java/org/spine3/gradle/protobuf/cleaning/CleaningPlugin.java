@@ -19,7 +19,6 @@
  */
 package org.spine3.gradle.protobuf.cleaning;
 
-import groovy.lang.GString;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;

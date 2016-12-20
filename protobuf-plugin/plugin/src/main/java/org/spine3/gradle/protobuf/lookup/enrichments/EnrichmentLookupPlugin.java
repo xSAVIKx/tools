@@ -20,7 +20,6 @@
 package org.spine3.gradle.protobuf.lookup.enrichments;
 
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
-import groovy.util.logging.Slf4j;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -58,7 +57,6 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
  * @author Alexander Litus
  * @author Alex Tymchenko
  */
-@Slf4j
 public class EnrichmentLookupPlugin extends SpinePlugin {
     /**
      * The name of the file to populate.
