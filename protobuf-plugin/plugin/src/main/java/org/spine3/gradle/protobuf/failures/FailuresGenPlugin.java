@@ -22,7 +22,6 @@
 package org.spine3.gradle.protobuf.failures;
 
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
-import com.google.protobuf.DescriptorProtos.EnumDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -40,7 +39,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.collect.Maps.newHashMap;
 import static java.io.File.separatorChar;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
 import static org.spine3.gradle.TaskName.COMPILE_TEST_JAVA;
@@ -71,7 +69,7 @@ public class FailuresGenPlugin extends SpinePlugin {
     private Project project;
 
     /** A map from Protobuf type name to Java class FQN. */
-    private final Map<String, String> cachedMessageTypes = newHashMap();
+    private final MessageTypeCache messageTypeCache = new MessageTypeCache();
 
     /**
      * Applies the plug-in to a project.
@@ -122,7 +120,7 @@ public class FailuresGenPlugin extends SpinePlugin {
                 log().info("Found failures file: {}", file.getName());
                 result.add(file);
             }
-            cacheTypes(file);
+            messageTypeCache.cacheTypes(file);
         }
         return result;
     }
@@ -130,7 +128,7 @@ public class FailuresGenPlugin extends SpinePlugin {
     private void processDescriptors(List<FileDescriptorProto> descriptors) {
         for (FileDescriptorProto file : descriptors) {
             if (isFileWithFailures(file)) {
-                generateFailures(file, cachedMessageTypes);
+                generateFailures(file, messageTypeCache.getCachedTypes());
             } else {
                 log().error("Invalid failures file: {}", file.getName());
             }
@@ -157,50 +155,7 @@ public class FailuresGenPlugin extends SpinePlugin {
         return result;
     }
 
-    //TODO:2016-10-07:alexander.yevsyukov: Move type loading routines into a separate class.
-    private void cacheTypes(FileDescriptorProto fileDescriptor) {
-        final String protoPackage = !fileDescriptor.getPackage()
-                                                   .isEmpty() ? (fileDescriptor.getPackage() + '.') : "";
-        String javaPackage = !fileDescriptor.getOptions()
-                                            .getJavaPackage()
-                                            .isEmpty() ? fileDescriptor.getOptions()
-                                                                       .getJavaPackage() + '.' : "";
-        if (!fileDescriptor.getOptions()
-                           .getJavaMultipleFiles()) {
-            final String singleFileSuffix = JavaCode.getOuterClassName(fileDescriptor);
-            javaPackage = javaPackage + singleFileSuffix + '.';
-        }
 
-        for (DescriptorProto msg : fileDescriptor.getMessageTypeList()) {
-            cacheMessageType(msg, protoPackage, javaPackage);
-        }
-
-        for (EnumDescriptorProto enumType : fileDescriptor.getEnumTypeList()) {
-            cacheEnumType(enumType, protoPackage, javaPackage);
-        }
-    }
-
-    private void cacheEnumType(EnumDescriptorProto descriptor, String protoPrefix, String javaPrefix) {
-        final String key = protoPrefix + descriptor.getName();
-        final String value = javaPrefix + descriptor.getName();
-        cachedMessageTypes.put(key, value);
-    }
-
-    private void cacheMessageType(DescriptorProto msg, String protoPrefix, String javaPrefix) {
-        final String key = protoPrefix + msg.getName();
-        final String value = javaPrefix + msg.getName();
-        cachedMessageTypes.put(key, value);
-        if (msg.getNestedTypeCount() > 0 || msg.getEnumTypeCount() > 0) {
-            final String nestedProtoPrefix = protoPrefix + msg.getName() + '.';
-            final String nestedJavaPrefix = javaPrefix + msg.getName() + '.';
-            for (DescriptorProto nestedMsg : msg.getNestedTypeList()) {
-                cacheMessageType(nestedMsg, nestedProtoPrefix, nestedJavaPrefix);
-            }
-            for (EnumDescriptorProto enumType : msg.getEnumTypeList()) {
-                cacheEnumType(enumType, nestedProtoPrefix, nestedJavaPrefix);
-            }
-        }
-    }
 
     private void generateFailures(FileDescriptorProto descriptor, Map<String, String> messageTypeMap) {
         final String failuresRootDir = getTargetGenFailuresRootDir(project);
