@@ -114,11 +114,10 @@ public enum TaskName {
         return value;
     }
 
-    @SuppressWarnings("DuplicateStringLiteralInspection")
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                          .add("value", value)
+                          .add("val", value)
                           .toString();
     }
 }
