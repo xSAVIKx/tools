@@ -25,7 +25,7 @@ ext {
     publishPlugin = "$rootDir/scripts/publish.gradle"
 
     credentialsPropertyFile = 'credentials.properties'
-    projectsToPublish = ['protobuf-plugin', 'reflections-plugin']
+    projectsToPublish = ['common', 'protobuf-plugin', 'reflections-plugin']
 }
 
 subprojects {
