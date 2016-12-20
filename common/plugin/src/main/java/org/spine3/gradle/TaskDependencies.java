@@ -35,10 +35,16 @@ public class TaskDependencies {
     private TaskDependencies() {
     }
 
+    /**
+     * Checks whether a given Gradle task depends on another Gradle task.
+     */
     public static boolean dependsOn(Task task, Task ontoTask) {
         return dependsOn(task, ontoTask.getName());
     }
 
+    /**
+     * Checks whether a given Gradle task depends on another Gradle task with the specified name.
+     */
     public static boolean dependsOn(Task task, TaskName ontoTaskWithName) {
         final String taskName = ontoTaskWithName.getValue();
         return dependsOn(task, taskName);
