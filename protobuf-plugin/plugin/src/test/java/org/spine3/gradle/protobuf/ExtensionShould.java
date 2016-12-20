@@ -38,6 +38,7 @@ import static org.spine3.gradle.protobuf.ProtobufPlugin.SPINE_PROTOBUF_EXTENSION
  * @author Alex Tymchenko
  */
 public class ExtensionShould {
+
     private Project project;
 
     @Before
