@@ -99,7 +99,7 @@ public class FailureWriter {
     /**
      * Initiates writing.
      */
-    void write() {
+    /* package */ void write() {
         try {
             Files.createParentDirs(outputFile);
             Files.touch(outputFile);
