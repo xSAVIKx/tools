@@ -18,8 +18,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * Common utilities for Spine Gradle plugins.
+ * Plugins and utilities for Protobuf-to-Java type mapping.
  *
  * @author Alex Tymchenko
+ *
  */
-package org.spine3.gradle.protobuf.util;
+package org.spine3.gradle.protobuf.lookup.proto;

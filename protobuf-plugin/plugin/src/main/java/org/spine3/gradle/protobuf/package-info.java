@@ -18,8 +18,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * Common utilities for Spine Gradle plugins.
+ * Spine Gradle plugins for code generation and build-time Protobuf model validation.
  *
  * @author Alex Tymchenko
  */
-package org.spine3.gradle.protobuf.util;
+package org.spine3.gradle.protobuf;

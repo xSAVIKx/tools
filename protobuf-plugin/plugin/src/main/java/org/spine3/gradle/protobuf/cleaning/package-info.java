@@ -18,8 +18,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * Common utilities for Spine Gradle plugins.
+ * Plugins and utilities providing an additional cleanup required for Spine code generation routines.
  *
  * @author Alex Tymchenko
  */
-package org.spine3.gradle.protobuf.util;
+package org.spine3.gradle.protobuf.cleaning;
