@@ -26,10 +26,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.spine3.gradle.TaskName;
 
-import java.util.Set;
-
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.spine3.gradle.TaskDependencies.dependsOn;
 import static org.spine3.gradle.TaskName.CLEAN;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
 import static org.spine3.gradle.TaskName.COMPILE_TEST_JAVA;
@@ -52,12 +51,11 @@ import static org.spine3.gradle.protobuf.Given.newProject;
  */
 public class ProtobufPluginShould {
 
-    private Project project;
     private TaskContainer tasks;
 
     @Before
     public void setUp() {
-        project = newProject();
+        final Project project = newProject();
         project.getPluginManager()
                .apply(SPINE_PROTOBUF_PLUGIN_ID);
         tasks = project.getTasks();
@@ -129,33 +127,4 @@ public class ProtobufPluginShould {
         return tasks.getByName(taskName.getValue());
     }
 
-    private static boolean dependsOn(Task task, Task ontoTask) {
-        return dependsOn(task, ontoTask.getName());
-    }
-
-    private static boolean dependsOn(Task task, TaskName ontoTaskWithName) {
-        final String taskName = ontoTaskWithName.getValue();
-        return dependsOn(task, taskName);
-    }
-
-    /**
-     * As long as we are dealing with Gradle Groovy-based API, we have to use `instanceof` to analyze `Object[]`
-     * values returned.
-     **/
-    @SuppressWarnings("ChainOfInstanceofChecks")
-    private static boolean dependsOn(Task task, String ontoTaskWithName) {
-        final Set<Object> dependsOn = task.getDependsOn();
-
-        boolean contains = false;
-        for (Object anObject : dependsOn) {
-            if (anObject instanceof String) {
-                contains = contains || ontoTaskWithName.equals(anObject);
-            }
-            if (anObject instanceof Task) {
-                final Task objectAsTask = (Task) anObject;
-                contains = contains || ontoTaskWithName.equals(objectAsTask.getName());
-            }
-        }
-        return contains;
-    }
 }
