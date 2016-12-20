@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2016, TeamDev Ltd. All rights reserved.
  *
  * Redistribution and use in source and/or binary forms, with or without
@@ -17,7 +16,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 package org.spine3.gradle.protobuf;
 
@@ -31,8 +29,12 @@ import static java.util.Collections.singletonList;
 import static org.spine3.gradle.protobuf.ProtobufPlugin.SPINE_PROTOBUF_EXTENSION_NAME;
 
 /**
+ *
+ * A configuration for the {@link ProtobufPlugin}.
+ *
  * @author Alex Tymchenko
  */
+@SuppressWarnings("PublicField")    // as this is a Gradle extension.
 public class Extension {
 
     /**

@@ -59,6 +59,9 @@ public class UnknownOptions {
     private static final Pattern PATTERN_NEW_LINE = Pattern.compile("\n");
     private static final String QUOTE = "\"";
 
+    private UnknownOptions() {
+    }
+
     /** Returns a map from "unknown" Protobuf option field numbers to option values. */
     public static Map<Long, String> getUnknownOptions(DescriptorProtos.FileDescriptorProto file) {
         final String optionsStr = file.getOptions()
