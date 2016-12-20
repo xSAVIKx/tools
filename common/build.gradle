@@ -3,8 +3,6 @@ dependencies {
     compile localGroovy()
 
     compile group: 'com.google.guava', name: 'guava', version: guavaVersion
-
-    compile project(path: ":common")
 }
 
 // This fixes the conflict of dependencies on `groovy-all`.

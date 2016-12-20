@@ -1,5 +1,4 @@
 /*
- *
  * Copyright 2016, TeamDev Ltd. All rights reserved.
  *
  * Redistribution and use in source and/or binary forms, with or without
@@ -17,7 +16,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 package org.spine3.gradle;
 
@@ -38,8 +36,11 @@ public enum TaskName {
 
     CLEAN("clean"),
 
+    BUILD("build"),
+
     COMPILE_JAVA("compileJava"),
     COMPILE_TEST_JAVA("compileTestJava"),
+    CLASSES("classes"),
 
     GENERATE_PROTO("generateProto"),
     GENERATE_TEST_PROTO("generateTestProto"),
@@ -96,7 +97,12 @@ public enum TaskName {
      *
      * <p>Relates to `test` classes and resources scope.
      */
-    MAP_TEST_PROTO_TO_JAVA("mapTestProtoToJava");
+    MAP_TEST_PROTO_TO_JAVA("mapTestProtoToJava"),
+
+    /**
+     * The name of the class path scan task added to the Gradle lifecycle..
+     */
+    SCAN_CLASS_PATH("scanClassPath");
 
     TaskName(String value) {
         this.value = value;
