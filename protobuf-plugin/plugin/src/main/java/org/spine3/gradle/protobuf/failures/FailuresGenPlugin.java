@@ -88,10 +88,10 @@ public class FailuresGenPlugin extends SpinePlugin {
                 processDescriptors(filesWithFailures);
             }
         };
-        final GradleTask generateFailures = newTask(GENERATE_FAILURES,
-                                                    mainScopeAction).insertAfterTask(GENERATE_PROTO)
-                                                                    .insertBeforeTask(COMPILE_JAVA)
-                                                                    .applyNowTo(project);
+
+        final GradleTask generateFailures = newTask(GENERATE_FAILURES, mainScopeAction).insertAfterTask(GENERATE_PROTO)
+                                                                                       .insertBeforeTask(COMPILE_JAVA)
+                                                                                       .applyNowTo(project);
 
         final Action<Task> testScopeAction = new Action<Task>() {
             @Override
@@ -152,8 +152,6 @@ public class FailuresGenPlugin extends SpinePlugin {
         final boolean result = javaOuterClassName.endsWith("Failures");
         return result;
     }
-
-
 
     private void generateFailures(FileDescriptorProto descriptor, Map<String, String> messageTypeMap) {
         final String failuresRootDir = getTargetGenFailuresRootDir(project);

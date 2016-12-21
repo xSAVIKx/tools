@@ -51,14 +51,14 @@ public class CleaningPlugin extends SpinePlugin {
 
     @Override
     public void apply(final Project project) {
-        final GradleTask preCleanTask = newTask(PRE_CLEAN,
-                                                new Action<Task>() {
-                                                    @Override
-                                                    public void execute(Task task) {
-                                                        deleteDirs(getDirsToClean(project));
-                                                    }
-                                                }).insertBeforeTask(CLEAN)
-                                                  .applyNowTo(project);
+        final Action<Task> preCleanAction = new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                deleteDirs(getDirsToClean(project));
+            }
+        };
+        final GradleTask preCleanTask = newTask(PRE_CLEAN, preCleanAction).insertBeforeTask(CLEAN)
+                                                                          .applyNowTo(project);
         log().debug("Pre-clean phase initialized: {}", preCleanTask);
     }
 
