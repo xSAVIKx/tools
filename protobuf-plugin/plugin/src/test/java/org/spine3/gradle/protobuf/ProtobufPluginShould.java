@@ -126,5 +126,4 @@ public class ProtobufPluginShould {
     private Task task(TaskName taskName) {
         return tasks.getByName(taskName.getValue());
     }
-
 }
