@@ -113,13 +113,19 @@ public class ProtoToJavaTypeMapper {
         final List<FieldDescriptorProto> fields = message.getFieldList();
         final boolean endWithEntry = message.getName()
                                             .endsWith("Entry");
-        final boolean hasTwoFieldsKeyAndValue = (fields.size() == 2) &&
-                ("key".equals(fields.get(0)
-                                    .getName())) &&
-                ("value".equals(fields.get(1)
-                                      .getName()));
+        final boolean hasTwoFieldsKeyAndValue = (fields.size() == 2) && firstIsKey(fields) && secondIsValue(fields);
         final boolean result = endWithEntry && hasTwoFieldsKeyAndValue && !parentMsgNames.isEmpty();
         return result;
+    }
+
+    private static boolean secondIsValue(List<FieldDescriptorProto> fields) {
+        return "value".equals(fields.get(1)
+                                    .getName());
+    }
+
+    private static boolean firstIsKey(List<FieldDescriptorProto> fields) {
+        return "key".equals(fields.get(0)
+                                  .getName());
     }
 
     /**
