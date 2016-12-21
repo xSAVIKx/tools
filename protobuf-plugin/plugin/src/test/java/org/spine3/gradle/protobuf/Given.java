@@ -60,7 +60,7 @@ public class Given {
         return project;
     }
 
-    static String newUuid() {
+    /* package */ static String newUuid() {
         final String result = UUID.randomUUID()
                                   .toString();
         return result;
