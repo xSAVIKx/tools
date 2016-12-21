@@ -20,7 +20,9 @@
 package org.spine3.gradle.protobuf.util;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.protobuf.DescriptorProtos;
+import com.google.protobuf.DescriptorProtos.DescriptorProto;
+import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
+import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -61,7 +63,7 @@ public class UnknownOptions {
     }
 
     /** Returns a map from "unknown" Protobuf option field numbers to option values. */
-    public static Map<Long, String> getUnknownOptions(DescriptorProtos.FileDescriptorProto file) {
+    public static Map<Long, String> getUnknownOptions(FileDescriptorProto file) {
         final String optionsStr = file.getOptions()
                                       .getUnknownFields()
                                       .toString()
@@ -73,14 +75,14 @@ public class UnknownOptions {
     /**
      * Returns a string value of "unknown" Protobuf option or {@code null} if no option with such field number found.
      */
-    public static String getUnknownOptionValue(DescriptorProtos.FileDescriptorProto file, Long optionFieldNumber) {
+    public static String getUnknownOptionValue(FileDescriptorProto file, Long optionFieldNumber) {
         final Map<Long, String> options = getUnknownOptions(file);
         final String result = options.get(optionFieldNumber);
         return result;
     }
 
     /** Returns a map from "unknown" Protobuf option field numbers to option values. */
-    public static Map<Long, String> getUnknownOptions(DescriptorProtos.DescriptorProto message) {
+    public static Map<Long, String> getUnknownOptions(DescriptorProto message) {
         final String optionsStr = message.getOptions()
                                          .getUnknownFields()
                                          .toString()
@@ -92,14 +94,14 @@ public class UnknownOptions {
     /**
      * Returns a string value of "unknown" Protobuf option or {@code null} if no option with such field number found.
      */
-    public static String getUnknownOptionValue(DescriptorProtos.DescriptorProto msg, Long optionFieldNumber) {
+    public static String getUnknownOptionValue(DescriptorProto msg, Long optionFieldNumber) {
         final Map<Long, String> options = getUnknownOptions(msg);
         final String result = options.get(optionFieldNumber);
         return result;
     }
 
     /** Returns a map from "unknown" Protobuf option field numbers to option values. */
-    public static Map<Long, String> getUnknownOptions(DescriptorProtos.FieldDescriptorProto field) {
+    public static Map<Long, String> getUnknownOptions(FieldDescriptorProto field) {
         final String optionsStr = field.getOptions()
                                        .getUnknownFields()
                                        .toString()
@@ -109,7 +111,7 @@ public class UnknownOptions {
     }
 
     /** Returns {@code true} if the field is marked with an option which has the given field number in its definition. */
-    public static boolean hasUnknownOption(DescriptorProtos.FieldDescriptorProto field, Long optionFieldNumber) {
+    public static boolean hasUnknownOption(FieldDescriptorProto field, Long optionFieldNumber) {
         final String optionsStr = field.getOptions()
                                        .getUnknownFields()
                                        .toString()
@@ -121,7 +123,7 @@ public class UnknownOptions {
     /**
      * Returns a string value of "unknown" Protobuf option or {@code null} if no option with such field number found.
      */
-    public static String getUnknownOptionValue(DescriptorProtos.FieldDescriptorProto field, Long optionFieldNumber) {
+    public static String getUnknownOptionValue(FieldDescriptorProto field, Long optionFieldNumber) {
         final Map<Long, String> options = getUnknownOptions(field);
         final String result = options.get(optionFieldNumber);
         return result;

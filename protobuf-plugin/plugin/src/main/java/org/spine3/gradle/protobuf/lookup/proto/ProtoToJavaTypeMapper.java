@@ -21,10 +21,11 @@ package org.spine3.gradle.protobuf.lookup.proto;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
+import com.google.protobuf.DescriptorProtos.EnumDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
+import com.google.protobuf.DescriptorProtos.FileOptions;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -144,16 +145,16 @@ public class ProtoToJavaTypeMapper {
         if (!messagesNested.isEmpty()) {
             putMessageEntries(messagesNested, builder, parentMsgNamesCopy);
         }
-        final List<DescriptorProtos.EnumDescriptorProto> enumsNested = msg.getEnumTypeList();
+        final List<EnumDescriptorProto> enumsNested = msg.getEnumTypeList();
         if (!enumsNested.isEmpty()) {
             putEnumEntries(enumsNested, builder, parentMsgNamesCopy);
         }
     }
 
-    private void putEnumEntries(Iterable<DescriptorProtos.EnumDescriptorProto> enums,
+    private void putEnumEntries(Iterable<EnumDescriptorProto> enums,
                                 ImmutableMap.Builder<String, String> builder,
                                 Collection<String> parentMsgNames) {
-        for (DescriptorProtos.EnumDescriptorProto msg : enums) {
+        for (EnumDescriptorProto msg : enums) {
             putEntry(msg.getName(), builder, parentMsgNames);
         }
     }
@@ -206,7 +207,7 @@ public class ProtoToJavaTypeMapper {
 
     private static String getCommonOuterJavaClassPrefix(FileDescriptorProto file) {
         String commonOuterClass = "";
-        final DescriptorProtos.FileOptions options = file.getOptions();
+        final FileOptions options = file.getOptions();
         if (!options.getJavaMultipleFiles()) {
             final String javaOuterClassname = options.getJavaOuterClassname();
             commonOuterClass = javaOuterClassname.isEmpty()

@@ -20,7 +20,7 @@
 package org.spine3.gradle.protobuf.util;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.DescriptorProtos;
+import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 
 /**
  * Utilities for working with Protobuf when generating Java code.
@@ -43,7 +43,7 @@ public class JavaCode {
      * @param descriptor a descriptor for file for which outer class name will be generated
      * @return non-qualified outer class name
      */
-    public static String getOuterClassName(DescriptorProtos.FileDescriptorProto descriptor) {
+    public static String getOuterClassName(FileDescriptorProto descriptor) {
         String outerClassNameFromOptions = descriptor.getOptions()
                                                      .getJavaOuterClassname();
         if (!outerClassNameFromOptions.isEmpty()) {
