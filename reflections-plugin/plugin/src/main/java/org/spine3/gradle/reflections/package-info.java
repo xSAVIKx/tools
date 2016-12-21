@@ -19,8 +19,8 @@
  */
 
 /**
- * Plugins and utilities for enrichment processing.
+ * A Gradle plugin and related utilities for the Maven Reflections plugin port.
  *
  * @author Alex Tymchenko
  */
-package org.spine3.gradle.protobuf.lookup.enrichments;
+package org.spine3.gradle.reflections;

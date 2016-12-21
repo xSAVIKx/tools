@@ -25,12 +25,11 @@ ext {
     publishPlugin = "$rootDir/scripts/publish.gradle"
 
     credentialsPropertyFile = 'credentials.properties'
-    projectsToPublish = ['protobuf-plugin', 'reflections-plugin']
+    projectsToPublish = ['common', 'protobuf-plugin', 'reflections-plugin']
 }
 
 subprojects {
     apply plugin: 'maven'
-    apply plugin: 'groovy'
     apply plugin: 'java'
     apply plugin: 'idea'
     apply plugin: 'maven-publish'
@@ -65,19 +64,11 @@ subprojects {
 
     sourceSets {
         main {
-            // As per http://stackoverflow.com/questions/22369033/how-to-use-gradle-java-and-groovy-together
-            // java.srcDirs += "$SRC_DIR/main/java"
-            java.srcDirs = []
-            groovy.srcDirs += "$SRC_DIR/main/groovy"
-            groovy.srcDirs += "$SRC_DIR/main/java"
+            java.srcDirs "$SRC_DIR/main/java"
             resources.srcDirs += "$SRC_DIR/main/resources"
         }
         test {
-            // As per http://stackoverflow.com/questions/22369033/how-to-use-gradle-java-and-groovy-together
-            // java.srcDirs += "$SRC_DIR/main/java"
-            java.srcDirs = []
-            groovy.srcDirs += "$SRC_DIR/test/groovy"
-            groovy.srcDirs += "$SRC_DIR/test/java"
+            java.srcDirs += "$SRC_DIR/test/java"
             resources.srcDirs += "$SRC_DIR/test/resources"
         }
     }

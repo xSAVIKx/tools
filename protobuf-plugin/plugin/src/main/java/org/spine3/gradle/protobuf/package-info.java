@@ -19,8 +19,8 @@
  */
 
 /**
- * Plugins and utilities for enrichment processing.
+ * Spine Gradle plugins for code generation and build-time Protobuf model validation.
  *
  * @author Alex Tymchenko
  */
-package org.spine3.gradle.protobuf.lookup.enrichments;
+package org.spine3.gradle.protobuf;

@@ -17,10 +17,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.spine3.gradle.protobuf.util;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- * Plugins and utilities for enrichment processing.
- *
- * @author Alex Tymchenko
+ * @author Alexander Yevsyukov
  */
-package org.spine3.gradle.protobuf.lookup.enrichments;
+public class JavaCodeShould {
+    @SuppressWarnings("DuplicateStringLiteralInspection")
+    @Test
+    public void calculate_outer_class_name() {
+        assertEquals("Failures", JavaCode.toCamelCase("failures"));
+        assertEquals("ManyFailures", JavaCode.toCamelCase("many_failures"));
+        assertEquals("ManyMoreFailures", JavaCode.toCamelCase("many_more_failures"));
+    }
+}

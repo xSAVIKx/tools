@@ -17,10 +17,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.spine3.gradle.reflections;
+
+import org.gradle.api.Project;
+import org.gradle.testfixtures.ProjectBuilder;
+
+import static org.spine3.gradle.TaskName.BUILD;
+import static org.spine3.gradle.TaskName.CLASSES;
 
 /**
- * Plugins and utilities for enrichment processing.
- *
  * @author Alex Tymchenko
  */
-package org.spine3.gradle.protobuf.lookup.enrichments;
+public class Given {
+
+    /* package */ static final String REFLECTIONS_PLUGIN_ID = "reflections-plugin";
+
+    private Given() {
+    }
+
+    /** Creates a project with all required tasks. */
+    public static Project newProject() {
+        final Project project = ProjectBuilder.builder()
+                                              .build();
+        project.task(CLASSES.getValue());
+        project.task(BUILD.getValue());
+        return project;
+    }
+}

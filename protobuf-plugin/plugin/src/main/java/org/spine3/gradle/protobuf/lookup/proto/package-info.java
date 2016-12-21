@@ -19,8 +19,8 @@
  */
 
 /**
- * Plugins and utilities for enrichment processing.
+ * Plugins and utilities for Protobuf-to-Java type mapping.
  *
  * @author Alex Tymchenko
  */
-package org.spine3.gradle.protobuf.lookup.enrichments;
+package org.spine3.gradle.protobuf.lookup.proto;

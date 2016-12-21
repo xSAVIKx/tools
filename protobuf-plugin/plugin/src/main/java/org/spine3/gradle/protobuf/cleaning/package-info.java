@@ -19,8 +19,8 @@
  */
 
 /**
- * Plugins and utilities for enrichment processing.
+ * Plugins and utilities providing an additional cleanup required for Spine code generation routines.
  *
  * @author Alex Tymchenko
  */
-package org.spine3.gradle.protobuf.lookup.enrichments;
+package org.spine3.gradle.protobuf.cleaning;

@@ -20,8 +20,6 @@
 package org.spine3.gradle.protobuf.util;
 
 import com.google.common.io.Files;
-import groovy.lang.GString;
-import groovy.util.logging.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +39,6 @@ import java.util.TreeSet;
  *
  * @author Alexander Litus, Alex Tymchenko
  */
-@Slf4j
 public class PropertiesWriter {
 
     private final String propsFilePath;
@@ -53,8 +50,8 @@ public class PropertiesWriter {
      * @param rootDirPath   a path to a directory where the {@code .properties} file is (or will be) located
      * @param propsFileName a name of the {@code .properties} file to write to (can be non-existing)
      */
-    public PropertiesWriter(GString rootDirPath, String propsFileName) {
-        this.rootDirPath = rootDirPath.toString();
+    public PropertiesWriter(String rootDirPath, String propsFileName) {
+        this.rootDirPath = rootDirPath;
         this.propsFilePath = rootDirPath + File.separator + propsFileName;
     }
 
@@ -79,8 +76,8 @@ public class PropertiesWriter {
             } else {
                 final String currentValue = props.getProperty(key);
                 if (!currentValue.equals(value)) {
-                    log().warn("Entry with the key `%s` already exists. Value: `%s`." +
-                                       " New value `%s` was not set.", key, currentValue, value);
+                    log().warn("Entry with the key `{}` already exists. Value: `{}`." +
+                                       " New value `{}` was not set.", key, currentValue, value);
                 }
             }
         }

@@ -24,9 +24,9 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
-import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
+import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 
 import java.util.AbstractMap;
 import java.util.Collection;
@@ -75,7 +75,7 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
     private static final Pattern PATTERN_SPACE = Pattern.compile(" ");
     private static final Pattern PATTERN_TARGET_NAME_SEPARATOR = Pattern.compile(TARGET_NAME_SEPARATOR);
 
-    private final DescriptorProtos.FileDescriptorProto file;
+    private final FileDescriptorProto file;
     private final String packagePrefix;
 
     /**
@@ -83,7 +83,7 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
      *
      * @param file a file to search enrichments in
      */
-    /* package */ EnrichmentsFinder(DescriptorProtos.FileDescriptorProto file) {
+    /* package */ EnrichmentsFinder(FileDescriptorProto file) {
         this.file = file;
         this.packagePrefix = file.getPackage() + PROTO_TYPE_SEPARATOR;
     }

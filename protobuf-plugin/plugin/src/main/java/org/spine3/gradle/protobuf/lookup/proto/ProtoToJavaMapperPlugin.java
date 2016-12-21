@@ -17,7 +17,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.gradle.protobuf.lookup.enrichments;
+package org.spine3.gradle.protobuf.lookup.proto;
 
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import org.gradle.api.Action;
@@ -26,17 +26,17 @@ import org.gradle.api.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.gradle.SpinePlugin;
-import org.spine3.gradle.protobuf.util.DescriptorSetUtil;
+import org.spine3.gradle.protobuf.util.DescriptorSetUtil.IsNotGoogleProto;
 import org.spine3.gradle.protobuf.util.PropertiesWriter;
 
 import java.util.Collection;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.newHashMap;
-import static org.spine3.gradle.TaskName.COMPILE_JAVA;
-import static org.spine3.gradle.TaskName.COMPILE_TEST_JAVA;
-import static org.spine3.gradle.TaskName.FIND_ENRICHMENTS;
-import static org.spine3.gradle.TaskName.FIND_TEST_ENRICHMENTS;
+import static org.spine3.gradle.TaskName.GENERATE_PROTO;
+import static org.spine3.gradle.TaskName.GENERATE_TEST_PROTO;
+import static org.spine3.gradle.TaskName.MAP_PROTO_TO_JAVA;
+import static org.spine3.gradle.TaskName.MAP_TEST_PROTO_TO_JAVA;
 import static org.spine3.gradle.TaskName.PROCESS_RESOURCES;
 import static org.spine3.gradle.TaskName.PROCESS_TEST_RESOURCES;
 import static org.spine3.gradle.protobuf.Extension.getMainDescriptorSetPath;
@@ -46,49 +46,48 @@ import static org.spine3.gradle.protobuf.Extension.getTestTargetGenResourcesDir;
 import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors;
 
 /**
- * Finds event enrichment Protobuf definitions and creates a {@code .properties} file, which contains entries like:
+ * Plugin which maps all Protobuf types to the corresponding Java classes.
  *
- * <p>{@code ENRICHMENT_TYPE_NAME=EVENT_TO_ENRICH_TYPE_NAME}
+ * <p>Generates a {@code .properties} file, which contains entries like:
  *
- * <p>There can be several event types:
+ * <p>{@code PROTO_TYPE_URL=JAVA_FULL_CLASS_NAME}
  *
- * <p>{@code ENRICHMENT_TYPE_NAME=FIRST_EVENT_TYPE_NAME,SECOND_EVENT_TYPE_NAME}
- *
+ * @author Mikhail Mikhaylov
+ * @author Alexander Yevsyukov
  * @author Alexander Litus
  * @author Alex Tymchenko
  */
-public class EnrichmentLookupPlugin extends SpinePlugin {
-    /**
-     * The name of the file to populate.
-     *
-     * <p>NOTE: the filename is referenced by `core-java` as well,
-     * make sure to update `core-java` project upon changing this value.
-     */
-    private static final String PROPS_FILE_NAME = "enrichments.properties";
+public class ProtoToJavaMapperPlugin extends SpinePlugin {
 
+    /**
+     * The name of the file to populate. NOTE: also change its name used in the `core-java` project on changing.
+     */
+    private static final String PROPERTIES_FILE_NAME = "known_types.properties";
+
+    /**
+     * Adds tasks to map Protobuf types to Java classes in the project.
+     */
     @Override
     public void apply(final Project project) {
         final Action<Task> mainScopeAction = mainScopeActionFor(project);
-        final GradleTask findEnrichments = newTask(FIND_ENRICHMENTS,
-                                                   mainScopeAction).insertAfterTask(COMPILE_JAVA)
-                                                                   .insertBeforeTask(PROCESS_RESOURCES)
-                                                                   .applyNowTo(project);
+        final GradleTask mainScopeTask = newTask(MAP_PROTO_TO_JAVA, mainScopeAction).insertAfterTask(GENERATE_PROTO)
+                                                                                    .insertBeforeTask(PROCESS_RESOURCES)
+                                                                                    .applyNowTo(project);
 
         final Action<Task> testScopeAction = testScopeActionFor(project);
-        final GradleTask findTestEnrichments = newTask(FIND_TEST_ENRICHMENTS,
-                                                       testScopeAction).insertAfterTask(COMPILE_TEST_JAVA)
-                                                                       .insertBeforeTask(PROCESS_TEST_RESOURCES)
-                                                                       .applyNowTo(project);
+        final GradleTask testScopeTask = newTask(MAP_TEST_PROTO_TO_JAVA,
+                                                 testScopeAction).insertAfterTask(GENERATE_TEST_PROTO)
+                                                                 .insertBeforeTask(PROCESS_TEST_RESOURCES)
+                                                                 .applyNowTo(project);
 
-        log().debug("Enrichment lookup phase initialized with tasks: {}, {}", findEnrichments, findTestEnrichments);
+        log().debug("Proto-to-Java mapping phase initialized with tasks: {}, {}", mainScopeTask, testScopeTask);
     }
 
     private static Action<Task> testScopeActionFor(final Project project) {
         return new Action<Task>() {
             @Override
             public void execute(Task task) {
-                findEnrichmentsAndWriteProps(getTestTargetGenResourcesDir(project),
-                                             getTestDescriptorSetPath(project));
+                mapProtoToJavaAndWriteProps(getTestTargetGenResourcesDir(project), getTestDescriptorSetPath(project));
             }
         };
     }
@@ -97,28 +96,24 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
         return new Action<Task>() {
             @Override
             public void execute(Task task) {
-                findEnrichmentsAndWriteProps(getMainTargetGenResourcesDir(project),
-                                             getMainDescriptorSetPath(project));
+                mapProtoToJavaAndWriteProps(getMainTargetGenResourcesDir(project), getMainDescriptorSetPath(project));
             }
         };
     }
 
-    private static void findEnrichmentsAndWriteProps(
-            // It's important to have a self-explanatory name for this variable.
-            @SuppressWarnings("MethodParameterNamingConvention") String targetGeneratedResourcesDir,
-            String descriptorSetPath) {
+    @SuppressWarnings("MethodParameterNamingConvention")
+    private static void mapProtoToJavaAndWriteProps(String targetGeneratedResourcesDir, String descriptorSetPath) {
         final Map<String, String> propsMap = newHashMap();
-        final DescriptorSetUtil.IsNotGoogleProto protoFilter = new DescriptorSetUtil.IsNotGoogleProto();
-        final Collection<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath,
-                                                                              protoFilter);
+        final Collection<FileDescriptorProto> files =
+                getProtoFileDescriptors(descriptorSetPath, new IsNotGoogleProto());
         for (FileDescriptorProto file : files) {
-            final Map<String, String> enrichments = new EnrichmentsFinder(file).findEnrichments();
-            propsMap.putAll(enrichments);
+            final Map<String, String> types = new ProtoToJavaTypeMapper(file).mapTypes();
+            propsMap.putAll(types);
         }
         if (propsMap.isEmpty()) {
             return;
         }
-        final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir, PROPS_FILE_NAME);
+        final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir, PROPERTIES_FILE_NAME);
         writer.write(propsMap);
     }
 
@@ -129,6 +124,6 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
     private enum LogSingleton {
         INSTANCE;
         @SuppressWarnings("NonSerializableFieldInSerializableClass")
-        private final Logger value = LoggerFactory.getLogger(EnrichmentLookupPlugin.class);
+        private final Logger value = LoggerFactory.getLogger(ProtoToJavaMapperPlugin.class);
     }
 }

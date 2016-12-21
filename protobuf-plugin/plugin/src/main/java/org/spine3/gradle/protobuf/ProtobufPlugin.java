@@ -17,10 +17,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.spine3.gradle.protobuf;
+
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.spine3.gradle.protobuf.cleaning.CleaningPlugin;
+import org.spine3.gradle.protobuf.failures.FailuresGenPlugin;
+import org.spine3.gradle.protobuf.lookup.enrichments.EnrichmentLookupPlugin;
+import org.spine3.gradle.protobuf.lookup.proto.ProtoToJavaMapperPlugin;
 
 /**
- * Plugins and utilities for enrichment processing.
- *
- * @author Alex Tymchenko
+ * @author Alexander Litus
+ * @author Mikhail Mikhaylov
  */
-package org.spine3.gradle.protobuf.lookup.enrichments;
+public class ProtobufPlugin implements Plugin<Project> {
+
+    public static final String SPINE_PROTOBUF_EXTENSION_NAME = "spineProtobuf";
+
+    @Override
+    public void apply(Project project) {
+        project.getExtensions()
+               .create(SPINE_PROTOBUF_EXTENSION_NAME, Extension.class);
+        new CleaningPlugin().apply(project);
+        new ProtoToJavaMapperPlugin().apply(project);
+        new EnrichmentLookupPlugin().apply(project);
+        new FailuresGenPlugin().apply(project);
+    }
+}

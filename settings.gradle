@@ -11,3 +11,7 @@ project(':failures-gen-sample').projectDir = "$rootDir/failures-gen-sample" as F
 
 include 'map-proto-to-java-sample'
 project(':map-proto-to-java-sample').projectDir = "$rootDir/map-proto-to-java-sample" as File
+
+include 'common'
+project(':common').projectDir = "$rootDir/common" as File
+

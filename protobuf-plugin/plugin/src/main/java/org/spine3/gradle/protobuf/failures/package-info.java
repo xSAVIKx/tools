@@ -19,8 +19,8 @@
  */
 
 /**
- * Plugins and utilities for enrichment processing.
+ * Plugins and utilities for Spine Failure generation.
  *
  * @author Alex Tymchenko
  */
-package org.spine3.gradle.protobuf.lookup.enrichments;
+package org.spine3.gradle.protobuf.failures;
