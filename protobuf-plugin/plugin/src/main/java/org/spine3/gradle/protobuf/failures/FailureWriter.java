@@ -66,13 +66,20 @@ public class FailureWriter {
             .put(FieldDescriptorProto.Type.TYPE_FIXED32.name(), "int")
             .put(FieldDescriptorProto.Type.TYPE_BOOL.name(), "boolean")
             .put(FieldDescriptorProto.Type.TYPE_STRING.name(), "String")
-            .put(FieldDescriptorProto.Type.TYPE_GROUP.name(), null) // GROUPS ARE NOT SUPPORTED
             .put(FieldDescriptorProto.Type.TYPE_BYTES.name(), "com.google.protobuf.ByteString")
             .put(FieldDescriptorProto.Type.TYPE_UINT32.name(), "int")
             .put(FieldDescriptorProto.Type.TYPE_SFIXED32.name(), "int")
             .put(FieldDescriptorProto.Type.TYPE_SFIXED64.name(), "long")
             .put(FieldDescriptorProto.Type.TYPE_SINT32.name(), "int")
             .put(FieldDescriptorProto.Type.TYPE_SINT64.name(), "int")
+
+            /**
+             * Groups are NOT supported, so do not create an associated Java type for it.
+             * The return value for the {@link FieldDescriptorProto.Type.TYPE_GROUP} key
+             * is intended to be {@code null}.
+             **/
+            //.put(FieldDescriptorProto.Type.TYPE_GROUP.name(), "not supported")
+
             .build();
 
     /**
