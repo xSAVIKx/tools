@@ -32,6 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Lists.newLinkedList;
 import static org.spine3.gradle.protobuf.util.UnknownOptions.getUnknownOptionValue;
 
@@ -200,7 +201,7 @@ public class ProtoToJavaTypeMapper {
 
     private static String getTypeUrlPrefix(FileDescriptorProto file) {
         final String typeUrlPrefix = getUnknownOptionValue(file, OPTION_NUMBER_TYPE_URL_PREFIX);
-        final String prefix = typeUrlPrefix.isEmpty() ? GOOGLE_TYPE_URL_PREFIX : typeUrlPrefix;
+        final String prefix = isNullOrEmpty(typeUrlPrefix) ? GOOGLE_TYPE_URL_PREFIX : typeUrlPrefix;
         final String result = (prefix + PROTO_TYPE_URL_SEPARATOR);
         return result;
     }
