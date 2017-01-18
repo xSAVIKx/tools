@@ -26,6 +26,8 @@ import com.google.protobuf.DescriptorProtos.EnumDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -77,6 +79,7 @@ public class ProtoToJavaTypeMapper {
 
     /** Returns a map from Protobuf type url to the corresponding fully-qualified Java class name. */
     public Map<String, String> mapTypes() {
+        log().debug("Mapping file {}", file.getName());
         final ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
         putMessageEntries(file.getMessageTypeList(), builder, new LinkedList<String>());
         putEnumEntries(file.getEnumTypeList(), builder, new LinkedList<String>());
@@ -86,8 +89,10 @@ public class ProtoToJavaTypeMapper {
     private void putMessageEntries(Iterable<DescriptorProto> messages,
                                    ImmutableMap.Builder<String, String> builder,
                                    Collection<String> parentMsgNames) {
+        log().debug("Getting messages");
         for (DescriptorProto msg : messages) {
             if (!isGeneratedMapEntryMsg(msg, parentMsgNames)) {
+                log().trace("Found message {}", msg.getName());
                 putMessageEntry(builder, msg, parentMsgNames);
             }
         }
@@ -155,7 +160,9 @@ public class ProtoToJavaTypeMapper {
     private void putEnumEntries(Iterable<EnumDescriptorProto> enums,
                                 ImmutableMap.Builder<String, String> builder,
                                 Collection<String> parentMsgNames) {
+        log().debug("Getting enums");
         for (EnumDescriptorProto msg : enums) {
+            log().trace("Found enum {}", msg.getName());
             putEntry(msg.getName(), builder, parentMsgNames);
         }
     }
@@ -246,6 +253,16 @@ public class ProtoToJavaTypeMapper {
             builder.append(partProcessed);
         }
         return builder.toString();
+    }
+
+    private static Logger log() {
+        return LoggerSingleton.INSTANCE.logger;
+    }
+
+    private enum LoggerSingleton {
+        INSTANCE;
+        @SuppressWarnings("NonSerializableFieldInSerializableClass")
+        private final Logger logger = LoggerFactory.getLogger(ProtoToJavaTypeMapper.class);
     }
 
 }

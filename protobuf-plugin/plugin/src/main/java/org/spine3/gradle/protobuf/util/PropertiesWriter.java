@@ -61,6 +61,7 @@ public class PropertiesWriter {
      * @param propertiesMap a map containing properties to write to the file
      */
     public void write(Map<String, String> propertiesMap) {
+        log().debug("Preparing properties file {}", propsFilePath);
         final File rootDir = new File(rootDirPath);
         createParentFolders(rootDir);
 
@@ -83,7 +84,7 @@ public class PropertiesWriter {
         }
 
         try {
-            log().debug("Writing properties file");
+            log().debug("Writing properties file {}", propsFilePath);
             final FileWriter outFileWriter = new FileWriter(file);
             final BufferedWriter bufferedWriter = new BufferedWriter(outFileWriter);
             props.store(bufferedWriter, /*comments=*/null);

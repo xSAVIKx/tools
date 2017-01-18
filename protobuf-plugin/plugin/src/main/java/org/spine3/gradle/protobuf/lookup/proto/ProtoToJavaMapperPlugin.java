@@ -70,11 +70,13 @@ public class ProtoToJavaMapperPlugin extends SpinePlugin {
     @Override
     public void apply(final Project project) {
         final Action<Task> mainScopeAction = mainScopeActionFor(project);
+        log().debug("Depending proto-to-java mapper main task");
         final GradleTask mainScopeTask = newTask(MAP_PROTO_TO_JAVA, mainScopeAction).insertAfterTask(GENERATE_PROTO)
                                                                                     .insertBeforeTask(PROCESS_RESOURCES)
                                                                                     .applyNowTo(project);
 
         final Action<Task> testScopeAction = testScopeActionFor(project);
+        log().debug("Depending proto-to-java mapper test task");
         final GradleTask testScopeTask = newTask(MAP_TEST_PROTO_TO_JAVA,
                                                  testScopeAction).insertAfterTask(GENERATE_TEST_PROTO)
                                                                  .insertBeforeTask(PROCESS_TEST_RESOURCES)
@@ -84,6 +86,7 @@ public class ProtoToJavaMapperPlugin extends SpinePlugin {
     }
 
     private static Action<Task> testScopeActionFor(final Project project) {
+        log().debug("Preparing test scope action for protobuf-to-java mapping");
         return new Action<Task>() {
             @Override
             public void execute(Task task) {
@@ -93,6 +96,7 @@ public class ProtoToJavaMapperPlugin extends SpinePlugin {
     }
 
     private static Action<Task> mainScopeActionFor(final Project project) {
+        log().debug("Preparing main scope action for protobuf-to-java mapping");
         return new Action<Task>() {
             @Override
             public void execute(Task task) {
@@ -106,13 +110,19 @@ public class ProtoToJavaMapperPlugin extends SpinePlugin {
         final Map<String, String> propsMap = newHashMap();
         final Collection<FileDescriptorProto> files =
                 getProtoFileDescriptors(descriptorSetPath, new IsNotGoogleProto());
+        log().trace("Starting mapping files under: {}", files);
         for (FileDescriptorProto file : files) {
+            log().debug("Looking up file {}", file.getName());
             final Map<String, String> types = new ProtoToJavaTypeMapper(file).mapTypes();
             propsMap.putAll(types);
         }
         if (propsMap.isEmpty()) {
+            log().debug("No proto types found. Searched under: {}", files);
             return;
         }
+        log().debug("{} types found", files.size());
+
+        log().trace("Saving proto-to-java mapping: {}", files);
         final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir, PROPERTIES_FILE_NAME);
         writer.write(propsMap);
     }

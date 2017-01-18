@@ -31,7 +31,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
 
 import static java.util.Collections.emptyList;
 
@@ -77,7 +76,10 @@ public class DescriptorSetUtil {
             log().warn(MSG_ENABLE_DESCRIPTOR_SET_GENERATION);
             return emptyList();
         }
-        final List<FileDescriptorProto> fileDescriptors = new LinkedList<>();
+        log().debug("Looking up for proto files matching {} under {}",
+                    filter.getClass().getSimpleName(),
+                    descriptorSetPath);
+        final Collection<FileDescriptorProto> fileDescriptors = new LinkedList<>();
 
         try {
             final FileInputStream fis = new FileInputStream(descriptorSetPath);
@@ -88,8 +90,10 @@ public class DescriptorSetUtil {
                 }
             }
         } catch (@SuppressWarnings("OverlyBroadCatchBlock") IOException e) {
-            throw new RuntimeException("CAnnot get proto file descriptors. Path = " + descriptorSetPath, e);
+            throw new RuntimeException("Cannot get proto file descriptors. Path = " + descriptorSetPath, e);
         }
+        log().debug("Found {} files", fileDescriptors.size());
+        log().trace("Found files: {}", fileDescriptors);
 
         return fileDescriptors;
     }
