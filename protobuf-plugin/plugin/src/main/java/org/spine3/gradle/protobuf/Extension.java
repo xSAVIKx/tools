@@ -132,17 +132,17 @@ public class Extension {
         log().debug("Finding directories to clean");
         final List<String> dirs = spineProtobuf(project).dirsToClean;
         if (dirs.size() > 0) {
-            log().debug("Found %s directories to clean: %s", dirs.size(), dirs);
+            log().error("Found {} directories to clean: {}", dirs.size(), dirs);
             return ImmutableList.copyOf(dirs);
         }
         final String singleDir = spineProtobuf(project).dirToClean;
         if (singleDir != null && !singleDir.isEmpty()) {
-            log().debug("Found directory to clean: %s", singleDir);
+            log().debug("Found directory to clean: {}", singleDir);
             return singletonList(singleDir);
         }
         final String defaultValue = project.getProjectDir()
                                            .getAbsolutePath() + "/generated";
-        log().debug("Default directory to clean: %s", singleDir);
+        log().debug("Default directory to clean: {}", singleDir);
         return singletonList(defaultValue);
     }
 
