@@ -54,6 +54,7 @@ public class CleaningPlugin extends SpinePlugin {
         final Action<Task> preCleanAction = new Action<Task>() {
             @Override
             public void execute(Task task) {
+                log().debug("Pre-clean: deleting directories");
                 deleteDirs(getDirsToClean(project));
             }
         };
@@ -67,6 +68,8 @@ public class CleaningPlugin extends SpinePlugin {
             final File file = new File(dirPath);
             if (file.exists() && file.isDirectory()) {
                 deleteRecursively(file.toPath());
+            } else {
+                log().warn("Trying to delete '{}' which is not a directory");
             }
         }
     }
@@ -74,6 +77,7 @@ public class CleaningPlugin extends SpinePlugin {
     private static void deleteRecursively(Path path) {
         try {
             final SimpleFileVisitor<Path> visitor = new RecursiveDirectoryCleaner();
+            log().debug("Starting file walk with root in {}", path.toString());
             Files.walkFileTree(path, visitor);
         } catch (IOException e) {
             throw new RuntimeException("Failed to delete the folder with its contents: " + path, e);
@@ -88,12 +92,14 @@ public class CleaningPlugin extends SpinePlugin {
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            logDeletionOf(file);
             Files.delete(file);
             return FileVisitResult.CONTINUE;
         }
 
         @Override
         public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+            logDeletionOf(file);
             Files.delete(file);
             return FileVisitResult.CONTINUE;
         }
@@ -101,11 +107,16 @@ public class CleaningPlugin extends SpinePlugin {
         @Override
         public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
             if (e == null) {
+                logDeletionOf(dir);
                 Files.delete(dir);
                 return FileVisitResult.CONTINUE;
             } else {
                 throw e;
             }
+        }
+
+        private void logDeletionOf(Path file) {
+            log().debug("Deleting file {}", file.toString());
         }
     }
 
