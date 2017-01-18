@@ -28,7 +28,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.spine3:server:$spineVersion"
+    compile "org.spine3:spine-server-core:$spineVersion"
 }
 
 protobuf {
