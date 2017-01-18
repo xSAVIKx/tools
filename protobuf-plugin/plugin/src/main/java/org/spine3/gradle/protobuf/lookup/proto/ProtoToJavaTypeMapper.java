@@ -69,7 +69,7 @@ public class ProtoToJavaTypeMapper {
     private final String typeUrlPrefix;
     private final String commonOuterClassPrefix;
 
-    /* package */ ProtoToJavaTypeMapper(FileDescriptorProto file) {
+    ProtoToJavaTypeMapper(FileDescriptorProto file) {
         this.file = file;
         this.protoPackagePrefix = getProtoPackagePrefix(file);
         this.javaPackagePrefix = getJavaPackagePrefix(file);

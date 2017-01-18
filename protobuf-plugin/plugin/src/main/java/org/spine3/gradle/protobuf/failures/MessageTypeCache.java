@@ -46,7 +46,7 @@ public class MessageTypeCache {
 
     //It's fine, as we are caching multiple message types per file.
     @SuppressWarnings("MethodWithMultipleLoops")
-    /* package */ void cacheTypes(FileDescriptorProto fileDescriptor) {
+    void cacheTypes(FileDescriptorProto fileDescriptor) {
         log().debug("Caching all types under file {}", fileDescriptor.getName());
 
         final FileOptions options = fileDescriptor.getOptions();
@@ -79,7 +79,7 @@ public class MessageTypeCache {
      *
      * @return current cache contents
      */
-    /* package */ Map<String, String> getCachedTypes() {
+    Map<String, String> getCachedTypes() {
         final ImmutableMap<String, String> immutable = ImmutableMap.copyOf(cachedMessageTypes);
         return immutable;
     }

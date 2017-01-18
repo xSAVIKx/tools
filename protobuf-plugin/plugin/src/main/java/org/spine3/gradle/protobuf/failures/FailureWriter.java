@@ -108,7 +108,7 @@ public class FailureWriter {
     /**
      * Initiates writing.
      */
-    /* package */ void write() {
+    void write() {
         try {
             log().debug("Writing java class under {}", outputFile.getPath());
             Files.createParentDirs(outputFile);

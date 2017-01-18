@@ -47,7 +47,7 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
  * @author Alexander Litus
  * @author Alex Tymchenko
  */
-/* package */ class EnrichmentsFinder {
+class EnrichmentsFinder {
 
     /**
      * The field number of the field option `by` defined in `Spine/core-java`.
@@ -85,7 +85,7 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
      *
      * @param file a file to search enrichments in
      */
-    /* package */ EnrichmentsFinder(FileDescriptorProto file) {
+    EnrichmentsFinder(FileDescriptorProto file) {
         this.file = file;
         this.packagePrefix = file.getPackage() + PROTO_TYPE_SEPARATOR;
     }
@@ -95,7 +95,7 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
      *
      * @return a map from enrichment type name to event to enrich type name
      */
-    /* package */ Map<String, String> findEnrichments() {
+    Map<String, String> findEnrichments() {
         log().debug("Looking up for enrichments in {}", file.getName());
         final HashMultimap<String, String> result = HashMultimap.create();
         final List<DescriptorProto> messages = file.getMessageTypeList();
