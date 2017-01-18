@@ -80,28 +80,34 @@ public class FailuresGenPlugin extends SpinePlugin {
     @Override
     public void apply(final Project project) {
         this.project = project;
+
+        log().debug("Preparing main scope action");
         final Action<Task> mainScopeAction = new Action<Task>() {
             @Override
             public void execute(Task task) {
                 final String path = getMainDescriptorSetPath(project);
-                List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
+                log().debug("Generating main scope Failures from {}", path);
+                final List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
                 processDescriptors(filesWithFailures);
             }
         };
 
+        log().debug("Depending main scope task");
         final GradleTask generateFailures = newTask(GENERATE_FAILURES, mainScopeAction).insertAfterTask(GENERATE_PROTO)
                                                                                        .insertBeforeTask(COMPILE_JAVA)
                                                                                        .applyNowTo(project);
-
+        log().debug("Preparing test scope action");
         final Action<Task> testScopeAction = new Action<Task>() {
             @Override
             public void execute(Task task) {
                 final String path = getTestDescriptorSetPath(project);
-                List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
+                log().debug("Generating test scope Failures from {}", path);
+                final List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
                 processDescriptors(filesWithFailures);
             }
         };
 
+        log().debug("Depending test scope task");
         final GradleTask generateTestFailures = newTask(GENERATE_TEST_FAILURES,
                                                         testScopeAction).insertAfterTask(GENERATE_TEST_PROTO)
                                                                         .insertBeforeTask(COMPILE_TEST_JAVA)
@@ -115,15 +121,18 @@ public class FailuresGenPlugin extends SpinePlugin {
         for (FileDescriptorProto file : allDescriptors) {
             if (file.getName()
                     .endsWith("failures.proto")) {
-                log().info("Found failures file: {}", file.getName());
+                log().info("Found Failures file: {}", file.getName());
                 result.add(file);
             }
             messageTypeCache.cacheTypes(file);
         }
+        log().debug("Found Failures if files: {}", result);
+
         return result;
     }
 
     private void processDescriptors(List<FileDescriptorProto> descriptors) {
+        log().debug("Processing Failures file descriptors");
         for (FileDescriptorProto file : descriptors) {
             if (isFileWithFailures(file)) {
                 generateFailures(file, messageTypeCache.getCachedTypes());
@@ -154,17 +163,22 @@ public class FailuresGenPlugin extends SpinePlugin {
     }
 
     private void generateFailures(FileDescriptorProto descriptor, Map<String, String> messageTypeMap) {
+        log().debug("Generating Failures form file {}", descriptor.getName());
         final String failuresRootDir = getTargetGenFailuresRootDir(project);
         final String javaPackage = descriptor.getOptions()
                                              .getJavaPackage();
         final String javaOuterClassName = JavaCode.getOuterClassName(descriptor);
         final String packageDir = COMPILE.matcher(javaPackage)
                                          .replaceAll(Matcher.quoteReplacement("/"));
+        log().debug("Found options: javaPackage: {}, javaOuterClassName: {}", javaPackage, javaOuterClassName);
         final List<DescriptorProto> failures = descriptor.getMessageTypeList();
         for (DescriptorProto failure : failures) {
             // The name of the generated ThrowableFailure will be the same as for the Protobuf message.
+            final String failureName = failure.getName();
             final String failureJavaPath = failuresRootDir + separatorChar
-                    + packageDir + separatorChar + failure.getName() + ".java";
+                    + packageDir + separatorChar + failureName + ".java";
+            log().debug("Processing Failure '{}'", failureName);
+
             final File outputFile = new File(failureJavaPath);
             final FailureWriter writer = new FailureWriter(failure, outputFile, javaPackage, javaOuterClassName, messageTypeMap);
             writer.write();

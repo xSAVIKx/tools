@@ -23,6 +23,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -108,6 +110,7 @@ public class FailureWriter {
      */
     /* package */ void write() {
         try {
+            log().debug("Writing java class under {}", outputFile.getPath());
             Files.createParentDirs(outputFile);
             Files.touch(outputFile);
 
@@ -121,21 +124,28 @@ public class FailureWriter {
             writeGetFailure(writer);
             writeEnding(writer);
             writer.flush();
+            log().debug("File {} written successfully", outputFile.getPath());
         } catch (@SuppressWarnings("OverlyBroadCatchBlock") IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     private void writePackage(OutputStreamWriter writer) throws IOException {
+        log().debug("Writing package");
+
         writer.write("package " + javaPackage + ";\n\n");
     }
 
     private static void writeImports(OutputStreamWriter writer) throws IOException {
+        log().debug("Writing imports");
+
         writer.write("import org.spine3.base.FailureThrowable;\n");
         writer.write("\n");
     }
 
     private void writeClassName(OutputStreamWriter writer) throws IOException {
+        log().debug("Writing {} class signature", className);
+
         writer.write("@javax.annotation.Generated(\"by Spine compiler\")\n");
         writer.write("public class " + className + " extends FailureThrowable {\n\n");
 
@@ -143,6 +153,8 @@ public class FailureWriter {
     }
 
     private void writeGetFailure(OutputStreamWriter writer) throws IOException {
+        log().debug("Writing getFailure()");
+
         writer.write("\n\t@Override\n");
         writer.write("\tpublic " + outerClassName + '.' + className + " getFailure() {\n");
         writer.write("\t\treturn (" + outerClassName + '.' + className + ") super.getFailure();\n\t}\n");
@@ -150,6 +162,8 @@ public class FailureWriter {
 
     @SuppressWarnings("MethodWithMultipleLoops")
     private void writeConstructor(OutputStreamWriter writer) throws IOException {
+        log().debug("Writing constructor");
+
         writer.write("\tpublic " + className + '(');
         final Set<Map.Entry<String, String>> fieldsEntries = readFieldValues().entrySet();
 
@@ -174,6 +188,8 @@ public class FailureWriter {
 
     @SuppressWarnings("MethodMayBeStatic")
     private void writeEnding(OutputStreamWriter writer) throws IOException {
+        log().debug("Writing file ending");
+
         writer.write("}\n");
     }
 
@@ -204,9 +220,11 @@ public class FailureWriter {
     /**
      * Reads all descriptor fields.
      *
-     * @return name-to-value GString map
+     * @return name-to-value String map
      */
     private Map<String, String> readFieldValues() {
+        log().debug("Reading all fields values");
+
         final Map<String, String> result = new LinkedHashMap<>();
         for (FieldDescriptorProto field : failureDescriptor.getFieldList()) {
             final String value;
@@ -225,6 +243,16 @@ public class FailureWriter {
             result.put(field.getName(), value);
         }
         return result;
+    }
+
+    private static Logger log() {
+        return LoggerSingleton.INSTANCE.logger;
+    }
+
+    private enum LoggerSingleton {
+        INSTANCE;
+        @SuppressWarnings("NonSerializableFieldInSerializableClass")
+        private final Logger logger = LoggerFactory.getLogger(FailureWriter.class);
     }
 
 }
