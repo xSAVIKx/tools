@@ -69,7 +69,7 @@ public class CleaningPlugin extends SpinePlugin {
             if (file.exists() && file.isDirectory()) {
                 deleteRecursively(file.toPath());
             } else {
-                log().warn("Trying to delete '{}' which is not a directory");
+                log().warn("Trying to delete '{}' which is not a directory", file.getAbsolutePath());
             }
         }
     }
