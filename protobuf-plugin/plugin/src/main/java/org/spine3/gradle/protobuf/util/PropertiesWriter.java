@@ -83,16 +83,19 @@ public class PropertiesWriter {
         }
 
         try {
+            log().debug("Writing properties file");
             final FileWriter outFileWriter = new FileWriter(file);
             final BufferedWriter bufferedWriter = new BufferedWriter(outFileWriter);
             props.store(bufferedWriter, /*comments=*/null);
             bufferedWriter.close();
+            log().debug("Properties file written successfully");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     private static void prepareTargetFile(Properties props, File file) {
+        log().debug("Preparing target file");
         if (file.exists()) {
             try {
                 final FileInputStream fis = new FileInputStream(file);

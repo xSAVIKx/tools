@@ -69,12 +69,13 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
     @Override
     public void apply(final Project project) {
         final Action<Task> mainScopeAction = mainScopeActionFor(project);
+        log().debug("Depending main scope task {}", FIND_ENRICHMENTS);
         final GradleTask findEnrichments = newTask(FIND_ENRICHMENTS,
                                                    mainScopeAction).insertAfterTask(COMPILE_JAVA)
                                                                    .insertBeforeTask(PROCESS_RESOURCES)
                                                                    .applyNowTo(project);
-
         final Action<Task> testScopeAction = testScopeActionFor(project);
+        log().debug("Depending test scope task {}", FIND_TEST_ENRICHMENTS);
         final GradleTask findTestEnrichments = newTask(FIND_TEST_ENRICHMENTS,
                                                        testScopeAction).insertAfterTask(COMPILE_TEST_JAVA)
                                                                        .insertBeforeTask(PROCESS_TEST_RESOURCES)
@@ -84,6 +85,7 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
     }
 
     private static Action<Task> testScopeActionFor(final Project project) {
+        log().debug("Preparing test scope action for enrichment lookup");
         return new Action<Task>() {
             @Override
             public void execute(Task task) {
@@ -94,6 +96,7 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
     }
 
     private static Action<Task> mainScopeActionFor(final Project project) {
+        log().debug("Preparing main scope action for enrichment lookup");
         return new Action<Task>() {
             @Override
             public void execute(Task task) {
@@ -107,6 +110,8 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
             // It's important to have a self-explanatory name for this variable.
             @SuppressWarnings("MethodParameterNamingConvention") String targetGeneratedResourcesDir,
             String descriptorSetPath) {
+        log().debug("Enrichments processing started");
+
         final Map<String, String> propsMap = newHashMap();
         final DescriptorSetUtil.IsNotGoogleProto protoFilter = new DescriptorSetUtil.IsNotGoogleProto();
         final Collection<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath,
@@ -116,10 +121,15 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
             propsMap.putAll(enrichments);
         }
         if (propsMap.isEmpty()) {
+            log().debug("Enrichments processing complete. No enrichments found.");
             return;
         }
+
+        log().debug("Writing enrichments under {}/{}", targetGeneratedResourcesDir, PROPS_FILE_NAME);
         final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir, PROPS_FILE_NAME);
         writer.write(propsMap);
+
+        log().debug("Enrichments processing complete");
     }
 
     private static Logger log() {

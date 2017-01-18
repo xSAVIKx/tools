@@ -81,7 +81,7 @@ public class FailuresGenPlugin extends SpinePlugin {
     public void apply(final Project project) {
         this.project = project;
 
-        log().debug("Preparing main scope action");
+        log().debug("Preparing main scope action for failures generation");
         final Action<Task> mainScopeAction = new Action<Task>() {
             @Override
             public void execute(Task task) {
@@ -96,7 +96,7 @@ public class FailuresGenPlugin extends SpinePlugin {
         final GradleTask generateFailures = newTask(GENERATE_FAILURES, mainScopeAction).insertAfterTask(GENERATE_PROTO)
                                                                                        .insertBeforeTask(COMPILE_JAVA)
                                                                                        .applyNowTo(project);
-        log().debug("Preparing test scope action");
+        log().debug("Preparing test scope action for failures generation");
         final Action<Task> testScopeAction = new Action<Task>() {
             @Override
             public void execute(Task task) {
