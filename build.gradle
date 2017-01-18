@@ -9,7 +9,7 @@ buildscript {
 
 allprojects {
     group = 'org.spine3.tools'
-    version = '0.6.6-SNAPSHOT'
+    version = '0.6.7-SNAPSHOT'
 
     project.ext {
         spineRepository = 'http://maven.teamdev.com/repository/spine'
