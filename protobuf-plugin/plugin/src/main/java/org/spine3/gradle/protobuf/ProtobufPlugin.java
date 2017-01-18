@@ -21,6 +21,8 @@ package org.spine3.gradle.protobuf;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spine3.gradle.protobuf.cleaning.CleaningPlugin;
 import org.spine3.gradle.protobuf.failures.FailuresGenPlugin;
 import org.spine3.gradle.protobuf.lookup.enrichments.EnrichmentLookupPlugin;
@@ -36,11 +38,32 @@ public class ProtobufPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
+        log().debug("Adding extension to the project");
         project.getExtensions()
                .create(SPINE_PROTOBUF_EXTENSION_NAME, Extension.class);
+
+        log().debug("Applying Spine cleaning plugin");
         new CleaningPlugin().apply(project);
+
+        log().debug("Applying Spine proto-to-java mapper plugin");
         new ProtoToJavaMapperPlugin().apply(project);
+
+        log().debug("Applying Spine enrichment lookup plugin");
         new EnrichmentLookupPlugin().apply(project);
+
+        log().debug("Applying Spine failures generation plugin");
         new FailuresGenPlugin().apply(project);
+    }
+
+    private static Logger log() {
+        return LoggerSingleton.INSTANCE.logger;
+    }
+
+    private enum LoggerSingleton {
+
+        INSTANCE;
+
+        @SuppressWarnings("NonSerializableFieldInSerializableClass")
+        private final Logger logger = LoggerFactory.getLogger(ProtobufPlugin.class);
     }
 }
