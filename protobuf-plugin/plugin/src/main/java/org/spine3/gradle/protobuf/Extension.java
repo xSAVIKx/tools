@@ -142,7 +142,7 @@ public class Extension {
         }
         final String defaultValue = project.getProjectDir()
                                            .getAbsolutePath() + "/generated";
-        log().debug("Default directory to clean: {}", singleDir);
+        log().debug("Default directory to clean: {}", defaultValue);
         return singletonList(defaultValue);
     }
 
