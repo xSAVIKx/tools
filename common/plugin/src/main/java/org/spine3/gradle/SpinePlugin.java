@@ -25,6 +25,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
+import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -50,6 +51,22 @@ public abstract class SpinePlugin implements Plugin<Project> {
     protected GradleTask.Builder newTask(TaskName name, Action<Task> action) {
         final GradleTask.Builder result = new GradleTask.Builder(name, action);
         return result;
+    }
+
+    protected static void logDependingTask(Logger log, TaskName taskName, TaskName beforeTask, TaskName afterTask) {
+        log.debug(
+                "Adding the Gradle task {} to the lifecycle: after {}, before {}",
+                taskName.getValue(),
+                beforeTask.getValue(),
+                afterTask.getValue());
+    }
+
+    protected static void logDependingTask(Logger log, TaskName taskName, TaskName beforeTask) {
+        log.debug(
+                "Adding the Gradle task {} to the lifecycle: before {}",
+                taskName.getValue(),
+                beforeTask.getValue()
+        );
     }
 
     /**

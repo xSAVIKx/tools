@@ -58,6 +58,7 @@ public class CleaningPlugin extends SpinePlugin {
                 deleteDirs(getDirsToClean(project));
             }
         };
+        logDependingTask(log(), PRE_CLEAN, CLEAN);
         final GradleTask preCleanTask = newTask(PRE_CLEAN, preCleanAction).insertBeforeTask(CLEAN)
                                                                           .applyNowTo(project);
         log().debug("Pre-clean phase initialized: {}", preCleanTask);

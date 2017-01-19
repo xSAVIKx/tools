@@ -70,13 +70,13 @@ public class ProtoToJavaMapperPlugin extends SpinePlugin {
     @Override
     public void apply(final Project project) {
         final Action<Task> mainScopeAction = mainScopeActionFor(project);
-        log().debug("Depending proto-to-java mapper main task");
+        logDependingTask(log(), MAP_PROTO_TO_JAVA, PROCESS_RESOURCES, GENERATE_PROTO);
         final GradleTask mainScopeTask = newTask(MAP_PROTO_TO_JAVA, mainScopeAction).insertAfterTask(GENERATE_PROTO)
                                                                                     .insertBeforeTask(PROCESS_RESOURCES)
                                                                                     .applyNowTo(project);
 
         final Action<Task> testScopeAction = testScopeActionFor(project);
-        log().debug("Depending proto-to-java mapper test task");
+        logDependingTask(log(), MAP_TEST_PROTO_TO_JAVA, PROCESS_TEST_RESOURCES, GENERATE_TEST_PROTO);
         final GradleTask testScopeTask = newTask(MAP_TEST_PROTO_TO_JAVA,
                                                  testScopeAction).insertAfterTask(GENERATE_TEST_PROTO)
                                                                  .insertBeforeTask(PROCESS_TEST_RESOURCES)

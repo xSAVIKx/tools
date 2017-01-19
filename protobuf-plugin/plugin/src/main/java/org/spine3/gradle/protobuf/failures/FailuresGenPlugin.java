@@ -92,7 +92,7 @@ public class FailuresGenPlugin extends SpinePlugin {
             }
         };
 
-        log().debug("Depending main scope task");
+        logDependingTask(log(), GENERATE_FAILURES, COMPILE_JAVA, GENERATE_PROTO);
         final GradleTask generateFailures = newTask(GENERATE_FAILURES, mainScopeAction).insertAfterTask(GENERATE_PROTO)
                                                                                        .insertBeforeTask(COMPILE_JAVA)
                                                                                        .applyNowTo(project);
@@ -107,7 +107,7 @@ public class FailuresGenPlugin extends SpinePlugin {
             }
         };
 
-        log().debug("Depending test scope task");
+        logDependingTask(log(), GENERATE_TEST_FAILURES, COMPILE_TEST_JAVA, GENERATE_TEST_PROTO);
         final GradleTask generateTestFailures = newTask(GENERATE_TEST_FAILURES,
                                                         testScopeAction).insertAfterTask(GENERATE_TEST_PROTO)
                                                                         .insertBeforeTask(COMPILE_TEST_JAVA)

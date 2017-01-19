@@ -69,13 +69,13 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
     @Override
     public void apply(final Project project) {
         final Action<Task> mainScopeAction = mainScopeActionFor(project);
-        log().debug("Depending main scope task {}", FIND_ENRICHMENTS);
+        logDependingTask(log(), FIND_ENRICHMENTS, PROCESS_RESOURCES, COMPILE_JAVA);
         final GradleTask findEnrichments = newTask(FIND_ENRICHMENTS,
                                                    mainScopeAction).insertAfterTask(COMPILE_JAVA)
                                                                    .insertBeforeTask(PROCESS_RESOURCES)
                                                                    .applyNowTo(project);
         final Action<Task> testScopeAction = testScopeActionFor(project);
-        log().debug("Depending test scope task {}", FIND_TEST_ENRICHMENTS);
+        logDependingTask(log(), FIND_TEST_ENRICHMENTS, PROCESS_TEST_RESOURCES, COMPILE_TEST_JAVA);
         final GradleTask findTestEnrichments = newTask(FIND_TEST_ENRICHMENTS,
                                                        testScopeAction).insertAfterTask(COMPILE_TEST_JAVA)
                                                                        .insertBeforeTask(PROCESS_TEST_RESOURCES)
