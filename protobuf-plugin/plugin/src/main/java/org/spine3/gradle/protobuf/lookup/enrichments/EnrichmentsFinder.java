@@ -210,6 +210,7 @@ class EnrichmentsFinder {
                                                  Collection<String> events,
                                                  String fieldName) {
         final Map<String, String> result = new HashMap<>(events.size());
+        boolean hasWildcards = false;
         for (String eventName : events) {
             log().debug("'by' option found on field {} targeting {}", fieldName, eventName);
 
@@ -217,12 +218,17 @@ class EnrichmentsFinder {
                 throw invalidByOptionValue(enrichment);
             }
             if (ANY_BY_OPTION_TARGET.equals(eventName)) {
+                hasWildcards = true;
                 log().debug("Skipping a wildcard event");
                 // Ignore the wildcard By options, as we don't know the target event type in this case.
                 continue;
             }
             final String enrichmentName = packagePrefix + enrichment;
             result.put(enrichmentName, eventName);
+        }
+
+        if (hasWildcards && result.size() > 1) {
+            throw invalidByOptionUsage(enrichment);
         }
 
         return result;
@@ -331,9 +337,16 @@ class EnrichmentsFinder {
         targetMap.put(entry.getKey(), entry.getValue());
     }
 
-    private static RuntimeException invalidByOptionValue(String msgName) {
-        throw new RuntimeException("Field of message `" + msgName + "` has invalid 'by' option value, " +
+    @SuppressWarnings("DuplicateStringLiteralInspection")
+    private static IllegalStateException invalidByOptionValue(String msgName) {
+        throw new IllegalStateException("Field of message `" + msgName + "` has invalid 'by' option value, " +
                                            "which must be a fully-qualified field reference.");
+    }
+
+    @SuppressWarnings("DuplicateStringLiteralInspection")
+    private static IllegalStateException invalidByOptionUsage(String msgName) {
+        throw new IllegalStateException("Field of message `" + msgName + "` has invalid 'by' option value." +
+                                                "Wildcard type is not allowed with multiple arguments.");
     }
 
     private static Logger log() {
