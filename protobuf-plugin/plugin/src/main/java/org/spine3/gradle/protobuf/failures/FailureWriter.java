@@ -223,7 +223,7 @@ public class FailureWriter {
      * @return name-to-value String map
      */
     private Map<String, String> readFieldValues() {
-        log().debug("Reading all the field values");
+        log().debug("Reading all the field values from the descriptor: {}", failureDescriptor);
 
         final Map<String, String> result = new LinkedHashMap<>();
         for (FieldDescriptorProto field : failureDescriptor.getFieldList()) {
@@ -242,6 +242,8 @@ public class FailureWriter {
             }
             result.put(field.getName(), value);
         }
+        log().debug("Read fields: {}", result);
+
         return result;
     }
 
