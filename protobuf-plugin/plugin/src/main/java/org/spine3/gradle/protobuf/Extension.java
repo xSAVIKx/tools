@@ -156,9 +156,7 @@ public class Extension {
     }
 
     private enum LoggerSingleton {
-
         INSTANCE;
-
         @SuppressWarnings("NonSerializableFieldInSerializableClass")
         private final Logger logger = LoggerFactory.getLogger(Extension.class);
     }

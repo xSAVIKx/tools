@@ -60,9 +60,7 @@ public class ProtobufPlugin implements Plugin<Project> {
     }
 
     private enum LoggerSingleton {
-
         INSTANCE;
-
         @SuppressWarnings("NonSerializableFieldInSerializableClass")
         private final Logger logger = LoggerFactory.getLogger(ProtobufPlugin.class);
     }
