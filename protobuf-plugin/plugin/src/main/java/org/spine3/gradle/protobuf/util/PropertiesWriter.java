@@ -69,6 +69,9 @@ public class PropertiesWriter {
         final File file = new File(propsFilePath);
         prepareTargetFile(props, file);
 
+        log().debug(
+                "Preparing properties (size is {}). Enable more verbose logging for more info.",
+                propertiesMap.size());
         for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
             final String key = entry.getKey();
             final String value = entry.getValue();
@@ -82,6 +85,8 @@ public class PropertiesWriter {
                 }
             }
         }
+        log().debug("Preparing properties complete. Size is {}.", props.size());
+        log().trace("Prepared properties: {}", props);
 
         try {
             log().debug("Writing properties file {}", propsFilePath);

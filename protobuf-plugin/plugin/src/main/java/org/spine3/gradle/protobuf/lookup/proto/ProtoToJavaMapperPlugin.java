@@ -120,7 +120,7 @@ public class ProtoToJavaMapperPlugin extends SpinePlugin {
             log().debug("No proto types found. Searched under: {}", files);
             return;
         }
-        log().debug("{} types found", files.size());
+        log().debug("{} types found. Enable more verbose logging for more info.", files.size());
 
         log().trace("Saving proto-to-java mapping: {}", files);
         final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir, PROPERTIES_FILE_NAME);
