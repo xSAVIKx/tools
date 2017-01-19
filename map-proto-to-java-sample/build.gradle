@@ -11,7 +11,7 @@ buildscript {
             // exclude old Guava version
             exclude group: 'com.google.guava'
         }
-        classpath group: "org.spine3.tools", name: "protobuf-plugin", version: spineVersion
+        classpath group: "org.spine3.tools", name: "protobuf-plugin", version: pluginVersion
     }
     configurations.all({
         resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
@@ -35,8 +35,7 @@ repositories {
 
 dependencies {
     compile group: 'com.google.guava', name: 'guava', version: guavaVersion
-   // compile group: 'org.spine3', name: 'spine-client-core', version: spineVersion
-    compile group: 'org.spine3', name: 'client', version: spineVersion
+    compile group: 'org.spine3', name: 'spine-client-core', version: spineVersion
 
 
     configurations.all({

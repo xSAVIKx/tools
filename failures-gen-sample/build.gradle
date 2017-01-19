@@ -8,7 +8,7 @@ buildscript {
     }
     dependencies {
         classpath "com.google.protobuf:protobuf-gradle-plugin:${protobufGradlePluginVersion}"
-        classpath "org.spine3.tools:protobuf-plugin:$spineVersion"
+        classpath "org.spine3.tools:protobuf-plugin:$pluginVersion"
     }
     configurations.all({
         resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
@@ -28,8 +28,7 @@ repositories {
 }
 
 dependencies {
-    //compile "org.spine3:spine-server-core:$spineVersion"
-    compile "org.spine3:server:$spineVersion"
+    compile "org.spine3:spine-server-core:$spineVersion"
 }
 
 protobuf {
