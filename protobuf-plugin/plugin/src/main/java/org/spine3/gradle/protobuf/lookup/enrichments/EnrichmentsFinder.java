@@ -150,6 +150,7 @@ class EnrichmentsFinder {
         final Map.Entry<String, String> entryFromInnerMsg = scanInnerMessages(msg);
         if (entryFromInnerMsg != null) {
             put(entryFromInnerMsg, targetMap);
+            log().debug("Found enrichment: {} -> {}", entryFromInnerMsg.getKey(), entryFromInnerMsg.getValue());
         } else {
             log().debug("No enrichment or event annotations found for message {}", msg.getName());
         }
@@ -174,12 +175,12 @@ class EnrichmentsFinder {
         log().debug("Scanning message {} for enrichment target annotations", messageName);
         final Collection<String> enrichmentNames = parseEnrichmentNamesFromMsgOption(msg);
         if (enrichmentNames != null && !enrichmentNames.isEmpty()) {
-            log().debug("Found bound enrichments: {}", enrichmentNames);
+            log().debug("Found enrichments for event {}: {}", messageName,  enrichmentNames);
             for (String enrichmentName : enrichmentNames) {
                 msgScanResultBuilder.put(enrichmentName, messageName);
             }
         } else {
-            log().debug("No bound enrichments found");
+            log().debug("No enrichments for event {} found", messageName);
         }
 
         return msgScanResultBuilder.build();

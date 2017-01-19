@@ -110,7 +110,7 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
             // It's important to have a self-explanatory name for this variable.
             @SuppressWarnings("MethodParameterNamingConvention") String targetGeneratedResourcesDir,
             String descriptorSetPath) {
-        log().debug("Enrichments processing started");
+        log().debug("Enrichment lookup started");
 
         final Map<String, String> propsMap = newHashMap();
         final DescriptorSetUtil.IsNotGoogleProto protoFilter = new DescriptorSetUtil.IsNotGoogleProto();
@@ -121,15 +121,15 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
             propsMap.putAll(enrichments);
         }
         if (propsMap.isEmpty()) {
-            log().debug("Enrichments processing complete. No enrichments found.");
+            log().debug("Enrichment lookup complete. No enrichments found.");
             return;
         }
 
-        log().debug("Writing enrichments under {}/{}", targetGeneratedResourcesDir, PROPS_FILE_NAME);
+        log().debug("Writing the enrichment description to {}/{}", targetGeneratedResourcesDir, PROPS_FILE_NAME);
         final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir, PROPS_FILE_NAME);
         writer.write(propsMap);
 
-        log().debug("Enrichments processing complete");
+        log().debug("Enrichment lookup complete");
     }
 
     private static Logger log() {

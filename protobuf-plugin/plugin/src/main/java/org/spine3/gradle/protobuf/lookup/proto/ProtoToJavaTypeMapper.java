@@ -89,7 +89,7 @@ public class ProtoToJavaTypeMapper {
     private void putMessageEntries(Iterable<DescriptorProto> messages,
                                    ImmutableMap.Builder<String, String> builder,
                                    Collection<String> parentMsgNames) {
-        log().debug("Getting messages");
+        log().debug("Obtaining messages");
         for (DescriptorProto msg : messages) {
             if (!isGeneratedMapEntryMsg(msg, parentMsgNames)) {
                 log().trace("Found message {}", msg.getName());
