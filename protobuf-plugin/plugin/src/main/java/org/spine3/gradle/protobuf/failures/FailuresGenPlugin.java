@@ -81,7 +81,7 @@ public class FailuresGenPlugin extends SpinePlugin {
     public void apply(final Project project) {
         this.project = project;
 
-        log().debug("Preparing main scope action for failures generation");
+        log().debug("Preparing action for failures generating");
         final Action<Task> mainScopeAction = new Action<Task>() {
             @Override
             public void execute(Task task) {
@@ -96,12 +96,12 @@ public class FailuresGenPlugin extends SpinePlugin {
         final GradleTask generateFailures = newTask(GENERATE_FAILURES, mainScopeAction).insertAfterTask(GENERATE_PROTO)
                                                                                        .insertBeforeTask(COMPILE_JAVA)
                                                                                        .applyNowTo(project);
-        log().debug("Preparing test scope action for failures generation");
+        log().debug("Preparing action for test failures generating");
         final Action<Task> testScopeAction = new Action<Task>() {
             @Override
             public void execute(Task task) {
                 final String path = getTestDescriptorSetPath(project);
-                log().debug("Generating test scope Failures from {}", path);
+                log().debug("Generating test Failures from {}", path);
                 final List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
                 processDescriptors(filesWithFailures);
             }
