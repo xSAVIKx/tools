@@ -110,7 +110,7 @@ public class FailureWriter {
      */
     void write() {
         try {
-            log().debug("Writing java class under {}", outputFile.getPath());
+            log().debug("Writing the java class under {}", outputFile.getPath());
             Files.createParentDirs(outputFile);
             Files.touch(outputFile);
 
@@ -131,13 +131,13 @@ public class FailureWriter {
     }
 
     private void writePackage(OutputStreamWriter writer) throws IOException {
-        log().debug("Writing package");
+        log().debug("Writing the package");
 
         writer.write("package " + javaPackage + ";\n\n");
     }
 
     private static void writeImports(OutputStreamWriter writer) throws IOException {
-        log().debug("Writing imports");
+        log().debug("Writing the imports");
 
         writer.write("import org.spine3.base.FailureThrowable;\n");
         writer.write("\n");
@@ -162,7 +162,7 @@ public class FailureWriter {
 
     @SuppressWarnings("MethodWithMultipleLoops")
     private void writeConstructor(OutputStreamWriter writer) throws IOException {
-        log().debug("Writing constructor");
+        log().debug("Writing the constructor");
 
         writer.write("\tpublic " + className + '(');
         final Set<Map.Entry<String, String>> fieldsEntries = readFieldValues().entrySet();
@@ -188,7 +188,7 @@ public class FailureWriter {
 
     @SuppressWarnings("MethodMayBeStatic")
     private void writeEnding(OutputStreamWriter writer) throws IOException {
-        log().debug("Writing file ending");
+        log().debug("Writing the file ending");
 
         writer.write("}\n");
     }
@@ -223,7 +223,7 @@ public class FailureWriter {
      * @return name-to-value String map
      */
     private Map<String, String> readFieldValues() {
-        log().debug("Reading all fields values");
+        log().debug("Reading all the field values");
 
         final Map<String, String> result = new LinkedHashMap<>();
         for (FieldDescriptorProto field : failureDescriptor.getFieldList()) {

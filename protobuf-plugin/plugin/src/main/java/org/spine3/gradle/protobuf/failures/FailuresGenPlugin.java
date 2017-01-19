@@ -81,12 +81,12 @@ public class FailuresGenPlugin extends SpinePlugin {
     public void apply(final Project project) {
         this.project = project;
 
-        log().debug("Preparing action for failures generating");
+        log().debug("Preparing action for the failures generating");
         final Action<Task> mainScopeAction = new Action<Task>() {
             @Override
             public void execute(Task task) {
                 final String path = getMainDescriptorSetPath(project);
-                log().debug("Generating main scope Failures from {}", path);
+                log().debug("Generating the Failures from {}", path);
                 final List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
                 processDescriptors(filesWithFailures);
             }
@@ -96,12 +96,12 @@ public class FailuresGenPlugin extends SpinePlugin {
         final GradleTask generateFailures = newTask(GENERATE_FAILURES, mainScopeAction).insertAfterTask(GENERATE_PROTO)
                                                                                        .insertBeforeTask(COMPILE_JAVA)
                                                                                        .applyNowTo(project);
-        log().debug("Preparing action for test failures generating");
+        log().debug("Preparing action for the test failures generating");
         final Action<Task> testScopeAction = new Action<Task>() {
             @Override
             public void execute(Task task) {
                 final String path = getTestDescriptorSetPath(project);
-                log().debug("Generating test Failures from {}", path);
+                log().debug("Generating the test Failures from {}", path);
                 final List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
                 processDescriptors(filesWithFailures);
             }
@@ -126,13 +126,13 @@ public class FailuresGenPlugin extends SpinePlugin {
             }
             messageTypeCache.cacheTypes(file);
         }
-        log().debug("Found Failures if files: {}", result);
+        log().debug("Found Failures in files: {}", result);
 
         return result;
     }
 
     private void processDescriptors(List<FileDescriptorProto> descriptors) {
-        log().debug("Processing Failures file descriptors");
+        log().debug("Processing the Failures file descriptors");
         for (FileDescriptorProto file : descriptors) {
             if (isFileWithFailures(file)) {
                 generateFailures(file, messageTypeCache.getCachedTypes());

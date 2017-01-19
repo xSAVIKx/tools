@@ -76,7 +76,7 @@ public class DescriptorSetUtil {
             log().warn(MSG_ENABLE_DESCRIPTOR_SET_GENERATION);
             return emptyList();
         }
-        log().debug("Looking up for proto files matching {} under {}",
+        log().debug("Looking up for the proto files matching {} under {}",
                     filter.getClass().getSimpleName(),
                     descriptorSetPath);
         final Collection<FileDescriptorProto> fileDescriptors = new LinkedList<>();

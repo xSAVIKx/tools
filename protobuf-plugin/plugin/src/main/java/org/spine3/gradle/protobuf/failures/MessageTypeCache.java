@@ -47,7 +47,7 @@ public class MessageTypeCache {
     //It's fine, as we are caching multiple message types per file.
     @SuppressWarnings("MethodWithMultipleLoops")
     void cacheTypes(FileDescriptorProto fileDescriptor) {
-        log().debug("Caching all types declared in the file: {}", fileDescriptor.getName());
+        log().debug("Caching all the types declared in the file: {}", fileDescriptor.getName());
 
         final FileOptions options = fileDescriptor.getOptions();
 

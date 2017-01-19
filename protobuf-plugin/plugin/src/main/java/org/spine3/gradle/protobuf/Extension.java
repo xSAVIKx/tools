@@ -129,7 +129,7 @@ public class Extension {
     }
 
     public static List<String> getDirsToClean(Project project) {
-        log().debug("Finding directories to clean");
+        log().debug("Finding the directories to clean");
         final List<String> dirs = spineProtobuf(project).dirsToClean;
         if (dirs.size() > 0) {
             log().error("Found {} directories to clean: {}", dirs.size(), dirs);

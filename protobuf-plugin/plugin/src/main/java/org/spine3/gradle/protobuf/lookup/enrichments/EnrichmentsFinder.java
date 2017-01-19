@@ -96,7 +96,7 @@ class EnrichmentsFinder {
      * @return a map from enrichment type name to event to enrich type name
      */
     Map<String, String> findEnrichments() {
-        log().debug("Looking up for enrichments in {}", file.getName());
+        log().debug("Looking up for the enrichments in {}", file.getName());
         final HashMultimap<String, String> result = HashMultimap.create();
         final List<DescriptorProto> messages = file.getMessageTypeList();
         for (DescriptorProto msg : messages) {
@@ -162,7 +162,7 @@ class EnrichmentsFinder {
         final String messageName = packagePrefix + msg.getName();
 
         // Treating current {@code msg} as an enrichment object.
-        log().debug("Scanning message {} for enrichment annotations", messageName);
+        log().debug("Scanning message {} for the enrichment annotations", messageName);
         final String eventNames = parseEventNamesFromMsgOption(msg);
         if (eventNames != null && !eventNames.isEmpty()) {
             log().debug("Found target events: {}", eventNames);
@@ -172,7 +172,7 @@ class EnrichmentsFinder {
         }
 
         // Treating current {@code msg} as a target for enrichment (e.g. Spine event).
-        log().debug("Scanning message {} for enrichment target annotations", messageName);
+        log().debug("Scanning message {} for the enrichment target annotations", messageName);
         final Collection<String> enrichmentNames = parseEnrichmentNamesFromMsgOption(msg);
         if (enrichmentNames != null && !enrichmentNames.isEmpty()) {
             log().debug("Found enrichments for event {}: {}", messageName,  enrichmentNames);
@@ -188,13 +188,13 @@ class EnrichmentsFinder {
 
     private Map.Entry<String, String> scanFields(DescriptorProto msg) {
         final String msgName = msg.getName();
-        log().debug("Scanning fields of message {} for enrichment annotations", msgName);
+        log().debug("Scanning fields of message {} for the enrichment annotations", msgName);
         for (FieldDescriptorProto field : msg.getFieldList()) {
             if (hasOptionEnrichBy(field)) {
                 final String eventNameFromBy = parseEventNameFromOptBy(field);
                 log().debug("'by' option found on field {} targeting {}", field.getName(), eventNameFromBy);
                 if (ANY_BY_OPTION_TARGET.equals(eventNameFromBy)) {
-                    log().debug("Skipping wildcard event");
+                    log().debug("Skipping a wildcard event");
                     // Ignore the wildcard By options, as we don't know the target event type in this case.
                     continue;
                 }
@@ -210,7 +210,7 @@ class EnrichmentsFinder {
 
     @SuppressWarnings("MethodWithMultipleLoops")    // It's fine in this case.
     private Map.Entry<String, String> scanInnerMessages(DescriptorProto msg) {
-        log().debug("Scanning inner messages of {} message for annotations", msg.getName());
+        log().debug("Scanning inner messages of {} message for the annotations", msg.getName());
         for (DescriptorProto innerMsg : msg.getNestedTypeList()) {
             for (FieldDescriptorProto field : innerMsg.getFieldList()) {
                 if (hasOptionEnrichBy(field)) {

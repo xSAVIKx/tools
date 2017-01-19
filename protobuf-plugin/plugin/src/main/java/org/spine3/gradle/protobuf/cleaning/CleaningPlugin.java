@@ -54,7 +54,7 @@ public class CleaningPlugin extends SpinePlugin {
         final Action<Task> preCleanAction = new Action<Task>() {
             @Override
             public void execute(Task task) {
-                log().debug("Pre-clean: deleting directories");
+                log().debug("Pre-clean: deleting the directories");
                 deleteDirs(getDirsToClean(project));
             }
         };
@@ -78,7 +78,7 @@ public class CleaningPlugin extends SpinePlugin {
     private static void deleteRecursively(Path path) {
         try {
             final SimpleFileVisitor<Path> visitor = new RecursiveDirectoryCleaner();
-            log().debug("Starting file walk with root in {}", path.toString());
+            log().debug("Starting file walk with the root in {}", path.toString());
             Files.walkFileTree(path, visitor);
         } catch (IOException e) {
             throw new RuntimeException("Failed to delete the folder with its contents: " + path, e);

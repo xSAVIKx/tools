@@ -96,7 +96,7 @@ public class PropertiesWriter {
     }
 
     private static void prepareTargetFile(Properties props, File file) {
-        log().debug("Preparing target file");
+        log().debug("Preparing the target file");
         if (file.exists()) {
             try {
                 final FileInputStream fis = new FileInputStream(file);
@@ -113,7 +113,7 @@ public class PropertiesWriter {
         try {
             Files.createParentDirs(file);
         } catch (IOException e) {
-            throw new RuntimeException("Cannot create parent folders at " + file.getAbsolutePath(), e);
+            throw new RuntimeException("Cannot create the parent folders at " + file.getAbsolutePath(), e);
         }
     }
 

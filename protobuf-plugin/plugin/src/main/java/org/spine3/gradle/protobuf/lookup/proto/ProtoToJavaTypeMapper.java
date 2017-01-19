@@ -89,7 +89,7 @@ public class ProtoToJavaTypeMapper {
     private void putMessageEntries(Iterable<DescriptorProto> messages,
                                    ImmutableMap.Builder<String, String> builder,
                                    Collection<String> parentMsgNames) {
-        log().debug("Obtaining messages");
+        log().debug("Obtaining the messages");
         for (DescriptorProto msg : messages) {
             if (!isGeneratedMapEntryMsg(msg, parentMsgNames)) {
                 log().trace("Found message {}", msg.getName());
@@ -160,7 +160,7 @@ public class ProtoToJavaTypeMapper {
     private void putEnumEntries(Iterable<EnumDescriptorProto> enums,
                                 ImmutableMap.Builder<String, String> builder,
                                 Collection<String> parentMsgNames) {
-        log().debug("Getting enums");
+        log().debug("Obtaining the enums");
         for (EnumDescriptorProto msg : enums) {
             log().trace("Found enum {}", msg.getName());
             putEntry(msg.getName(), builder, parentMsgNames);
