@@ -110,7 +110,7 @@ public class ProtoToJavaMapperPlugin extends SpinePlugin {
         final Map<String, String> propsMap = newHashMap();
         final Collection<FileDescriptorProto> files =
                 getProtoFileDescriptors(descriptorSetPath, new IsNotGoogleProto());
-        log().trace("Starting mapping files under: {}", files);
+        log().debug("Starting mapping files under: {}", files);
         for (FileDescriptorProto file : files) {
             log().debug("Looking up file {}", file.getName());
             final Map<String, String> types = new ProtoToJavaTypeMapper(file).mapTypes();
@@ -120,9 +120,10 @@ public class ProtoToJavaMapperPlugin extends SpinePlugin {
             log().debug("No proto types found. Searched under: {}", files);
             return;
         }
-        log().debug("{} types found. Enable more verbose logging for more info.", files.size());
 
-        log().trace("Saving proto-to-java mapping: {}", files);
+        log().debug("{} types found", files.size());
+        log().debug("Saving proto-to-java mapping: {}", files);
+
         final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir, PROPERTIES_FILE_NAME);
         writer.write(propsMap);
     }

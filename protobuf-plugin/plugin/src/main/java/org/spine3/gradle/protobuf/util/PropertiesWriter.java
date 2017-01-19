@@ -86,7 +86,7 @@ public class PropertiesWriter {
             }
         }
         log().debug("Preparing properties complete. Size is {}.", props.size());
-        log().trace("Prepared properties: {}", props);
+        log().debug("Prepared properties: {}", props);
 
         try {
             log().debug("Writing properties file {}", propsFilePath);

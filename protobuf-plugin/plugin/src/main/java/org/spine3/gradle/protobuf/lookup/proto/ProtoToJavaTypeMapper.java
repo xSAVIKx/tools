@@ -92,7 +92,7 @@ public class ProtoToJavaTypeMapper {
         log().debug("Obtaining the messages");
         for (DescriptorProto msg : messages) {
             if (!isGeneratedMapEntryMsg(msg, parentMsgNames)) {
-                log().trace("Found message {}", msg.getName());
+                log().debug("Found message {}", msg.getName());
                 putMessageEntry(builder, msg, parentMsgNames);
             }
         }
@@ -162,7 +162,7 @@ public class ProtoToJavaTypeMapper {
                                 Collection<String> parentMsgNames) {
         log().debug("Obtaining the enums");
         for (EnumDescriptorProto msg : enums) {
-            log().trace("Found enum {}", msg.getName());
+            log().debug("Found enum {}", msg.getName());
             putEntry(msg.getName(), builder, parentMsgNames);
         }
     }
