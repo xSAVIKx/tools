@@ -61,6 +61,7 @@ public class PropertiesWriter {
      * @param propertiesMap a map containing properties to write to the file
      */
     public void write(Map<String, String> propertiesMap) {
+        log().debug("Preparing properties file {}", propsFilePath);
         final File rootDir = new File(rootDirPath);
         createParentFolders(rootDir);
 
@@ -68,6 +69,9 @@ public class PropertiesWriter {
         final File file = new File(propsFilePath);
         prepareTargetFile(props, file);
 
+        log().debug(
+                "Preparing properties (size is {}). Enable more verbose logging for more info.",
+                propertiesMap.size());
         for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
             final String key = entry.getKey();
             final String value = entry.getValue();
@@ -81,18 +85,23 @@ public class PropertiesWriter {
                 }
             }
         }
+        log().debug("Preparing properties complete. Size is {}.", props.size());
+        log().debug("Prepared properties: {}", props);
 
         try {
+            log().debug("Writing properties file {}", propsFilePath);
             final FileWriter outFileWriter = new FileWriter(file);
             final BufferedWriter bufferedWriter = new BufferedWriter(outFileWriter);
             props.store(bufferedWriter, /*comments=*/null);
             bufferedWriter.close();
+            log().debug("Properties file written successfully");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     private static void prepareTargetFile(Properties props, File file) {
+        log().debug("Preparing the target file");
         if (file.exists()) {
             try {
                 final FileInputStream fis = new FileInputStream(file);
@@ -109,7 +118,7 @@ public class PropertiesWriter {
         try {
             Files.createParentDirs(file);
         } catch (IOException e) {
-            throw new RuntimeException("Cannot create parent folders at " + file.getAbsolutePath(), e);
+            throw new RuntimeException("Cannot create the parent folders at " + file.getAbsolutePath(), e);
         }
     }
 

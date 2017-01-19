@@ -39,15 +39,15 @@ import static org.spine3.gradle.TaskName.PROCESS_TEST_RESOURCES;
  * @author Alex Tymchenko
  */
 @SuppressWarnings("UtilityClass")
-public class Given {
+class Given {
 
-    /* package */ static final String SPINE_PROTOBUF_PLUGIN_ID = "org.spine3.tools.protobuf-plugin";
+    static final String SPINE_PROTOBUF_PLUGIN_ID = "org.spine3.tools.protobuf-plugin";
 
     private Given() {
     }
 
     /** Creates a project with all required tasks. */
-    /* package */ static Project newProject() {
+    static Project newProject() {
         final Project project = ProjectBuilder.builder()
                                               .build();
         project.task(CLEAN.getValue());
@@ -60,7 +60,7 @@ public class Given {
         return project;
     }
 
-    /* package */ static String newUuid() {
+    static String newUuid() {
         final String result = UUID.randomUUID()
                                   .toString();
         return result;

@@ -24,6 +24,8 @@ import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.EnumDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spine3.gradle.protobuf.util.JavaCode;
 
 import java.util.Map;
@@ -44,7 +46,9 @@ public class MessageTypeCache {
 
     //It's fine, as we are caching multiple message types per file.
     @SuppressWarnings("MethodWithMultipleLoops")
-    /* package */ void cacheTypes(FileDescriptorProto fileDescriptor) {
+    void cacheTypes(FileDescriptorProto fileDescriptor) {
+        log().debug("Caching all the types declared in the file: {}", fileDescriptor.getName());
+
         final FileOptions options = fileDescriptor.getOptions();
 
         final String sourceProtoPackage = fileDescriptor.getPackage();
@@ -75,7 +79,7 @@ public class MessageTypeCache {
      *
      * @return current cache contents
      */
-    /* package */ Map<String, String> getCachedTypes() {
+    Map<String, String> getCachedTypes() {
         final ImmutableMap<String, String> immutable = ImmutableMap.copyOf(cachedMessageTypes);
         return immutable;
     }
@@ -83,12 +87,14 @@ public class MessageTypeCache {
     //It's fine, as we are caching multiple nested types per message descriptor.
     @SuppressWarnings("MethodWithMultipleLoops")
     private void cacheMessageType(DescriptorProto msg, String protoPrefix, String javaPrefix) {
-        final String key = protoPrefix + msg.getName();
-        final String value = javaPrefix + msg.getName();
+        final String msgName = msg.getName();
+        final String key = protoPrefix + msgName;
+        final String value = javaPrefix + msgName;
+        log().debug("Caching message type {}", msgName);
         cachedMessageTypes.put(key, value);
         if (msg.getNestedTypeCount() > 0 || msg.getEnumTypeCount() > 0) {
-            final String nestedProtoPrefix = protoPrefix + msg.getName() + '.';
-            final String nestedJavaPrefix = javaPrefix + msg.getName() + '.';
+            final String nestedProtoPrefix = protoPrefix + msgName + '.';
+            final String nestedJavaPrefix = javaPrefix + msgName + '.';
             for (DescriptorProto nestedMsg : msg.getNestedTypeList()) {
                 cacheMessageType(nestedMsg, nestedProtoPrefix, nestedJavaPrefix);
             }
@@ -99,8 +105,20 @@ public class MessageTypeCache {
     }
 
     private void cacheEnumType(EnumDescriptorProto descriptor, String protoPrefix, String javaPrefix) {
-        final String key = protoPrefix + descriptor.getName();
-        final String value = javaPrefix + descriptor.getName();
+        final String name = descriptor.getName();
+        log().debug("Caching enum type {}", name);
+        final String key = protoPrefix + name;
+        final String value = javaPrefix + name;
         cachedMessageTypes.put(key, value);
+    }
+
+    private static Logger log() {
+        return LoggerSingleton.INSTANCE.logger;
+    }
+
+    private enum LoggerSingleton {
+        INSTANCE;
+        @SuppressWarnings("NonSerializableFieldInSerializableClass")
+        private final Logger logger = LoggerFactory.getLogger(MessageTypeCache.class);
     }
 }

@@ -21,6 +21,8 @@ package org.spine3.gradle.protobuf;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Project;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -127,21 +129,35 @@ public class Extension {
     }
 
     public static List<String> getDirsToClean(Project project) {
+        log().debug("Finding the directories to clean");
         final List<String> dirs = spineProtobuf(project).dirsToClean;
         if (dirs.size() > 0) {
+            log().error("Found {} directories to clean: {}", dirs.size(), dirs);
             return ImmutableList.copyOf(dirs);
         }
         final String singleDir = spineProtobuf(project).dirToClean;
         if (singleDir != null && !singleDir.isEmpty()) {
+            log().debug("Found directory to clean: {}", singleDir);
             return singletonList(singleDir);
         }
         final String defaultValue = project.getProjectDir()
                                            .getAbsolutePath() + "/generated";
+        log().debug("Default directory to clean: {}", defaultValue);
         return singletonList(defaultValue);
     }
 
     private static Extension spineProtobuf(Project project) {
         return (Extension) project.getExtensions()
                                   .getByName(SPINE_PROTOBUF_EXTENSION_NAME);
+    }
+
+    private static Logger log() {
+        return LoggerSingleton.INSTANCE.logger;
+    }
+
+    private enum LoggerSingleton {
+        INSTANCE;
+        @SuppressWarnings("NonSerializableFieldInSerializableClass")
+        private final Logger logger = LoggerFactory.getLogger(Extension.class);
     }
 }

@@ -27,6 +27,8 @@ import com.google.common.collect.Multimap;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.AbstractMap;
 import java.util.Collection;
@@ -45,7 +47,7 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
  * @author Alexander Litus
  * @author Alex Tymchenko
  */
-/* package */ class EnrichmentsFinder {
+class EnrichmentsFinder {
 
     /**
      * The field number of the field option `by` defined in `Spine/core-java`.
@@ -83,7 +85,7 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
      *
      * @param file a file to search enrichments in
      */
-    /* package */ EnrichmentsFinder(FileDescriptorProto file) {
+    EnrichmentsFinder(FileDescriptorProto file) {
         this.file = file;
         this.packagePrefix = file.getPackage() + PROTO_TYPE_SEPARATOR;
     }
@@ -93,12 +95,14 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
      *
      * @return a map from enrichment type name to event to enrich type name
      */
-    /* package */ Map<String, String> findEnrichments() {
+    Map<String, String> findEnrichments() {
+        log().debug("Looking up for the enrichments in {}", file.getName());
         final HashMultimap<String, String> result = HashMultimap.create();
         final List<DescriptorProto> messages = file.getMessageTypeList();
         for (DescriptorProto msg : messages) {
             putEntry(result, msg);
         }
+        log().debug("Found enrichments: {}", result);
         return mergeDuplicateValues(result);
     }
 
@@ -108,9 +112,10 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
      * <p>The values are joined with {@link EnrichmentsFinder#TARGET_NAME_SEPARATOR}.
      *
      * <p>Merging may be required when the wildcard `By` option values are handled,
-     * i.e. when processing a single enrichment type as a mao key, but multiple target event types as values.
+     * i.e. when processing a single enrichment type as a map key, but multiple target event types as values.
      **/
     private static Map<String, String> mergeDuplicateValues(HashMultimap<String, String> source) {
+        log().debug("Merging duplicate properties in enrichments.proto");
         final ImmutableMap.Builder<String, String> mergedResult = ImmutableMap.builder();
         for (String key : source.keySet()) {
             final Set<String> valuesPerKey = source.get(key);
@@ -145,25 +150,37 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
         final Map.Entry<String, String> entryFromInnerMsg = scanInnerMessages(msg);
         if (entryFromInnerMsg != null) {
             put(entryFromInnerMsg, targetMap);
+            log().debug("Found enrichment: {} -> {}", entryFromInnerMsg.getKey(), entryFromInnerMsg.getValue());
+        } else {
+            log().debug("No enrichment or event annotations found for message {}", msg.getName());
         }
     }
 
+    @SuppressWarnings("MethodWithMoreThanThreeNegations")
     private Map<String, String> scanMsg(DescriptorProto msg) {
         final ImmutableMap.Builder<String, String> msgScanResultBuilder = ImmutableMap.builder();
         final String messageName = packagePrefix + msg.getName();
 
         // Treating current {@code msg} as an enrichment object.
+        log().debug("Scanning message {} for the enrichment annotations", messageName);
         final String eventNames = parseEventNamesFromMsgOption(msg);
-        if (eventNames != null) {
+        if (eventNames != null && !eventNames.isEmpty()) {
+            log().debug("Found target events: {}", eventNames);
             msgScanResultBuilder.put(messageName, eventNames);
+        } else {
+            log().debug("No target events found");
         }
 
         // Treating current {@code msg} as a target for enrichment (e.g. Spine event).
+        log().debug("Scanning message {} for the enrichment target annotations", messageName);
         final Collection<String> enrichmentNames = parseEnrichmentNamesFromMsgOption(msg);
-        if (enrichmentNames != null) {
+        if (enrichmentNames != null && !enrichmentNames.isEmpty()) {
+            log().debug("Found enrichments for event {}: {}", messageName,  enrichmentNames);
             for (String enrichmentName : enrichmentNames) {
                 msgScanResultBuilder.put(enrichmentName, messageName);
             }
+        } else {
+            log().debug("No enrichments for event {} found", messageName);
         }
 
         return msgScanResultBuilder.build();
@@ -171,11 +188,13 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
 
     private Map.Entry<String, String> scanFields(DescriptorProto msg) {
         final String msgName = msg.getName();
+        log().debug("Scanning fields of message {} for the enrichment annotations", msgName);
         for (FieldDescriptorProto field : msg.getFieldList()) {
             if (hasOptionEnrichBy(field)) {
                 final String eventNameFromBy = parseEventNameFromOptBy(field);
+                log().debug("'by' option found on field {} targeting {}", field.getName(), eventNameFromBy);
                 if (ANY_BY_OPTION_TARGET.equals(eventNameFromBy)) {
-
+                    log().debug("Skipping a wildcard event");
                     // Ignore the wildcard By options, as we don't know the target event type in this case.
                     continue;
                 }
@@ -191,11 +210,15 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
 
     @SuppressWarnings("MethodWithMultipleLoops")    // It's fine in this case.
     private Map.Entry<String, String> scanInnerMessages(DescriptorProto msg) {
+        log().debug("Scanning inner messages of {} message for the annotations", msg.getName());
         for (DescriptorProto innerMsg : msg.getNestedTypeList()) {
             for (FieldDescriptorProto field : innerMsg.getFieldList()) {
                 if (hasOptionEnrichBy(field)) {
                     final String outerEventName = packagePrefix + msg.getName();
                     final String enrichmentName = outerEventName + PROTO_TYPE_SEPARATOR + innerMsg.getName();
+                    log().debug("'by' option found on field {} targeting outer event {}",
+                                field.getName(),
+                                outerEventName);
                     return new AbstractMap.SimpleEntry<>(enrichmentName, outerEventName);
                 }
             }
@@ -274,5 +297,15 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
     private static RuntimeException invalidByOptionValue(String msgName) {
         throw new RuntimeException("Field of message `" + msgName + "` has invalid 'by' option value, " +
                                            "which must be a fully-qualified field reference.");
+    }
+
+    private static Logger log() {
+        return LoggerSingleton.INSTANCE.logger;
+    }
+
+    private enum LoggerSingleton {
+        INSTANCE;
+        @SuppressWarnings("NonSerializableFieldInSerializableClass")
+        private final Logger logger = LoggerFactory.getLogger(EnrichmentsFinder.class);
     }
 }
