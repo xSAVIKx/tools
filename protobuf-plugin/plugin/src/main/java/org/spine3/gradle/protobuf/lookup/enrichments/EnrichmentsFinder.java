@@ -199,8 +199,8 @@ class EnrichmentsFinder {
         for (FieldDescriptorProto field : msg.getFieldList()) {
             if (hasOptionEnrichBy(field)) { // TODO:19-01-17:dmytro.dashenkov: Verify behavior. By now we stop searching after having found one appropriate match, but no we check all the fields.
                 final Collection<String> eventNamesFromBy = parseEventNameFromOptBy(field);
-                final Map<String, String> foundResults = groupFoundEvents(msgName, eventNamesFromBy, field.getName());
-                enrichmentsMap.putAll(foundResults);
+                final Map<String, String> foundEvents = groupFoundEvents(msgName, eventNamesFromBy, field.getName());
+                enrichmentsMap.putAll(foundEvents);
             }
         }
         return enrichmentsMap;
@@ -209,7 +209,7 @@ class EnrichmentsFinder {
     private Map<String, String> groupFoundEvents(String enrichment,
                                                  Collection<String> events,
                                                  String fieldName) {
-        final Map<String, String> normalizedResults = new HashMap<>(events.size());
+        final Map<String, String> result = new HashMap<>(events.size());
         for (String eventName : events) {
             log().debug("'by' option found on field {} targeting {}", fieldName, eventName);
 
@@ -222,10 +222,10 @@ class EnrichmentsFinder {
                 continue;
             }
             final String enrichmentName = packagePrefix + enrichment;
-            normalizedResults.put(enrichmentName, eventName);
+            result.put(enrichmentName, eventName);
         }
 
-        return normalizedResults;
+        return result;
     }
 
     @SuppressWarnings("MethodWithMultipleLoops")    // It's fine in this case.
