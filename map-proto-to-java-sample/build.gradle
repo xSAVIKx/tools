@@ -35,7 +35,9 @@ repositories {
 
 dependencies {
     compile group: 'com.google.guava', name: 'guava', version: guavaVersion
-    compile group: 'org.spine3', name: 'spine-client-core', version: spineVersion
+   // compile group: 'org.spine3', name: 'spine-client-core', version: spineVersion
+    compile group: 'org.spine3', name: 'client', version: spineVersion
+
 
     configurations.all({
         resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
