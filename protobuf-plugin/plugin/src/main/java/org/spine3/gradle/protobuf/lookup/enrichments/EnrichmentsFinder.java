@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.AbstractMap;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,8 +76,10 @@ class EnrichmentsFinder {
      * event types. That's why an FQN of the target type is replaced by this wildcard option.
      **/
     private static final String ANY_BY_OPTION_TARGET = "*";
+    private static final String PIPE_SEPARATOR = "|";
     private static final Pattern PATTERN_SPACE = Pattern.compile(" ");
     private static final Pattern PATTERN_TARGET_NAME_SEPARATOR = Pattern.compile(TARGET_NAME_SEPARATOR);
+    private static final Pattern PATTERN_PIPE_SEPARATOR = Pattern.compile(PIPE_SEPARATOR);
 
     private final FileDescriptorProto file;
     private final String packagePrefix;
@@ -142,9 +146,11 @@ class EnrichmentsFinder {
         if (!entries.isEmpty()) {
             return;
         }
-        final Map.Entry<String, String> entryFromField = scanFields(msg);
-        if (entryFromField != null) {
-            put(entryFromField, targetMap);
+        final Map<String, String> entryFromField = scanFields(msg);
+        if (entryFromField.size() > 0) {
+            for (Map.Entry<String, String> entry : entryFromField.entrySet()) {
+                put(entry, targetMap);
+            }
             return;
         }
         final Map.Entry<String, String> entryFromInnerMsg = scanInnerMessages(msg);
@@ -175,7 +181,7 @@ class EnrichmentsFinder {
         log().debug("Scanning message {} for the enrichment target annotations", messageName);
         final Collection<String> enrichmentNames = parseEnrichmentNamesFromMsgOption(msg);
         if (enrichmentNames != null && !enrichmentNames.isEmpty()) {
-            log().debug("Found enrichments for event {}: {}", messageName,  enrichmentNames);
+            log().debug("Found enrichments for event {}: {}", messageName, enrichmentNames);
             for (String enrichmentName : enrichmentNames) {
                 msgScanResultBuilder.put(enrichmentName, messageName);
             }
@@ -186,26 +192,40 @@ class EnrichmentsFinder {
         return msgScanResultBuilder.build();
     }
 
-    private Map.Entry<String, String> scanFields(DescriptorProto msg) {
+    private Map<String, String> scanFields(DescriptorProto msg) {
         final String msgName = msg.getName();
         log().debug("Scanning fields of message {} for the enrichment annotations", msgName);
+        final Map<String, String> enrichmentsMap = new HashMap<>();
         for (FieldDescriptorProto field : msg.getFieldList()) {
-            if (hasOptionEnrichBy(field)) {
-                final String eventNameFromBy = parseEventNameFromOptBy(field);
-                log().debug("'by' option found on field {} targeting {}", field.getName(), eventNameFromBy);
-                if (ANY_BY_OPTION_TARGET.equals(eventNameFromBy)) {
-                    log().debug("Skipping a wildcard event");
-                    // Ignore the wildcard By options, as we don't know the target event type in this case.
-                    continue;
-                }
-                if (eventNameFromBy == null) {
-                    throw invalidByOptionValue(msgName);
-                }
-                final String enrichmentName = packagePrefix + msgName;
-                return new AbstractMap.SimpleEntry<>(enrichmentName, eventNameFromBy);
+            if (hasOptionEnrichBy(field)) { // TODO:19-01-17:dmytro.dashenkov: Verify behavior. By now we stop searching after having found one appropriate match, but no we check all the fields.
+                final Collection<String> eventNamesFromBy = parseEventNameFromOptBy(field);
+                final Map<String, String> foundResults = groupFoundEvents(msgName, eventNamesFromBy, field.getName());
+                enrichmentsMap.putAll(foundResults);
             }
         }
-        return null;
+        return enrichmentsMap;
+    }
+
+    private Map<String, String> groupFoundEvents(String enrichment,
+                                                 Collection<String> events,
+                                                 String fieldName) {
+        final Map<String, String> normalizedResults = new HashMap<>(events.size());
+        for (String eventName : events) {
+            log().debug("'by' option found on field {} targeting {}", fieldName, eventName);
+
+            if (eventName == null) {
+                throw invalidByOptionValue(enrichment);
+            }
+            if (ANY_BY_OPTION_TARGET.equals(eventName)) {
+                log().debug("Skipping a wildcard event");
+                // Ignore the wildcard By options, as we don't know the target event type in this case.
+                continue;
+            }
+            final String enrichmentName = packagePrefix + enrichment;
+            normalizedResults.put(enrichmentName, eventName);
+        }
+
+        return normalizedResults;
     }
 
     @SuppressWarnings("MethodWithMultipleLoops")    // It's fine in this case.
@@ -276,16 +296,33 @@ class EnrichmentsFinder {
         return hasUnknownOption(field, OPTION_NUMBER_ENRICH_BY);
     }
 
-    private static String parseEventNameFromOptBy(FieldDescriptorProto field) {
-        final String fieldFqn = getUnknownOptionValue(field, OPTION_NUMBER_ENRICH_BY);
-        if (fieldFqn == null) {
-            return null;
+    /**
+     * @return {@link Collection} of strings representing the fully qualified names of the target events for given field
+     */
+    @SuppressWarnings("IndexOfReplaceableByContains") // On performance purposes
+    private static Collection<String> parseEventNameFromOptBy(FieldDescriptorProto field) {
+        final String byArgument = getUnknownOptionValue(field, OPTION_NUMBER_ENRICH_BY);
+        final String[] fieldFqnsArray;
+
+        if (byArgument.indexOf(PIPE_SEPARATOR) < 0) {
+            fieldFqnsArray = new String[]{byArgument};
+        } else {
+            fieldFqnsArray = PATTERN_PIPE_SEPARATOR.split(byArgument);
         }
-        final int index = fieldFqn.lastIndexOf(PROTO_TYPE_SEPARATOR);
-        if (index < 0) {
-            return null;
+        final Collection<String> result = new LinkedList<>();
+
+        for (String fieldFqn : fieldFqnsArray) {
+            if (fieldFqn == null) {
+                continue;
+            }
+            final int index = fieldFqn.lastIndexOf(PROTO_TYPE_SEPARATOR);
+            if (index < 0) {
+                continue;
+            }
+            final String typeFqn = fieldFqn.substring(0, index);
+            result.add(typeFqn);
         }
-        final String result = fieldFqn.substring(0, index);
+
         return result;
     }
 
