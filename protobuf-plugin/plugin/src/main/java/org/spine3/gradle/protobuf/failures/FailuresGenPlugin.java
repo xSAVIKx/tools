@@ -81,12 +81,12 @@ public class FailuresGenPlugin extends SpinePlugin {
     public void apply(final Project project) {
         this.project = project;
 
-        log().debug("Preparing action for the failures generating");
+        log().debug("Preparing to generate failures");
         final Action<Task> mainScopeAction = new Action<Task>() {
             @Override
             public void execute(Task task) {
                 final String path = getMainDescriptorSetPath(project);
-                log().debug("Generating the Failures from {}", path);
+                log().debug("Generating the failures from {}", path);
                 final List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
                 processDescriptors(filesWithFailures);
             }
@@ -96,12 +96,12 @@ public class FailuresGenPlugin extends SpinePlugin {
         final GradleTask generateFailures = newTask(GENERATE_FAILURES, mainScopeAction).insertAfterTask(GENERATE_PROTO)
                                                                                        .insertBeforeTask(COMPILE_JAVA)
                                                                                        .applyNowTo(project);
-        log().debug("Preparing action for the test failures generating");
+        log().debug("Preparing to generate test failures");
         final Action<Task> testScopeAction = new Action<Task>() {
             @Override
             public void execute(Task task) {
                 final String path = getTestDescriptorSetPath(project);
-                log().debug("Generating the test Failures from {}", path);
+                log().debug("Generating the test failures from {}", path);
                 final List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
                 processDescriptors(filesWithFailures);
             }
@@ -121,18 +121,18 @@ public class FailuresGenPlugin extends SpinePlugin {
         for (FileDescriptorProto file : allDescriptors) {
             if (file.getName()
                     .endsWith("failures.proto")) {
-                log().info("Found Failures file: {}", file.getName());
+                log().info("Found failures file: {}", file.getName());
                 result.add(file);
             }
             messageTypeCache.cacheTypes(file);
         }
-        log().debug("Found Failures in files: {}", result);
+        log().debug("Found failures in files: {}", result);
 
         return result;
     }
 
     private void processDescriptors(List<FileDescriptorProto> descriptors) {
-        log().debug("Processing the Failures file descriptors");
+        log().debug("Processing the file descriptors for the failures {}", descriptors);
         for (FileDescriptorProto file : descriptors) {
             if (isFileWithFailures(file)) {
                 generateFailures(file, messageTypeCache.getCachedTypes());
@@ -163,7 +163,7 @@ public class FailuresGenPlugin extends SpinePlugin {
     }
 
     private void generateFailures(FileDescriptorProto descriptor, Map<String, String> messageTypeMap) {
-        log().debug("Generating Failures form file {}", descriptor.getName());
+        log().debug("Generating failures form file {}", descriptor.getName());
         final String failuresRootDir = getTargetGenFailuresRootDir(project);
         final String javaPackage = descriptor.getOptions()
                                              .getJavaPackage();
@@ -177,7 +177,7 @@ public class FailuresGenPlugin extends SpinePlugin {
             final String failureName = failure.getName();
             final String failureJavaPath = failuresRootDir + separatorChar
                     + packageDir + separatorChar + failureName + ".java";
-            log().debug("Processing Failure '{}'", failureName);
+            log().debug("Processing failure '{}'", failureName);
 
             final File outputFile = new File(failureJavaPath);
             final FailureWriter writer = new FailureWriter(failure, outputFile, javaPackage, javaOuterClassName, messageTypeMap);

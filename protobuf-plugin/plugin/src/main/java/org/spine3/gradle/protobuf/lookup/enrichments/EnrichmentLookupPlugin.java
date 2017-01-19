@@ -85,7 +85,7 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
     }
 
     private static Action<Task> testScopeActionFor(final Project project) {
-        log().debug("Preparing the action for test enrichment lookup");
+        log().debug("Initializing the enrichment lookup for the \"test\" source code");
         return new Action<Task>() {
             @Override
             public void execute(Task task) {
@@ -96,7 +96,7 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
     }
 
     private static Action<Task> mainScopeActionFor(final Project project) {
-        log().debug("Preparing the action for enrichment lookup");
+        log().debug("Initializing the enrichment lookup for the \"main\" source code");
         return new Action<Task>() {
             @Override
             public void execute(Task task) {

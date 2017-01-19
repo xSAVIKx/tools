@@ -86,7 +86,7 @@ public class ProtoToJavaMapperPlugin extends SpinePlugin {
     }
 
     private static Action<Task> testScopeActionFor(final Project project) {
-        log().debug("Preparing the action for test protobuf to java mapping");
+        log().debug("Initializing the proto to java mapping for the \"test\" source code");
         return new Action<Task>() {
             @Override
             public void execute(Task task) {
@@ -96,7 +96,7 @@ public class ProtoToJavaMapperPlugin extends SpinePlugin {
     }
 
     private static Action<Task> mainScopeActionFor(final Project project) {
-        log().debug("Preparing the action for protobuf to java mapping");
+        log().debug("Initializing the proto to java mapping for the \"main\" source code.");
         return new Action<Task>() {
             @Override
             public void execute(Task task) {
