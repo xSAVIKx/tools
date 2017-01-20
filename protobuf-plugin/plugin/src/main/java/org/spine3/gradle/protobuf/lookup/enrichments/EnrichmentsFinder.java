@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +80,7 @@ class EnrichmentsFinder {
     private static final String PIPE_SEPARATOR = "|";
     private static final Pattern PATTERN_SPACE = Pattern.compile(" ");
     private static final Pattern PATTERN_TARGET_NAME_SEPARATOR = Pattern.compile(TARGET_NAME_SEPARATOR);
-    private static final Pattern PATTERN_PIPE_SEPARATOR = Pattern.compile(PIPE_SEPARATOR);
+    private static final Pattern PATTERN_PIPE_SEPARATOR = Pattern.compile("\\|");
 
     private final FileDescriptorProto file;
     private final String packagePrefix;
@@ -146,6 +147,7 @@ class EnrichmentsFinder {
         if (!entries.isEmpty()) {
             return;
         }
+        // TODO:20-01-17:dmytro.dashenkov: Tests!
         final Map<String, String> entryFromField = scanFields(msg);
         if (entryFromField.size() > 0) {
             for (Map.Entry<String, String> entry : entryFromField.entrySet()) {
@@ -199,37 +201,34 @@ class EnrichmentsFinder {
         for (FieldDescriptorProto field : msg.getFieldList()) {
             if (hasOptionEnrichBy(field)) { // TODO:19-01-17:dmytro.dashenkov: Verify behavior. By now we stop searching after having found one appropriate match, but no we check all the fields.
                 final Collection<String> eventNamesFromBy = parseEventNameFromOptBy(field);
-                final Map<String, String> foundEvents = groupFoundEvents(msgName, eventNamesFromBy, field.getName());
-                enrichmentsMap.putAll(foundEvents);
+                final Map.Entry<String, String> foundEvents = groupFoundEvents(msgName, eventNamesFromBy, field.getName());
+                enrichmentsMap.put(foundEvents.getKey(), foundEvents.getValue());
             }
         }
         return enrichmentsMap;
     }
 
-    private Map<String, String> groupFoundEvents(String enrichment,
-                                                 Collection<String> events,
-                                                 String fieldName) {
-        final Map<String, String> result = new HashMap<>(events.size());
-        boolean hasWildcards = false;
+    private Map.Entry<String, String> groupFoundEvents(String enrichment,
+                                                       Collection<String> events,
+                                                       String fieldName) {
+        final Collection<String> eventGroup = new HashSet<>();
         for (String eventName : events) {
-            log().debug("'by' option found on field {} targeting {}", fieldName, eventName);
-
-            if (eventName == null) {
+            if (eventName == null || eventName.isEmpty()) {
                 throw invalidByOptionValue(enrichment);
             }
+            log().debug("'by' option found on field {} targeting {}", fieldName, eventName);
+
             if (ANY_BY_OPTION_TARGET.equals(eventName)) {
-                hasWildcards = true;
                 log().debug("Skipping a wildcard event");
                 // Ignore the wildcard By options, as we don't know the target event type in this case.
                 continue;
             }
-            final String enrichmentName = packagePrefix + enrichment;
-            result.put(enrichmentName, eventName);
+            eventGroup.add(eventName);
         }
-
-        if (hasWildcards && result.size() > 1) {
-            throw invalidByOptionUsage(enrichment);
-        }
+        final String enrichmentName = packagePrefix + enrichment;
+        final String eventGroupString = Joiner.on(TARGET_NAME_SEPARATOR)
+                                              .join(eventGroup);
+        final Map.Entry<String, String> result = new AbstractMap.SimpleEntry<>(enrichmentName, eventGroupString);
 
         return result;
     }
@@ -315,11 +314,15 @@ class EnrichmentsFinder {
         } else {
             fieldFqnsArray = PATTERN_PIPE_SEPARATOR.split(byArgument);
         }
+        log().error("Pipes: is: {}, was: {}", fieldFqnsArray, byArgument);
         final Collection<String> result = new LinkedList<>();
 
         for (String fieldFqn : fieldFqnsArray) {
             if (fieldFqn == null) {
-                continue;
+                throw invalidByOptionValue(field.getName());
+            }
+            if (fieldFqn.startsWith(ANY_BY_OPTION_TARGET) && fieldFqnsArray.length > 1) {
+                throw invalidByOptionUsage(field.getName());
             }
             final int index = fieldFqn.lastIndexOf(PROTO_TYPE_SEPARATOR);
             if (index < 0) {
@@ -340,7 +343,7 @@ class EnrichmentsFinder {
     @SuppressWarnings("DuplicateStringLiteralInspection")
     private static IllegalStateException invalidByOptionValue(String msgName) {
         throw new IllegalStateException("Field of message `" + msgName + "` has invalid 'by' option value, " +
-                                           "which must be a fully-qualified field reference.");
+                                                "which must be a fully-qualified field reference.");
     }
 
     @SuppressWarnings("DuplicateStringLiteralInspection")
