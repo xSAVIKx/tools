@@ -5,6 +5,7 @@ import org.hamcrest.Description;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,9 +23,11 @@ public class EnrichmentLookupPluginShould {
 
     @BeforeClass
     public static void setUp() {
-        final Properties properties = new Properties();
-        try (InputStream input = new FileInputStream("generated/rest/resources/enrichments.properties")) {
-            properties.load(input);
+        try {
+            final File propFile = new File("generated/test/resources/enrichments.properties");
+            InputStream input = new FileInputStream(propFile);
+            prop.load(input);
+            input.close();
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
