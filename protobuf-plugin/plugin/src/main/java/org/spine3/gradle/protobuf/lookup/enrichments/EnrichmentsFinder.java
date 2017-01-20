@@ -211,7 +211,7 @@ class EnrichmentsFinder {
     private Map.Entry<String, String> groupFoundEvents(String enrichment,
                                                        Collection<String> events,
                                                        String fieldName) {
-        final Collection<String> eventGroup = new HashSet<>();
+        final Collection<String> eventGroup = new HashSet<>(events.size());
         for (String eventName : events) {
             if (eventName == null || eventName.isEmpty()) {
                 throw invalidByOptionValue(enrichment);
