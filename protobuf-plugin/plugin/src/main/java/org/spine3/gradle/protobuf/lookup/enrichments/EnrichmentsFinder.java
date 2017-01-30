@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newLinkedList;
 import static org.spine3.gradle.protobuf.util.UnknownOptions.getUnknownOptionValue;
 import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
@@ -69,6 +70,7 @@ class EnrichmentsFinder {
 
     private static final String TARGET_NAME_SEPARATOR = ",";
     private static final String PROTO_TYPE_SEPARATOR = ".";
+    private static final String EMPTY_TYPE_NAME = "";
 
     /**
      * Wildcard option used in By field option.
@@ -107,7 +109,7 @@ class EnrichmentsFinder {
         for (DescriptorProto msg : messages) {
             putEntry(result, msg);
         }
-        log().debug("Found enrichments: {}", result);
+        log().debug("Found enrichments: {}", result.asMap());
         return mergeDuplicateValues(result);
     }
 
@@ -124,6 +126,9 @@ class EnrichmentsFinder {
         final ImmutableMap.Builder<String, String> mergedResult = ImmutableMap.builder();
         for (String key : source.keySet()) {
             final Set<String> valuesPerKey = source.get(key);
+            // Empty type name might be present in the values
+            // If so, remove it from the set
+            valuesPerKey.remove(EMPTY_TYPE_NAME);
 
             final String mergedValue;
             if (valuesPerKey.size() > 1) {
@@ -213,7 +218,7 @@ class EnrichmentsFinder {
                                                        String fieldName) {
         final Collection<String> eventGroup = new HashSet<>(events.size());
         for (String eventName : events) {
-            if (eventName == null || eventName.isEmpty()) {
+            if (eventName == null || eventName.trim().isEmpty()) {
                 throw invalidByOptionValue(enrichment);
             }
             log().debug("'by' option found on field {} targeting {}", fieldName, eventName);
@@ -274,12 +279,13 @@ class EnrichmentsFinder {
      * Parse type names from a String and supply them with the package prefix if it is not present.
      *
      * @param typeNamesAsString the type names as a single String
-     * @return a collection of normalized type names
+     * @return a collection of normalized type names""
      */
     private Collection<String> normalizeTypeNames(String typeNamesAsString) {
         final Collection<String> targetNamesPrimary = parseTargetNames(typeNamesAsString);
         final Collection<String> normalizedNames = newLinkedList();
         for (String typeName : targetNamesPrimary) {
+            checkState(!typeName.trim().isEmpty(), "Empty type name");
             final boolean isFqn = typeName.contains(PROTO_TYPE_SEPARATOR);
             if (isFqn) {
                 normalizedNames.add(typeName);
@@ -314,7 +320,6 @@ class EnrichmentsFinder {
         } else {
             fieldFqnsArray = PATTERN_PIPE_SEPARATOR.split(byArgument);
         }
-        log().error("Pipes: is: {}, was: {}", fieldFqnsArray, byArgument);
         final Collection<String> result = new LinkedList<>();
 
         for (String fieldFqn : fieldFqnsArray) {
@@ -328,7 +333,8 @@ class EnrichmentsFinder {
             if (index < 0) {
                 continue;
             }
-            final String typeFqn = fieldFqn.substring(0, index);
+            final String typeFqn = fieldFqn.substring(0, index).trim();
+            checkState(!typeFqn.isEmpty(), String.format("Error parsing `by` annotation for field %s", field.getName()));
             result.add(typeFqn);
         }
 
