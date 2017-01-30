@@ -205,7 +205,9 @@ class EnrichmentsFinder {
         for (FieldDescriptorProto field : msg.getFieldList()) {
             if (hasOptionEnrichBy(field)) { // TODO:19-01-17:dmytro.dashenkov: Verify behavior. By now we stop searching after having found one appropriate match, but no we check all the fields.
                 final Collection<String> eventNamesFromBy = parseEventNameFromOptBy(field);
-                final Map.Entry<String, String> foundEvents = groupFoundEvents(msgName, eventNamesFromBy, field.getName());
+                final Map.Entry<String, String> foundEvents = groupFoundEvents(msgName,
+                                                                               eventNamesFromBy,
+                                                                               field.getName());
                 enrichmentsMap.put(foundEvents.getKey(), foundEvents.getValue());
             }
         }
@@ -217,7 +219,8 @@ class EnrichmentsFinder {
                                                        String fieldName) {
         final Collection<String> eventGroup = new HashSet<>(events.size());
         for (String eventName : events) {
-            if (eventName == null || eventName.trim().isEmpty()) {
+            if (eventName == null || eventName.trim()
+                                              .isEmpty()) {
                 throw invalidByOptionValue(enrichment);
             }
             log().debug("'by' option found on field {} targeting {}", fieldName, eventName);
@@ -284,7 +287,8 @@ class EnrichmentsFinder {
         final Collection<String> targetNamesPrimary = parseTargetNames(typeNamesAsString);
         final Collection<String> normalizedNames = newLinkedList();
         for (String typeName : targetNamesPrimary) {
-            checkState(!typeName.trim().isEmpty(), "Empty type name");
+            checkState(!typeName.trim()
+                                .isEmpty(), "Empty type name");
             final boolean isFqn = typeName.contains(PROTO_TYPE_SEPARATOR);
             if (isFqn) {
                 normalizedNames.add(typeName);
@@ -335,8 +339,10 @@ class EnrichmentsFinder {
                 // The short form type names are handled as inner types
                 continue;
             }
-            final String typeFqn = fieldFqn.substring(0, index).trim();
-            checkState(!typeFqn.isEmpty(), String.format("Error parsing `by` annotation for field %s", field.getName()));
+            final String typeFqn = fieldFqn.substring(0, index)
+                                           .trim();
+            checkState(!typeFqn.isEmpty(), String.format("Error parsing `by` annotation for field %s",
+                                                         field.getName()));
             result.add(typeFqn);
         }
 

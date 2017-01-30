@@ -28,7 +28,7 @@ option java_multiple_files = true;
 import "spine/annotations.proto";
 import "spine/enrichment_annotations.proto";
 
-// Messages in this file are test enrichments
+// Messages in this file are test enrichments.
 //
 // See EnrichmentLookupPluginShould
 //
