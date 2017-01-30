@@ -152,7 +152,6 @@ class EnrichmentsFinder {
         if (!entries.isEmpty()) {
             return;
         }
-        // TODO:20-01-17:dmytro.dashenkov: Tests!
         final Map<String, String> entryFromField = scanFields(msg);
         if (entryFromField.size() > 0) {
             for (Map.Entry<String, String> entry : entryFromField.entrySet()) {
