@@ -326,7 +326,8 @@ class EnrichmentsFinder {
                 throw invalidByOptionValue(field.getName());
             }
             if (fieldFqn.startsWith(ANY_BY_OPTION_TARGET) && fieldFqnsArray.length > 1) {
-                // Multiple argument `by` annotation can not contain wildcard references onto the event type
+                // Multiple argument `by` annotation can not contain wildcard references onto the event type if the type
+                // was not specified with a `enrichment_for` annotation
                 throw invalidByOptionUsage(field.getName());
             }
             final int index = fieldFqn.lastIndexOf(PROTO_TYPE_SEPARATOR);
@@ -355,8 +356,9 @@ class EnrichmentsFinder {
 
     @SuppressWarnings("DuplicateStringLiteralInspection")
     private static IllegalStateException invalidByOptionUsage(String msgName) {
-        throw new IllegalStateException("Field of message `" + msgName + "` has invalid 'by' option value." +
-                                                "Wildcard type is not allowed with multiple arguments.");
+        throw new IllegalStateException("Field of message `" + msgName + "` has invalid 'by' option value. " +
+                                                "Wildcard type is not allowed with multiple arguments. " +
+                                                "Please, specify the type either with `by` or with `enrichment_for` annotation.");
     }
 
     private static Logger log() {
