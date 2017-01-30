@@ -31,6 +31,7 @@ import "spine/enrichment_annotations.proto";
 // Messages in this file are test enrichments
 //
 // See EnrichmentLookupPluginShould
+//
 message ProjectCreatedEnrichment {
     option (enrichment_for) = "spine.test.plugin.event.ProjectCreated";
 
