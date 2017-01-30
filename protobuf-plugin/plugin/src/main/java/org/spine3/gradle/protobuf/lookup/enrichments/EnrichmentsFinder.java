@@ -109,7 +109,7 @@ class EnrichmentsFinder {
         for (DescriptorProto msg : messages) {
             putEntry(result, msg);
         }
-        log().debug("Found enrichments: {}", result.asMap());
+        log().debug("Found enrichments: {}", result.toString());
         return mergeDuplicateValues(result);
     }
 
@@ -278,7 +278,7 @@ class EnrichmentsFinder {
      * Parse type names from a String and supply them with the package prefix if it is not present.
      *
      * @param typeNamesAsString the type names as a single String
-     * @return a collection of normalized type names""
+     * @return a collection of normalized type names
      */
     private Collection<String> normalizeTypeNames(String typeNamesAsString) {
         final Collection<String> targetNamesPrimary = parseTargetNames(typeNamesAsString);
@@ -326,10 +326,12 @@ class EnrichmentsFinder {
                 throw invalidByOptionValue(field.getName());
             }
             if (fieldFqn.startsWith(ANY_BY_OPTION_TARGET) && fieldFqnsArray.length > 1) {
+                // Multiple argument `by` annotation can not contain wildcard references onto the event type
                 throw invalidByOptionUsage(field.getName());
             }
             final int index = fieldFqn.lastIndexOf(PROTO_TYPE_SEPARATOR);
             if (index < 0) {
+                // The short form type names are handled as inner types
                 continue;
             }
             final String typeFqn = fieldFqn.substring(0, index).trim();
