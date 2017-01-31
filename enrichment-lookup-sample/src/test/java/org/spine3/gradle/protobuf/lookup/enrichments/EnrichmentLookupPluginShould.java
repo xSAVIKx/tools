@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author Dmytro Dashenkov
@@ -37,11 +36,6 @@ public class EnrichmentLookupPluginShould {
     @Test
     public void find_enrichments() {
         assertFalse(prop.isEmpty());
-    }
-
-    private static void assertEnrichment(String enrichment, String event) {
-        final String events = prop.getProperty(enrichment);
-        assertThat(event, new IsContainedIn(events));
     }
 
     private static class IsContainedIn extends BaseMatcher<String> {
