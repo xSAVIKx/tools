@@ -203,7 +203,7 @@ class EnrichmentsFinder {
         log().debug("Scanning fields of message {} for the enrichment annotations", msgName);
         final Map<String, String> enrichmentsMap = new HashMap<>();
         for (FieldDescriptorProto field : msg.getFieldList()) {
-            if (hasOptionEnrichBy(field)) { // TODO:19-01-17:dmytro.dashenkov: Verify behavior. By now we stop searching after having found one appropriate match, but no we check all the fields.
+            if (hasOptionEnrichBy(field)) {
                 final Collection<String> eventNamesFromBy = parseEventNameFromOptBy(field);
                 final Map.Entry<String, String> foundEvents = groupFoundEvents(msgName,
                                                                                eventNamesFromBy,
