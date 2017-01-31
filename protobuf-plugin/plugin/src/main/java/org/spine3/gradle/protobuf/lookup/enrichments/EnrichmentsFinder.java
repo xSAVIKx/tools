@@ -32,11 +32,15 @@ import org.slf4j.LoggerFactory;
 
 import java.util.AbstractMap;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newLinkedList;
 import static org.spine3.gradle.protobuf.util.UnknownOptions.getUnknownOptionValue;
 import static org.spine3.gradle.protobuf.util.UnknownOptions.hasUnknownOption;
@@ -66,6 +70,7 @@ class EnrichmentsFinder {
 
     private static final String TARGET_NAME_SEPARATOR = ",";
     private static final String PROTO_TYPE_SEPARATOR = ".";
+    private static final String EMPTY_TYPE_NAME = "";
 
     /**
      * Wildcard option used in By field option.
@@ -74,8 +79,10 @@ class EnrichmentsFinder {
      * event types. That's why an FQN of the target type is replaced by this wildcard option.
      **/
     private static final String ANY_BY_OPTION_TARGET = "*";
+    private static final String PIPE_SEPARATOR = "|";
     private static final Pattern PATTERN_SPACE = Pattern.compile(" ");
     private static final Pattern PATTERN_TARGET_NAME_SEPARATOR = Pattern.compile(TARGET_NAME_SEPARATOR);
+    private static final Pattern PATTERN_PIPE_SEPARATOR = Pattern.compile("\\|");
 
     private final FileDescriptorProto file;
     private final String packagePrefix;
@@ -102,7 +109,7 @@ class EnrichmentsFinder {
         for (DescriptorProto msg : messages) {
             putEntry(result, msg);
         }
-        log().debug("Found enrichments: {}", result);
+        log().debug("Found enrichments: {}", result.toString());
         return mergeDuplicateValues(result);
     }
 
@@ -119,6 +126,9 @@ class EnrichmentsFinder {
         final ImmutableMap.Builder<String, String> mergedResult = ImmutableMap.builder();
         for (String key : source.keySet()) {
             final Set<String> valuesPerKey = source.get(key);
+            // Empty type name might be present in the values
+            // If so, remove it from the set
+            valuesPerKey.remove(EMPTY_TYPE_NAME);
 
             final String mergedValue;
             if (valuesPerKey.size() > 1) {
@@ -142,9 +152,11 @@ class EnrichmentsFinder {
         if (!entries.isEmpty()) {
             return;
         }
-        final Map.Entry<String, String> entryFromField = scanFields(msg);
-        if (entryFromField != null) {
-            put(entryFromField, targetMap);
+        final Map<String, String> entryFromField = scanFields(msg);
+        if (entryFromField.size() > 0) {
+            for (Map.Entry<String, String> entry : entryFromField.entrySet()) {
+                put(entry, targetMap);
+            }
             return;
         }
         final Map.Entry<String, String> entryFromInnerMsg = scanInnerMessages(msg);
@@ -175,7 +187,7 @@ class EnrichmentsFinder {
         log().debug("Scanning message {} for the enrichment target annotations", messageName);
         final Collection<String> enrichmentNames = parseEnrichmentNamesFromMsgOption(msg);
         if (enrichmentNames != null && !enrichmentNames.isEmpty()) {
-            log().debug("Found enrichments for event {}: {}", messageName,  enrichmentNames);
+            log().debug("Found enrichments for event {}: {}", messageName, enrichmentNames);
             for (String enrichmentName : enrichmentNames) {
                 msgScanResultBuilder.put(enrichmentName, messageName);
             }
@@ -186,26 +198,46 @@ class EnrichmentsFinder {
         return msgScanResultBuilder.build();
     }
 
-    private Map.Entry<String, String> scanFields(DescriptorProto msg) {
+    private Map<String, String> scanFields(DescriptorProto msg) {
         final String msgName = msg.getName();
         log().debug("Scanning fields of message {} for the enrichment annotations", msgName);
+        final Map<String, String> enrichmentsMap = new HashMap<>();
         for (FieldDescriptorProto field : msg.getFieldList()) {
             if (hasOptionEnrichBy(field)) {
-                final String eventNameFromBy = parseEventNameFromOptBy(field);
-                log().debug("'by' option found on field {} targeting {}", field.getName(), eventNameFromBy);
-                if (ANY_BY_OPTION_TARGET.equals(eventNameFromBy)) {
-                    log().debug("Skipping a wildcard event");
-                    // Ignore the wildcard By options, as we don't know the target event type in this case.
-                    continue;
-                }
-                if (eventNameFromBy == null) {
-                    throw invalidByOptionValue(msgName);
-                }
-                final String enrichmentName = packagePrefix + msgName;
-                return new AbstractMap.SimpleEntry<>(enrichmentName, eventNameFromBy);
+                final Collection<String> eventNamesFromBy = parseEventNameFromOptBy(field);
+                final Map.Entry<String, String> foundEvents = groupFoundEvents(msgName,
+                                                                               eventNamesFromBy,
+                                                                               field.getName());
+                enrichmentsMap.put(foundEvents.getKey(), foundEvents.getValue());
             }
         }
-        return null;
+        return enrichmentsMap;
+    }
+
+    private Map.Entry<String, String> groupFoundEvents(String enrichment,
+                                                       Collection<String> events,
+                                                       String fieldName) {
+        final Collection<String> eventGroup = new HashSet<>(events.size());
+        for (String eventName : events) {
+            if (eventName == null || eventName.trim()
+                                              .isEmpty()) {
+                throw invalidByOptionValue(enrichment);
+            }
+            log().debug("'by' option found on field {} targeting {}", fieldName, eventName);
+
+            if (ANY_BY_OPTION_TARGET.equals(eventName)) {
+                log().debug("Skipping a wildcard event");
+                // Ignore the wildcard By options, as we don't know the target event type in this case.
+                continue;
+            }
+            eventGroup.add(eventName);
+        }
+        final String enrichmentName = packagePrefix + enrichment;
+        final String eventGroupString = Joiner.on(TARGET_NAME_SEPARATOR)
+                                              .join(eventGroup);
+        final Map.Entry<String, String> result = new AbstractMap.SimpleEntry<>(enrichmentName, eventGroupString);
+
+        return result;
     }
 
     @SuppressWarnings("MethodWithMultipleLoops")    // It's fine in this case.
@@ -255,6 +287,8 @@ class EnrichmentsFinder {
         final Collection<String> targetNamesPrimary = parseTargetNames(typeNamesAsString);
         final Collection<String> normalizedNames = newLinkedList();
         for (String typeName : targetNamesPrimary) {
+            checkState(!typeName.trim()
+                                .isEmpty(), "Empty type name");
             final boolean isFqn = typeName.contains(PROTO_TYPE_SEPARATOR);
             if (isFqn) {
                 normalizedNames.add(typeName);
@@ -276,16 +310,42 @@ class EnrichmentsFinder {
         return hasUnknownOption(field, OPTION_NUMBER_ENRICH_BY);
     }
 
-    private static String parseEventNameFromOptBy(FieldDescriptorProto field) {
-        final String fieldFqn = getUnknownOptionValue(field, OPTION_NUMBER_ENRICH_BY);
-        if (fieldFqn == null) {
-            return null;
+    /**
+     * @return {@link Collection} of strings representing the fully qualified names of the target events for given field
+     */
+    @SuppressWarnings("IndexOfReplaceableByContains") // On performance purposes
+    private static Collection<String> parseEventNameFromOptBy(FieldDescriptorProto field) {
+        final String byArgument = getUnknownOptionValue(field, OPTION_NUMBER_ENRICH_BY);
+        final String[] fieldFqnsArray;
+
+        if (byArgument.indexOf(PIPE_SEPARATOR) < 0) {
+            fieldFqnsArray = new String[]{byArgument};
+        } else {
+            fieldFqnsArray = PATTERN_PIPE_SEPARATOR.split(byArgument);
         }
-        final int index = fieldFqn.lastIndexOf(PROTO_TYPE_SEPARATOR);
-        if (index < 0) {
-            return null;
+        final Collection<String> result = new LinkedList<>();
+
+        for (String fieldFqn : fieldFqnsArray) {
+            if (fieldFqn == null) {
+                throw invalidByOptionValue(field.getName());
+            }
+            if (fieldFqn.startsWith(ANY_BY_OPTION_TARGET) && fieldFqnsArray.length > 1) {
+                // Multiple argument `by` annotation can not contain wildcard references onto the event type if the type
+                // was not specified with a `enrichment_for` annotation
+                throw invalidByOptionUsage(field.getName());
+            }
+            final int index = fieldFqn.lastIndexOf(PROTO_TYPE_SEPARATOR);
+            if (index < 0) {
+                // The short form type names are handled as inner types
+                continue;
+            }
+            final String typeFqn = fieldFqn.substring(0, index)
+                                           .trim();
+            checkState(!typeFqn.isEmpty(), String.format("Error parsing `by` annotation for field %s",
+                                                         field.getName()));
+            result.add(typeFqn);
         }
-        final String result = fieldFqn.substring(0, index);
+
         return result;
     }
 
@@ -294,9 +354,17 @@ class EnrichmentsFinder {
         targetMap.put(entry.getKey(), entry.getValue());
     }
 
-    private static RuntimeException invalidByOptionValue(String msgName) {
-        throw new RuntimeException("Field of message `" + msgName + "` has invalid 'by' option value, " +
-                                           "which must be a fully-qualified field reference.");
+    @SuppressWarnings("DuplicateStringLiteralInspection")
+    private static IllegalStateException invalidByOptionValue(String msgName) {
+        throw new IllegalStateException("Field of message `" + msgName + "` has invalid 'by' option value, " +
+                                                "which must be a fully-qualified field reference.");
+    }
+
+    @SuppressWarnings("DuplicateStringLiteralInspection")
+    private static IllegalStateException invalidByOptionUsage(String msgName) {
+        throw new IllegalStateException("Field of message `" + msgName + "` has invalid 'by' option value. " +
+                                                "Wildcard type is not allowed with multiple arguments. " +
+                                                "Please, specify the type either with `by` or with `enrichment_for` annotation.");
     }
 
     private static Logger log() {

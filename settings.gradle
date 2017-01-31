@@ -15,3 +15,6 @@ project(':map-proto-to-java-sample').projectDir = "$rootDir/map-proto-to-java-sa
 include 'common'
 project(':common').projectDir = "$rootDir/common" as File
 
+include 'enrichment-lookup-sample'
+project(':enrichment-lookup-sample').projectDir = "$rootDir/enrichment-lookup-sample" as File
+

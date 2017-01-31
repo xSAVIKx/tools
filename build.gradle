@@ -1,5 +1,6 @@
-final SPINE_VERSION = '0.7.9-SNAPSHOT'
-final PLUGIN_VERSION = SPINE_VERSION
+final SPINE_VERSION = '0.7.24-SNAPSHOT'
+final PLUGIN_VERSION = '0.7.9-SNAPSHOT'
+final PLUGIN_PUBLISH_VERSION = '0.7.24-SNAPSHOT'
 
 buildscript {
     ext {
@@ -10,7 +11,7 @@ buildscript {
 
 allprojects {
     group = 'org.spine3.tools'
-    version = SPINE_VERSION
+    version = PLUGIN_PUBLISH_VERSION
 
     project.ext {
         spineRepository = 'http://maven.teamdev.com/repository/spine'

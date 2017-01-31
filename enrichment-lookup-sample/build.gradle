@@ -1,0 +1,70 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url = spineRepository }
+        maven { url = spineSnapshotRepository }
+    }
+    dependencies {
+        classpath group: 'com.google.guava', name: 'guava', version: guavaVersion
+        classpath ("com.google.protobuf:protobuf-gradle-plugin:${protobufGradlePluginVersion}") {
+            // exclude old Guava version
+            exclude group: 'com.google.guava'
+        }
+        classpath group: "org.spine3.tools", name: "protobuf-plugin", version: pluginVersion
+    }
+    configurations.all({
+        resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
+    })
+}
+
+apply plugin: 'java'
+apply plugin: 'com.google.protobuf'
+apply plugin: 'org.spine3.tools.protobuf-plugin'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+
+    maven { url = spineRepository }
+    maven { url = spineSnapshotRepository }
+}
+
+dependencies {
+    compile group: 'com.google.guava', name: 'guava', version: guavaVersion
+    compile group: 'org.spine3', name: 'spine-client-core', version: spineVersion
+
+
+    configurations.all({
+        resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
+    })
+}
+
+protobuf {
+    generatedFilesBaseDir = "${projectDir}/generated";
+    protoc {
+        artifact = "com.google.protobuf:protoc:${protobufVersion}"
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.generateDescriptorSet = true
+            task.descriptorSetOptions.path = "${projectDir}/build/descriptors/${task.sourceSet.name}.desc"
+            task.descriptorSetOptions.includeImports = true
+        }
+    }
+}
+
+idea.module {
+    generatedSourceDirs += file("${projectDir}/generated/test/java")
+}
+
+sourceSets {
+    test {
+        java.srcDirs = ["${projectDir}/src/test/java", "${projectDir}/generated/test/java"]
+        proto.srcDirs = ["${projectDir}/src/test/proto"]
+        resources.srcDirs = ["${projectDir}/generated/test/resources"]
+    }
+}
