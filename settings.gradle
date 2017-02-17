@@ -20,4 +20,3 @@ project(':enrichment-lookup-sample').projectDir = "$rootDir/enrichment-lookup-sa
 
 include 'javadoc'
 project(':javadoc').projectDir = "$rootDir/javadoc" as File
-
