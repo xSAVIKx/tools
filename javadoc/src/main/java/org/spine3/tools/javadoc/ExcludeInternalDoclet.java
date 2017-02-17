@@ -26,6 +26,7 @@ import com.sun.tools.doclets.standard.Standard;
 import com.sun.tools.javadoc.Main;
 import org.spine3.Internal;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -73,7 +74,7 @@ public class ExcludeInternalDoclet extends Standard {
         return Standard.start((RootDoc) doclet.process(root, RootDoc.class));
     }
 
-    private Object process(Object obj, Class expect) {
+    private Object process(@Nullable Object obj, Class expect) {
         if (obj == null) {
             return null;
         }
