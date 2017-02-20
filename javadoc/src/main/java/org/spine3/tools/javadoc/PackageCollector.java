@@ -120,7 +120,7 @@ class PackageCollector {
 
     private static class PackageDocComparator implements Comparator<PackageDoc>, Serializable {
 
-        private static final long serialVersionUID = 7881557713731608790L;
+        private static final long serialVersionUID = 1L;
 
         @Override
         public int compare(PackageDoc o1, PackageDoc o2) {
