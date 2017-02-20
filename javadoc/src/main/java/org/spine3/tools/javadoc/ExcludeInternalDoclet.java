@@ -52,6 +52,9 @@ import java.util.List;
  *     <li>docletpath classpathlist (The path to the doclet starting class file).</li>
  * </ul>
  *
+ * <p>Call it with Javadoc tool like this:
+ * javadoc -doclet org.spine3.tools.javadoc.ExcludeInternalDoclet -docletpath "classpathlist" ...</p>
+ *
  * <p>Based on <a href="http://sixlegs.com/blog/java/exclude-javadoc-tag.html">this</a> topic.</p>
  *
  * @author Dmytro Grankin
