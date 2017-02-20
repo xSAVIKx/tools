@@ -33,5 +33,5 @@ interface ExcludePrinciple {
      * @param doc the document to analyze
      * @return {@code true} if document should be excluded, {@code false} otherwise
      */
-    boolean exclude(Doc doc);
+    boolean shouldExclude(Doc doc);
 }
