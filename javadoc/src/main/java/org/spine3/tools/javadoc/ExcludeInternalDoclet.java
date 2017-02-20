@@ -25,6 +25,7 @@ import com.sun.javadoc.RootDoc;
 import com.sun.tools.doclets.standard.Standard;
 import com.sun.tools.javadoc.Main;
 import org.spine3.Internal;
+import org.spine3.util.Exceptions;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Array;
@@ -88,6 +89,7 @@ public class ExcludeInternalDoclet extends Standard {
         return Standard.start((RootDoc) doclet.process(root, RootDoc.class));
     }
 
+    @Nullable
     private Object process(@Nullable Object obj, Class expect) {
         if (obj == null) {
             return null;
@@ -101,7 +103,7 @@ public class ExcludeInternalDoclet extends Standard {
             final Object[] array = (Object[]) obj;
             final List<Object> list = new ArrayList<>();
             for (Object entry : array) {
-                if (!(entry instanceof Doc && excludePrinciple.exclude((Doc) entry))) {
+                if (!(entry instanceof Doc && excludePrinciple.shouldExclude((Doc) entry))) {
                     list.add(process(entry, componentType));
                 }
             }
@@ -133,7 +135,7 @@ public class ExcludeInternalDoclet extends Standard {
             try {
                 return process(method.invoke(target, args), method.getReturnType());
             } catch (InvocationTargetException e) {
-                throw e.getCause();
+                throw Exceptions.wrappedCause(e);
             }
         }
 
