@@ -24,16 +24,17 @@ import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.PackageDoc;
 import com.sun.javadoc.RootDoc;
 
+import java.io.Serializable;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Comparator;
+import java.util.TreeSet;
 
 /**
  * Collects {@linkplain PackageDoc}s that pass {@linkplain AnnotationAnalyst} checks.
  *
  * @author Dmytro Grankin
  */
-public class PackageCollector {
+class PackageCollector {
 
     private final AnnotationAnalyst analyst;
 
@@ -48,8 +49,8 @@ public class PackageCollector {
      * @param root the root to collect
      * @return collected {@linkplain PackageDoc}s
      */
-    Set<PackageDoc> collect(RootDoc root) {
-        final Set<PackageDoc> packages = new HashSet<>();
+    Collection<PackageDoc> collect(RootDoc root) {
+        final Collection<PackageDoc> packages = new TreeSet<>(new PackageDocComparator());
 
         packages.addAll(collect(root.specifiedPackages()));
         packages.addAll(collect(root.specifiedClasses()));
@@ -58,8 +59,8 @@ public class PackageCollector {
     }
 
     private Collection<PackageDoc> collect(ClassDoc[] forClasses) {
-        final Set<PackageDoc> allPackages = getPackages(forClasses);
-        final Set<PackageDoc> basePackages = getPackages(forClasses);
+        final Collection<PackageDoc> allPackages = getPackages(forClasses);
+        final Collection<PackageDoc> basePackages = getPackages(forClasses);
 
         for (ClassDoc classDoc : forClasses) {
             if (isSubpackage(classDoc.containingPackage(), basePackages)) {
@@ -71,8 +72,8 @@ public class PackageCollector {
     }
 
     private Collection<PackageDoc> collect(PackageDoc[] forPackages) {
-        final Set<PackageDoc> allPackages = getBasePackages(forPackages);
-        final Set<PackageDoc> basePackages = getBasePackages(forPackages);
+        final Collection<PackageDoc> allPackages = getBasePackages(forPackages);
+        final Collection<PackageDoc> basePackages = getBasePackages(forPackages);
 
         for (PackageDoc packageDoc : forPackages) {
             if (isSubpackage(packageDoc, basePackages)) {
@@ -83,8 +84,8 @@ public class PackageCollector {
         return allPackages;
     }
 
-    private Set<PackageDoc> getBasePackages(PackageDoc[] forPackages) {
-        final Set<PackageDoc> packages = new HashSet<>();
+    private Collection<PackageDoc> getBasePackages(PackageDoc[] forPackages) {
+        final Collection<PackageDoc> packages = new TreeSet<>(new PackageDocComparator());
 
         for (PackageDoc packageDoc : forPackages) {
             if (analyst.isAnnotationPresent(packageDoc.annotations())) {
@@ -95,8 +96,8 @@ public class PackageCollector {
         return packages;
     }
 
-    private Set<PackageDoc> getPackages(ClassDoc[] forClasses) {
-        final Set<PackageDoc> packages = new HashSet<>();
+    private Collection<PackageDoc> getPackages(ClassDoc[] forClasses) {
+        final Collection<PackageDoc> packages = new TreeSet<>(new PackageDocComparator());
 
         for (ClassDoc classDoc : forClasses) {
             if (analyst.isAnnotationPresent(classDoc.containingPackage().annotations())) {
@@ -115,5 +116,15 @@ public class PackageCollector {
         }
 
         return false;
+    }
+
+    private static class PackageDocComparator implements Comparator<PackageDoc>, Serializable {
+
+        private static final long serialVersionUID = 7881557713731608790L;
+
+        @Override
+        public int compare(PackageDoc o1, PackageDoc o2) {
+            return o1.name().compareTo(o2.name());
+        }
     }
 }
