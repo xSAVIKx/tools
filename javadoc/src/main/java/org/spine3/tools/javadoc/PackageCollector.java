@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Collects {@linkplain PackageDoc}s that passes {@linkplain AnnotationAnalyst} checks.
+ * Collects {@linkplain PackageDoc}s that pass {@linkplain AnnotationAnalyst} checks.
  *
  * @author Dmytro Grankin
  */

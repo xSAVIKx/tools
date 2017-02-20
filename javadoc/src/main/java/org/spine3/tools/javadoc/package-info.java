@@ -19,7 +19,7 @@
  */
 
 /**
- * This package provides custom doclets for javadoc tool.
+ * This package provides custom doclets for Javadoc tool.
  */
 @ParametersAreNonnullByDefault
 package org.spine3.tools.javadoc;
