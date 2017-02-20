@@ -38,6 +38,19 @@ import java.util.List;
 /**
  * Extension of {@linkplain Standard} doclet, which excludes {@linkplain Internal}-annotated components.
  *
+ * <p>Use it to generate documentation for audience, that should not know about
+ * {@linkplain Internal}-annotated components.</p>
+ *
+ * <p>Works by pre-processing a {@linkplain RootDoc}.
+ * The doclet creates new {@linkplain RootDoc},
+ * that does not contains {@linkplain Internal}-annotated components and further generates documents.</p>
+ *
+ * <p>You can use the nonstandard doclet by specifying the following Javadoc options:
+ * <ul>
+ *     <li>doclet org.spine3.tools.javadoc.ExcludeInternalDoclet;</li>
+ *     <li>docletpath classpathlist (The path to the doclet starting class file).</li>
+ * </ul>
+ *
  * <p>Based on <a href="http://sixlegs.com/blog/java/exclude-javadoc-tag.html">this</a> topic.</p>
  *
  * @author Dmytro Grankin
