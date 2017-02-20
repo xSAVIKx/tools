@@ -44,9 +44,9 @@ import java.util.List;
  *
  * <p>Works by pre-processing a {@linkplain RootDoc}.
  * The doclet creates new {@linkplain RootDoc},
- * that does not contains {@linkplain Internal}-annotated components and further generates documents.</p>
+ * that does not contain {@linkplain Internal}-annotated components and further generates documents.</p>
  *
- * <p>You can use the nonstandard doclet by specifying the following Javadoc options:
+ * <p>You can use the non-standard doclet by specifying the following Javadoc options:
  * <ul>
  *     <li>doclet org.spine3.tools.javadoc.ExcludeInternalDoclet;</li>
  *     <li>docletpath classpathlist (The path to the doclet starting class file).</li>
