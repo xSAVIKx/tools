@@ -30,6 +30,8 @@ import com.sun.javadoc.Doc;
 interface ExcludePrinciple {
 
     /**
+     * Returns {@code true} if the document should be excluded.
+     *
      * @param doc the document to analyze
      * @return {@code true} if document should be excluded, {@code false} otherwise
      */
