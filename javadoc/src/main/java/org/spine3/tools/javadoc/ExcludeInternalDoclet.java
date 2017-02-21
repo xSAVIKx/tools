@@ -116,6 +116,10 @@ public class ExcludeInternalDoclet extends Standard {
         }
     }
 
+    /**
+     * The {@linkplain InvocationHandler} that unwrap arguments in {@linkplain ExclusionMethod}s
+     * before calling the underlying method.
+     */
     private class ExcludeHandler implements InvocationHandler {
 
         private final Object target;
@@ -127,11 +131,7 @@ public class ExcludeInternalDoclet extends Standard {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             if (args != null) {
-                String methodName = method.getName();
-                if ("compareTo".equals(methodName)
-                        || "equals".equals(methodName)
-                        || "overrides".equals(methodName)
-                        || "subclassOf".equals(methodName)) {
+                if (isExclusionMethod(method.getName())) {
                     args[0] = unwrap(args[0]);
                 }
             }
@@ -147,6 +147,38 @@ public class ExcludeInternalDoclet extends Standard {
                 return ((ExcludeHandler) Proxy.getInvocationHandler(proxy)).target;
             }
             return proxy;
+        }
+
+        private boolean isExclusionMethod(String methodName) {
+            for (ExclusionMethod unwrapMethod : ExclusionMethod.values()) {
+                if (unwrapMethod.getMethodName().equals(methodName)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    /**
+     * Enumeration of methods in Sun's implementation that assumes that parameters will be a particular concrete type.
+     * These methods requires the special handling code.
+     */
+    private enum ExclusionMethod {
+        COMPARE_TO("compareTo"),
+        EQUALS("equals"),
+        OVERRIDES("overrides"),
+        SUBCLASS_OF("subclassOf")
+        ;
+
+        private final String methodName;
+
+        ExclusionMethod(String methodName) {
+            this.methodName = methodName;
+        }
+
+        String getMethodName() {
+            return methodName;
         }
     }
 }
