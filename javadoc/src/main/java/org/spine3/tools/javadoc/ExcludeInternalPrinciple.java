@@ -31,7 +31,7 @@ import java.util.Collection;
 /**
  * Implementation of the {@linkplain ExcludePrinciple} interface for {@linkplain Internal} annotation.
  *
- * <p>Excludes all {@linkplain Internal}-annotated program elements, packages, and their subpackages.</p>
+ * <p>Excludes all {@linkplain Internal}-annotated program elements, packages, and their subpackages.
  *
  * @author Dmytro Grankin
  */
