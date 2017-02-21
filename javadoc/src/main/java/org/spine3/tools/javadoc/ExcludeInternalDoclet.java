@@ -55,6 +55,15 @@ import java.util.List;
  * <p>Call it with Javadoc tool like this:<pre> {@code
  * javadoc -doclet org.spine3.tools.javadoc.ExcludeInternalDoclet -docletpath "classpathlist" ...}</pre>
  *
+ * <p>If everything done right, you will see the standard Javadoc tool output:
+ * (Implied that Javadoc will be generated for single "MyClass.java" file)
+ * <pre>Loading source file MyClass.java...
+ * Constructing Javadoc information...
+ * Standard Doclet version "your_JDK_version"
+ * Building tree for all the packages and classes...
+ * ...</pre>
+ * And so on...
+ *
  * <p>Based on <a href="http://sixlegs.com/blog/java/exclude-javadoc-tag.html">this</a> topic.
  *
  * @author Dmytro Grankin
