@@ -26,7 +26,7 @@ import com.sun.javadoc.ProgramElementDoc;
 import java.lang.annotation.Annotation;
 
 /**
- * {@code AnnotationAnalyst} provides methods to check accessory to specified the annotation.
+ * {@code AnnotationAnalyst} provides methods to check accessory to the specified annotation.
  *
  * @param <C> the type of an annotation to analyze
  *
