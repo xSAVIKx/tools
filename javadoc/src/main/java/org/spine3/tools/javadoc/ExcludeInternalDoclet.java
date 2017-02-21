@@ -130,10 +130,8 @@ public class ExcludeInternalDoclet extends Standard {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            if (args != null) {
-                if (isExclusionMethod(method.getName())) {
-                    args[0] = unwrap(args[0]);
-                }
+            if (args != null && isExclusionMethod(method.getName())) {
+                args[0] = unwrap(args[0]);
             }
             try {
                 return process(method.invoke(target, args), method.getReturnType());
