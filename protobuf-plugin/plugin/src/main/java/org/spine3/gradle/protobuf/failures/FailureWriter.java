@@ -46,6 +46,9 @@ import java.util.Set;
 @SuppressWarnings("HardcodedLineSeparator")
 public class FailureWriter {
 
+    private static final String COMMA_SEPARATOR = ", ";
+    private static final String PUBLIC_MEMBER = "\tpublic";
+
     private final DescriptorProto failureDescriptor;
     private final File outputFile;
     private final String javaPackage;
@@ -158,7 +161,7 @@ public class FailureWriter {
         log().debug("Writing getFailure()");
 
         writer.write("\n\t@Override\n");
-        writer.write("\tpublic " + outerClassName + '.' + className + " getFailureMessage() {\n");
+        writer.write(PUBLIC_MEMBER + ' ' + outerClassName + '.' + className + " getFailureMessage() {\n");
         writer.write("\t\treturn (" + outerClassName + '.' + className + ") super.getFailureMessage();\n\t}\n");
     }
 
@@ -166,15 +169,15 @@ public class FailureWriter {
     private void writeConstructor(OutputStreamWriter writer) throws IOException {
         log().debug("Writing the constructor");
 
-        writer.write("\tpublic " + className + '(');
+        writer.write(PUBLIC_MEMBER + ' ' + className + '(');
 
         final String commandMsgCtorParam = "commandMessage";
         final String commandContextCtorParam = "ctx";
         writer.write("GeneratedMessageV3 " + commandMsgCtorParam + ", CommandContext " + commandContextCtorParam);
 
         final Set<Map.Entry<String, String>> fieldsEntries = readFieldValues().entrySet();
-        if(!fieldsEntries.isEmpty()) {
-            writer.write(", ");
+        if (!fieldsEntries.isEmpty()) {
+            writer.write(COMMA_SEPARATOR);
         }
 
         final Iterator<Map.Entry<String, String>> iterator = fieldsEntries.iterator();
@@ -183,11 +186,12 @@ public class FailureWriter {
             writer.write(field.getValue() + ' ' + getJavaFieldName(field.getKey(), false));
             final boolean isNotLast = i != (fieldsEntries.size() - 1);
             if (isNotLast) {
-                writer.write(", ");
+                writer.write(COMMA_SEPARATOR);
             }
         }
         writer.write(") {\n");
-        writer.write("\t\tsuper(" +commandMsgCtorParam + ", "+ commandContextCtorParam+", " +
+        writer.write("\t\tsuper(" + commandMsgCtorParam + COMMA_SEPARATOR +
+                             commandContextCtorParam + COMMA_SEPARATOR +
                              outerClassName + '.' + className + ".newBuilder()");
         for (Map.Entry<String, String> field : fieldsEntries) {
             final String upperCaseName = getJavaFieldName(field.getKey(), true);
