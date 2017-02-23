@@ -21,8 +21,10 @@
 package org.spine3.tools.javadoc;
 
 import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.Doc;
 import com.sun.javadoc.MethodDoc;
+import com.sun.tools.javadoc.ClassDocImpl;
+import com.sun.javadoc.Doc;
+import com.sun.tools.javadoc.MethodDocImpl;
 import com.sun.javadoc.RootDoc;
 import com.sun.tools.doclets.standard.Standard;
 import com.sun.tools.javadoc.Main;
@@ -172,8 +174,8 @@ public class ExcludeInternalDoclet extends Standard {
      * Enumeration of methods in Sun's implementation that accept parameters of a particular concrete type.
      * These methods requires the special handling code, that unwrap the argument before calling the method.
      *
-     * @see com.sun.tools.javadoc.MethodDocImpl#overrides(MethodDoc)
-     * @see com.sun.tools.javadoc.ClassDocImpl#subclassOf(ClassDoc)
+     * @see MethodDocImpl#overrides(MethodDoc)
+     * @see ClassDocImpl#subclassOf(ClassDoc)
      * and others.
      */
     private enum UnwrapParameterOf {
