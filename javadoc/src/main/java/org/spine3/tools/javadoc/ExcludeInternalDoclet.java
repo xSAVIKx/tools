@@ -67,7 +67,7 @@ public class ExcludeInternalDoclet extends Standard {
 
     private final ExcludePrinciple excludePrinciple;
 
-    private ExcludeInternalDoclet(ExcludePrinciple excludePrinciple) {
+    ExcludeInternalDoclet(ExcludePrinciple excludePrinciple) {
         super();
         this.excludePrinciple = excludePrinciple;
     }
@@ -104,7 +104,7 @@ public class ExcludeInternalDoclet extends Standard {
      * @return the processed value
      */
     @Nullable
-    private Object process(@Nullable Object returnValue, Class returnValueType) {
+    Object process(@Nullable Object returnValue, Class returnValueType) {
         if (returnValue == null) {
             return null;
         }
