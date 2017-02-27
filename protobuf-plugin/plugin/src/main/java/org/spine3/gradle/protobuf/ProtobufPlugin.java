@@ -27,6 +27,7 @@ import org.spine3.gradle.protobuf.cleaning.CleaningPlugin;
 import org.spine3.gradle.protobuf.failures.FailuresGenPlugin;
 import org.spine3.gradle.protobuf.lookup.enrichments.EnrichmentLookupPlugin;
 import org.spine3.gradle.protobuf.lookup.proto.ProtoToJavaMapperPlugin;
+import org.spine3.gradle.protobuf.validators.ValidatorsGenPlugin;
 
 /**
  * @author Alexander Litus
@@ -53,6 +54,9 @@ public class ProtobufPlugin implements Plugin<Project> {
 
         log().debug("Applying Spine failures generation plugin");
         new FailuresGenPlugin().apply(project);
+
+        log().debug("Applying Spine validators generation plugin");
+        new ValidatorsGenPlugin().apply(project);
     }
 
     private static Logger log() {
