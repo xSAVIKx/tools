@@ -128,7 +128,7 @@ public class ExcludeInternalDoclet extends Standard {
     }
 
     /**
-     * Forms {@linkplain RootDoc} without {@linkplain Internal}-annotated elements.
+     * The {@linkplain InvocationHandler} for the "com.sun..." proxies.
      */
     private class ExcludeHandler implements InvocationHandler {
 
@@ -170,7 +170,7 @@ public class ExcludeInternalDoclet extends Standard {
      *   }
      * }</pre>
      *
-     * <p>In reason of we use proxy to filter Javadocs, we should unwrap proxy
+     * <p>Because we use proxy to filter Javadocs, we should unwrap proxy
      * of parameters passed to these methods to prevent {@code ClassCastException}.
      */
     @SuppressWarnings("unused") // Used in implicit form.
