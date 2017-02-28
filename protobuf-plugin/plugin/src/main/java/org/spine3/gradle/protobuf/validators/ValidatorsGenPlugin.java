@@ -7,7 +7,6 @@ import org.gradle.api.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.gradle.SpinePlugin;
-import org.spine3.gradle.protobuf.failures.MessageTypeCache;
 import org.spine3.gradle.protobuf.util.DescriptorSetUtil;
 
 import java.util.ArrayList;
@@ -15,6 +14,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static org.gradle.internal.impldep.com.beust.jcommander.internal.Lists.newArrayList;
 import static org.gradle.internal.impldep.com.beust.jcommander.internal.Maps.newHashMap;
@@ -35,8 +35,8 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
  */
 public class ValidatorsGenPlugin extends SpinePlugin {
 
-    private final MessageTypeCache messageTypeCache = new MessageTypeCache();
     private final Map<String, DescriptorProtos.DescriptorProto> allMessageDescriptors = newHashMap();
+    private static final Pattern COMPILE = Pattern.compile(".", Pattern.LITERAL);
     private Project project;
 
     @Override
@@ -50,11 +50,8 @@ public class ValidatorsGenPlugin extends SpinePlugin {
             public void execute(Task task) {
                 final String path = getMainDescriptorSetPath(project);
                 log().debug("Generating the validators from {}", path);
-                final List<DescriptorProtos.FileDescriptorProto> files = getCommandProtoFileDescriptors(path);
-                final List<DescriptorProtos.DescriptorProto> messages = getMessageDescriptors(files);
-                for (DescriptorProtos.DescriptorProto messageDescriptor : messages) {
-                    final List<DescriptorProtos.FieldDescriptorProto> fieldDescriptors = messageDescriptor.getFieldList();
-                }
+                final List<DescriptorProtos.DescriptorProto> descriptors = process(path);
+
             }
         };
 
@@ -69,8 +66,9 @@ public class ValidatorsGenPlugin extends SpinePlugin {
             @Override
             public void execute(Task task) {
                 final String path = getTestDescriptorSetPath(project);
+                log().debug("Generating the test validators from {}", path);
+                final List<DescriptorProtos.DescriptorProto> descriptors = process(path);
 
-                //TODO:2017-02-27:illiashepilov: finish implementation.
             }
         };
 
@@ -86,40 +84,43 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         //TODO:2017-02-28:illiashepilov: Remove when implementation will be finished.
         // test
         //
-        final String path = getMainDescriptorSetPath(project);
-        log().debug("Generating the validators from {}", path);
-        //TODO:2017-02-28:illiashepilov: Replace hardcoded path
-        final List<DescriptorProtos.DescriptorProto> descriptors = newArrayList();
-        final List<DescriptorProtos.FileDescriptorProto> files = getCommandProtoFileDescriptors("/Users/illiashepilov/Projects/spine/tools/protobuf-plugin/build/descriptors/main.desc");
-        final List<DescriptorProtos.DescriptorProto> messages = getMessageDescriptors(files);
-        for (DescriptorProtos.DescriptorProto messageDescriptor : messages) {
-            descriptors.add(messageDescriptor);
-            final List<DescriptorProtos.FieldDescriptorProto> fieldDescriptors = messageDescriptor.getFieldList();
-            for (DescriptorProtos.FieldDescriptorProto fieldDescriptor : fieldDescriptors) {
-                if(fieldDescriptor.getType() != DescriptorProtos.FieldDescriptorProto.Type.TYPE_MESSAGE){
-                   continue;
-                }
-                final String msgName = getMessageName(fieldDescriptor.getTypeName());
-                final DescriptorProtos.DescriptorProto descriptor = allMessageDescriptors.get(msgName);
-                if(descriptor!=null){
-                    descriptors.add(descriptor);
-                }
-            }
-        }
+        final String hardCodedPath = "/Users/illiashepilov/Projects/spine/tools/protobuf-plugin/build/descriptors/main.desc";
+        final List<DescriptorProtos.DescriptorProto> descriptors = process(hardCodedPath);
         /////////////////
     }
 
-    private static String getMessageName(String fullName){
-        final String [] paths = fullName.split(".");
-        final String msgName = paths[paths.length-1];
-        return msgName;
+    private List<DescriptorProtos.DescriptorProto> process(String path) {
+        final List<DescriptorProtos.FileDescriptorProto> files = getCommandProtoFileDescriptors(path);
+        final List<DescriptorProtos.DescriptorProto> messages = getMessageDescriptors(files);
+        final List<DescriptorProtos.DescriptorProto> descriptors = newArrayList();
+        for (DescriptorProtos.DescriptorProto messageDescriptor : messages) {
+            descriptors.add(messageDescriptor);
+            final List<DescriptorProtos.FieldDescriptorProto> fieldDescriptors = messageDescriptor.getFieldList();
+            processFields(descriptors, fieldDescriptors);
+        }
+        return descriptors;
     }
 
-    private static void getAllFieldMessages(List<DescriptorProtos.FieldDescriptorProto> fieldDescriptors) {
+    private void processFields(List<DescriptorProtos.DescriptorProto> descriptors,
+                               List<DescriptorProtos.FieldDescriptorProto> fieldDescriptors) {
         for (DescriptorProtos.FieldDescriptorProto fieldDescriptor : fieldDescriptors) {
-            final DescriptorProtos.FieldDescriptorProto.Type type = fieldDescriptor.getType();
-
+            final boolean isMessage =
+                    fieldDescriptor.getType() != DescriptorProtos.FieldDescriptorProto.Type.TYPE_MESSAGE;
+            if (isMessage) {
+                continue;
+            }
+            final String msgName = getMessageName(fieldDescriptor.getTypeName());
+            final DescriptorProtos.DescriptorProto descriptor = allMessageDescriptors.get(msgName);
+            if (descriptor != null) {
+                descriptors.add(descriptor);
+            }
         }
+    }
+
+    private static String getMessageName(String fullName) {
+        final String[] paths = COMPILE.split(fullName);
+        final String msgName = paths[paths.length - 1];
+        return msgName;
     }
 
     private static List<DescriptorProtos.DescriptorProto>
