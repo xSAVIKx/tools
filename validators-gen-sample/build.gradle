@@ -34,3 +34,48 @@ buildscript {
         resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
     })
 }
+
+apply plugin: 'java'
+apply plugin: 'com.google.protobuf'
+apply plugin: 'org.spine3.tools.protobuf-plugin'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+
+    maven { url = spineRepository }
+    maven { url = spineSnapshotRepository }
+}
+
+dependencies {
+    compile "org.spine3:spine-server-core:$spineVersion"
+}
+
+protobuf {
+    generatedFilesBaseDir = "$projectDir/generated";
+    protoc {
+        artifact = "com.google.protobuf:protoc:$protobufVersion"
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.generateDescriptorSet = true
+            task.descriptorSetOptions.path = "${projectDir}/build/descriptors/${task.sourceSet.name}.desc"
+            task.descriptorSetOptions.includeImports = false
+        }
+    }
+}
+
+idea.module {
+    generatedSourceDirs += file("$projectDir/generated/main/java")
+    generatedSourceDirs += file("$projectDir/generated/main/spine")
+}
+
+sourceSets {
+    main {
+        proto.srcDirs = ["$projectDir/src/main/proto"]
+        java.srcDirs = ["$projectDir/generated/main/java",
+                        "$projectDir/generated/main/spine",
+                        "$projectDir/src/main/java"]
+        resources.srcDirs = ["$projectDir/generated/main/resources"]
+    }
+}
