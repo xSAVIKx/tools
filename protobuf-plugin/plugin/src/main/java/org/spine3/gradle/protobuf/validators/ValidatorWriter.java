@@ -1,7 +1,5 @@
 package org.spine3.gradle.protobuf.validators;
 
-import com.google.protobuf.Descriptors;
-
 /**
  * Class, which writes Validator java code, based on it's descriptor.
  *
@@ -9,10 +7,10 @@ import com.google.protobuf.Descriptors;
  */
 public class ValidatorWriter {
 
-    private final Descriptors.Descriptor message;
+    private final WriterDto writerDto;
 
-    public ValidatorWriter(Descriptors.Descriptor message) {
-        this.message = message;
+    public ValidatorWriter(WriterDto writerDto) {
+        this.writerDto = writerDto;
     }
 
     public void write() {
