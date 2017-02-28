@@ -20,10 +20,11 @@
 
 package org.spine3.tools.javadoc;
 
-import com.sun.javadoc.Doc;
+import com.sun.javadoc.ProgramElementDoc;
 
 /**
- * Serves as a decision maker on whether to exclude the {@linkplain Doc} from the generated Javadoc.
+ * Serves as a decision maker on whether to exclude the
+ * {@linkplain ProgramElementDoc} from the generated Javadoc.
  *
  * @author Dmytro Grankin
  */
@@ -35,5 +36,5 @@ interface ExcludePrinciple {
      * @param doc the document to analyze
      * @return {@code true} if document should be excluded, {@code false} otherwise
      */
-    boolean shouldExclude(Doc doc);
+    boolean shouldExclude(ProgramElementDoc doc);
 }

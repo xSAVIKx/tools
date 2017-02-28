@@ -20,7 +20,6 @@
 
 package org.spine3.tools.javadoc;
 
-import com.sun.javadoc.Doc;
 import com.sun.javadoc.PackageDoc;
 import com.sun.javadoc.ProgramElementDoc;
 import com.sun.javadoc.RootDoc;
@@ -48,13 +47,8 @@ class ExcludeInternalPrinciple implements ExcludePrinciple {
      * {@inheritDoc}
      */
     @Override
-    public boolean shouldExclude(Doc doc) {
-        if (doc instanceof ProgramElementDoc) {
-            final ProgramElementDoc programElement = (ProgramElementDoc) doc;
-            return inExclusions(programElement) || internalAnalyst.hasAnnotation(programElement);
-        }
-
-        return false;
+    public boolean shouldExclude(ProgramElementDoc doc) {
+        return inExclusions(doc) || internalAnalyst.hasAnnotation(doc);
     }
 
     private boolean inExclusions(ProgramElementDoc doc) {

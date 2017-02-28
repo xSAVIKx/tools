@@ -21,7 +21,7 @@
 package org.spine3.tools.javadoc;
 
 import com.sun.javadoc.MethodDoc;
-import com.sun.javadoc.Doc;
+import com.sun.javadoc.ProgramElementDoc;
 import com.sun.tools.javadoc.MethodDocImpl;
 import com.sun.javadoc.RootDoc;
 import com.sun.tools.doclets.standard.Standard;
@@ -96,8 +96,8 @@ public class ExcludeInternalDoclet extends Standard {
     }
 
     /**
-     * Creates proxy of "com.sun..." interfaces and excludes {@linkplain Doc}s
-     * using {@linkplain #excludePrinciple}.
+     * Creates proxy of "com.sun..." interfaces and excludes
+     * {@linkplain ProgramElementDoc}s using {@linkplain #excludePrinciple}.
      *
      * @param returnValue the value to process
      * @param returnValueType the expected type of value
@@ -117,7 +117,7 @@ public class ExcludeInternalDoclet extends Standard {
             final Object[] array = (Object[]) returnValue;
             final List<Object> list = new ArrayList<>();
             for (Object entry : array) {
-                if (!(entry instanceof Doc && excludePrinciple.shouldExclude((Doc) entry))) {
+                if (!(entry instanceof ProgramElementDoc && excludePrinciple.shouldExclude((ProgramElementDoc) entry))) {
                     list.add(process(entry, componentType));
                 }
             }
