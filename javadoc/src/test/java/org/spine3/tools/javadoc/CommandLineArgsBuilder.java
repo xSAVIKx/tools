@@ -6,15 +6,15 @@ import java.util.List;
 
 class CommandLineArgsBuilder {
 
-    private static final String USER_DIR_PROPERTY = "user.dir";
-    private static final String testSourcesDir = System.getProperty(USER_DIR_PROPERTY)
-            + "/src/test/java/org/spine3/tools/javadoc/testsources/";
+    private static final String ABSOLUTE_APP_PATH = System.getProperty("user.dir");
+    private static final String TEST_SOURCES_DIR = ABSOLUTE_APP_PATH + "/src/test/resources/testsources/";
+    private static final String RESOURCES_DIR = ABSOLUTE_APP_PATH + "/src/test/resources";
 
     private final Collection<String> classes = new ArrayList<>();
     private final Collection<String> packages = new ArrayList<>();
 
     CommandLineArgsBuilder addSource(String sourceName) {
-        classes.add(testSourcesDir + sourceName);
+        classes.add(TEST_SOURCES_DIR + sourceName);
         return this;
     }
 
@@ -36,6 +36,6 @@ class CommandLineArgsBuilder {
     private static void addSourcePath(Collection<String> commandLineArgs) {
         // Path to scan packages
         commandLineArgs.add("-sourcepath");
-        commandLineArgs.add(System.getProperty(USER_DIR_PROPERTY) + "/src/test/java/");
+        commandLineArgs.add(RESOURCES_DIR);
     }
 }

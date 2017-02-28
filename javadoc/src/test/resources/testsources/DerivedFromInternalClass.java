@@ -1,4 +1,4 @@
-package org.spine3.tools.javadoc.testsources;
+package testsources;
 
 public class DerivedFromInternalClass extends InternalClass {
 }

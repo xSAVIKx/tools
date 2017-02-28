@@ -1,4 +1,4 @@
-package org.spine3.tools.javadoc.testsources;
+package testsources;
 
 import io.grpc.Internal;
 

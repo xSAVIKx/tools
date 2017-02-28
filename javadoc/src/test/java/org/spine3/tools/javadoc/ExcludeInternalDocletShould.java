@@ -10,7 +10,7 @@ import static org.spine3.tools.javadoc.RootDocProxyReceiver.rootDocFor;
 
 public class ExcludeInternalDocletShould {
 
-    private static final String TEST_SOURCES_PACKAGE = "org.spine3.tools.javadoc.testsources";
+    private static final String TEST_SOURCES_PACKAGE = "testsources";
     private static final String INTERNAL_PACKAGE = TEST_SOURCES_PACKAGE + ".internal";
     private static final String INTERNAL_METHOD_CLASS_FILENAME = "InternalMethodClass.java";
     private static final String INTERNAL_CLASS_FILENAME = "InternalClass.java";
