@@ -35,6 +35,7 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
  */
 public class ValidatorsGenPlugin extends SpinePlugin {
 
+    public static final String JAVA_CLASS_NAME_SUFFIX = "Validator";
     private final Map<String, DescriptorProtos.DescriptorProto> allMessageDescriptors = newHashMap();
     private static final Pattern COMPILE = Pattern.compile(".", Pattern.LITERAL);
     private Project project;
@@ -89,13 +90,18 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         /////////////////
     }
 
+    private static void createValidationBuilder(WriterDto dto) {
+        new ValidatorWriter(dto).write();
+    }
+
     private List<DescriptorProtos.DescriptorProto> process(String path) {
         final List<DescriptorProtos.FileDescriptorProto> files = getCommandProtoFileDescriptors(path);
-        final List<DescriptorProtos.DescriptorProto> messages = getMessageDescriptors(files);
+        final List<WriterDto> dtos = getMessageDescriptors(files);
         final List<DescriptorProtos.DescriptorProto> descriptors = newArrayList();
-        for (DescriptorProtos.DescriptorProto messageDescriptor : messages) {
-            descriptors.add(messageDescriptor);
-            final List<DescriptorProtos.FieldDescriptorProto> fieldDescriptors = messageDescriptor.getFieldList();
+        for (WriterDto dto : dtos) {
+            final DescriptorProtos.DescriptorProto msgDescriptor = dto.getMsgDescriptor();
+            descriptors.add(msgDescriptor);
+            final List<DescriptorProtos.FieldDescriptorProto> fieldDescriptors = msgDescriptor.getFieldList();
             processFields(descriptors, fieldDescriptors);
         }
         return descriptors;
@@ -123,12 +129,22 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return msgName;
     }
 
-    private static List<DescriptorProtos.DescriptorProto>
-    getMessageDescriptors(List<DescriptorProtos.FileDescriptorProto> files) {
-        final List<DescriptorProtos.DescriptorProto> result = new ArrayList<>();
+    private static List<WriterDto> getMessageDescriptors(List<DescriptorProtos.FileDescriptorProto> files) {
+        final List<WriterDto> result = new ArrayList<>();
         for (DescriptorProtos.FileDescriptorProto file : files) {
             final List<DescriptorProtos.DescriptorProto> messages = file.getMessageTypeList();
-            result.addAll(messages);
+            final List<WriterDto> dtoList = constructMessageFieldDto(file, messages);
+            result.addAll(dtoList);
+        }
+        return result;
+    }
+
+    private static List<WriterDto> constructMessageFieldDto(DescriptorProtos.FileDescriptorProto file,
+                                                            List<DescriptorProtos.DescriptorProto> messages) {
+        final List<WriterDto> result = new ArrayList<>();
+        for (DescriptorProtos.DescriptorProto message : messages) {
+            final WriterDto dto = createWriterDto(file, message);
+            result.add(dto);
         }
         return result;
     }
@@ -156,6 +172,15 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         for (DescriptorProtos.DescriptorProto msg : messages) {
             allMessageDescriptors.put(msg.getName(), msg);
         }
+    }
+
+    private static WriterDto createWriterDto(DescriptorProtos.FileDescriptorProto file,
+                                             DescriptorProtos.DescriptorProto message) {
+        final DescriptorProtos.FileOptions fileOptions = file.getOptions();
+        final String packageName = fileOptions.getJavaPackage();
+        final String className = message.getName() + JAVA_CLASS_NAME_SUFFIX;
+        final WriterDto result = new WriterDto(packageName, className, message);
+        return result;
     }
 
     public static void main(String[] args) {
