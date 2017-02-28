@@ -72,15 +72,17 @@ public class ExcludeInternalDocletShould {
     }
 
     @Test
-    public void exclude_internal_subpackage_content() {
+    public void exclude_only_from_internal_subpackages() {
         final String[] args = new CommandLineArgsBuilder()
                 .addSource("/internal/subinternal/SubInternalPackageClass.java")
+                .addSource("/notinternal/NotInternalClass.java")
                 .addPackage(INTERNAL_PACKAGE)
+                .addPackage(TEST_SOURCES_PACKAGE + ".notinternal")
                 .build();
 
         final RootDoc rootDoc = rootDocFor(args);
 
-        assertEquals(0, rootDoc.specifiedClasses().length);
+        assertEquals(1, rootDoc.specifiedClasses().length);
     }
 
     @Test

@@ -1,4 +1,4 @@
-package testsources;
+package testsources.notinternal;
 
 public class NotInternalClass {
 }
