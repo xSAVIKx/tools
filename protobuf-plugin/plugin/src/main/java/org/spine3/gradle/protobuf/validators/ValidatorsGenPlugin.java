@@ -9,6 +9,7 @@ import org.gradle.api.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.gradle.SpinePlugin;
+import org.spine3.gradle.protobuf.MessageTypeCache;
 import org.spine3.gradle.protobuf.util.DescriptorSetUtil;
 
 import java.util.Collection;
@@ -38,10 +39,13 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
  */
 public class ValidatorsGenPlugin extends SpinePlugin {
 
-    public static final String JAVA_CLASS_NAME_SUFFIX = "Validator";
     private final Map<String, DescriptorProto> allMessageDescriptors = newHashMap();
-    private static final Pattern COMPILE = Pattern.compile(".", Pattern.LITERAL);
     private Project project;
+
+    /** A map from Protobuf type name to Java class FQN. */
+    private final MessageTypeCache messageTypeCache = new MessageTypeCache();
+    private static final String JAVA_CLASS_NAME_SUFFIX = "Validator";
+    private static final Pattern COMPILE = Pattern.compile(".", Pattern.LITERAL);
 
     @Override
     public void apply(final Project project) {
@@ -73,8 +77,8 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         //
         final String hardCodedPath = "/Users/illiashepilov/Projects/spine/tools/protobuf-plugin/build/descriptors/main.desc";
         final Set<WriterDto> dtos = process(hardCodedPath);
-        for (WriterDto dto: dtos){
-            new ValidatorWriter(dto).write();
+        for (WriterDto dto : dtos) {
+            new ValidatorWriter(dto, messageTypeCache).write();
         }
         /////////////////
     }
@@ -85,8 +89,8 @@ public class ValidatorsGenPlugin extends SpinePlugin {
             public void execute(Task task) {
                 log().debug("Generating the validators from {}", path);
                 final Set<WriterDto> dtos = process(path);
-                for (WriterDto dto: dtos){
-                    new ValidatorWriter(dto).write();
+                for (WriterDto dto : dtos) {
+                    new ValidatorWriter(dto, messageTypeCache).write();
                 }
             }
         };
@@ -112,10 +116,6 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return fieldDtos;
     }
 
-    private static void createValidationBuilder(WriterDto dto) {
-        new ValidatorWriter(dto).write();
-    }
-
     private List<DescriptorProto> processFields(List<FieldDescriptorProto> fieldDescriptors) {
         final List<DescriptorProto> descriptors = newArrayList();
         for (FieldDescriptorProto fieldDescriptor : fieldDescriptors) {
@@ -138,7 +138,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return msgName;
     }
 
-    private static Set<WriterDto> getMessageDescriptors(List<FileDescriptorProto> files) {
+    private Set<WriterDto> getMessageDescriptors(List<FileDescriptorProto> files) {
         final Set<WriterDto> result = newHashSet();
         for (FileDescriptorProto file : files) {
             final List<DescriptorProto> messages = file.getMessageTypeList();
@@ -167,6 +167,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
             final boolean isCommandFile = file.getName()
                                               .endsWith("commands.proto");
             saveMessageToMap(file);
+            messageTypeCache.cacheTypes(file);
             if (isCommandFile) {
                 log().info("Found commands file: {}", file.getName());
                 result.add(file);
