@@ -1,6 +1,9 @@
 package org.spine3.gradle.protobuf.validators;
 
-import com.google.protobuf.DescriptorProtos;
+import com.google.protobuf.DescriptorProtos.FileOptions;
+import com.google.protobuf.DescriptorProtos.DescriptorProto;
+import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
+import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -36,7 +39,7 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
 public class ValidatorsGenPlugin extends SpinePlugin {
 
     public static final String JAVA_CLASS_NAME_SUFFIX = "Validator";
-    private final Map<String, DescriptorProtos.DescriptorProto> allMessageDescriptors = newHashMap();
+    private final Map<String, DescriptorProto> allMessageDescriptors = newHashMap();
     private static final Pattern COMPILE = Pattern.compile(".", Pattern.LITERAL);
     private Project project;
 
@@ -51,7 +54,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
             public void execute(Task task) {
                 final String path = getMainDescriptorSetPath(project);
                 log().debug("Generating the validators from {}", path);
-                final List<DescriptorProtos.DescriptorProto> descriptors = process(path);
+                final List<DescriptorProto> descriptors = process(path);
 
             }
         };
@@ -68,7 +71,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
             public void execute(Task task) {
                 final String path = getTestDescriptorSetPath(project);
                 log().debug("Generating the test validators from {}", path);
-                final List<DescriptorProtos.DescriptorProto> descriptors = process(path);
+                final List<DescriptorProto> descriptors = process(path);
 
             }
         };
@@ -86,7 +89,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         // test
         //
         final String hardCodedPath = "/Users/illiashepilov/Projects/spine/tools/protobuf-plugin/build/descriptors/main.desc";
-        final List<DescriptorProtos.DescriptorProto> descriptors = process(hardCodedPath);
+        final List<DescriptorProto> descriptors = process(hardCodedPath);
         /////////////////
     }
 
@@ -94,29 +97,28 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         new ValidatorWriter(dto).write();
     }
 
-    private List<DescriptorProtos.DescriptorProto> process(String path) {
-        final List<DescriptorProtos.FileDescriptorProto> files = getCommandProtoFileDescriptors(path);
+    private List<DescriptorProto> process(String path) {
+        final List<FileDescriptorProto> files = getCommandProtoFileDescriptors(path);
         final List<WriterDto> dtos = getMessageDescriptors(files);
-        final List<DescriptorProtos.DescriptorProto> descriptors = newArrayList();
+        final List<DescriptorProto> descriptors = newArrayList();
         for (WriterDto dto : dtos) {
-            final DescriptorProtos.DescriptorProto msgDescriptor = dto.getMsgDescriptor();
+            final DescriptorProto msgDescriptor = dto.getMsgDescriptor();
             descriptors.add(msgDescriptor);
-            final List<DescriptorProtos.FieldDescriptorProto> fieldDescriptors = msgDescriptor.getFieldList();
+            final List<FieldDescriptorProto> fieldDescriptors = msgDescriptor.getFieldList();
             processFields(descriptors, fieldDescriptors);
         }
         return descriptors;
     }
 
-    private void processFields(List<DescriptorProtos.DescriptorProto> descriptors,
-                               List<DescriptorProtos.FieldDescriptorProto> fieldDescriptors) {
-        for (DescriptorProtos.FieldDescriptorProto fieldDescriptor : fieldDescriptors) {
-            final boolean isMessage =
-                    fieldDescriptor.getType() != DescriptorProtos.FieldDescriptorProto.Type.TYPE_MESSAGE;
+    private void processFields(List<DescriptorProto> descriptors,
+                               List<FieldDescriptorProto> fieldDescriptors) {
+        for (FieldDescriptorProto fieldDescriptor : fieldDescriptors) {
+            final boolean isMessage = fieldDescriptor.getType() != FieldDescriptorProto.Type.TYPE_MESSAGE;
             if (isMessage) {
                 continue;
             }
             final String msgName = getMessageName(fieldDescriptor.getTypeName());
-            final DescriptorProtos.DescriptorProto descriptor = allMessageDescriptors.get(msgName);
+            final DescriptorProto descriptor = allMessageDescriptors.get(msgName);
             if (descriptor != null) {
                 descriptors.add(descriptor);
             }
@@ -129,31 +131,30 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return msgName;
     }
 
-    private static List<WriterDto> getMessageDescriptors(List<DescriptorProtos.FileDescriptorProto> files) {
+    private static List<WriterDto> getMessageDescriptors(List<FileDescriptorProto> files) {
         final List<WriterDto> result = new ArrayList<>();
-        for (DescriptorProtos.FileDescriptorProto file : files) {
-            final List<DescriptorProtos.DescriptorProto> messages = file.getMessageTypeList();
+        for (FileDescriptorProto file : files) {
+            final List<DescriptorProto> messages = file.getMessageTypeList();
             final List<WriterDto> dtoList = constructMessageFieldDto(file, messages);
             result.addAll(dtoList);
         }
         return result;
     }
 
-    private static List<WriterDto> constructMessageFieldDto(DescriptorProtos.FileDescriptorProto file,
-                                                            List<DescriptorProtos.DescriptorProto> messages) {
+    private static List<WriterDto> constructMessageFieldDto(FileDescriptorProto file, List<DescriptorProto> messages) {
         final List<WriterDto> result = new ArrayList<>();
-        for (DescriptorProtos.DescriptorProto message : messages) {
+        for (DescriptorProto message : messages) {
             final WriterDto dto = createWriterDto(file, message);
             result.add(dto);
         }
         return result;
     }
 
-    private List<DescriptorProtos.FileDescriptorProto> getCommandProtoFileDescriptors(String descFilePath) {
-        final List<DescriptorProtos.FileDescriptorProto> result = new LinkedList<>();
+    private List<FileDescriptorProto> getCommandProtoFileDescriptors(String descFilePath) {
+        final List<FileDescriptorProto> result = new LinkedList<>();
         final DescriptorSetUtil.IsNotGoogleProto protoFilter = new DescriptorSetUtil.IsNotGoogleProto();
-        final Collection<DescriptorProtos.FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath, protoFilter);
-        for (DescriptorProtos.FileDescriptorProto file : allDescriptors) {
+        final Collection<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath, protoFilter);
+        for (FileDescriptorProto file : allDescriptors) {
             final boolean isCommandFile = file.getName()
                                               .endsWith("commands.proto");
             saveMessageToMap(file);
@@ -167,16 +168,15 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return result;
     }
 
-    private void saveMessageToMap(DescriptorProtos.FileDescriptorProto file) {
-        List<DescriptorProtos.DescriptorProto> messages = file.getMessageTypeList();
-        for (DescriptorProtos.DescriptorProto msg : messages) {
+    private void saveMessageToMap(FileDescriptorProto file) {
+        List<DescriptorProto> messages = file.getMessageTypeList();
+        for (DescriptorProto msg : messages) {
             allMessageDescriptors.put(msg.getName(), msg);
         }
     }
 
-    private static WriterDto createWriterDto(DescriptorProtos.FileDescriptorProto file,
-                                             DescriptorProtos.DescriptorProto message) {
-        final DescriptorProtos.FileOptions fileOptions = file.getOptions();
+    private static WriterDto createWriterDto(FileDescriptorProto file, DescriptorProto message) {
+        final FileOptions fileOptions = file.getOptions();
         final String packageName = fileOptions.getJavaPackage();
         final String className = message.getName() + JAVA_CLASS_NAME_SUFFIX;
         final WriterDto result = new WriterDto(packageName, className, message);
