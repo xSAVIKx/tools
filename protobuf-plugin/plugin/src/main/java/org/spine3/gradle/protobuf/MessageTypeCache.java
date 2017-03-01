@@ -17,7 +17,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.gradle.protobuf.failures;
+package org.spine3.gradle.protobuf;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
@@ -26,6 +26,7 @@ import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spine3.gradle.protobuf.failures.FailuresGenPlugin;
 import org.spine3.gradle.protobuf.util.JavaCode;
 
 import java.util.Map;
@@ -46,7 +47,7 @@ public class MessageTypeCache {
 
     //It's fine, as we are caching multiple message types per file.
     @SuppressWarnings("MethodWithMultipleLoops")
-    void cacheTypes(FileDescriptorProto fileDescriptor) {
+    public void cacheTypes(FileDescriptorProto fileDescriptor) {
         log().debug("Caching all the types declared in the file: {}", fileDescriptor.getName());
 
         final FileOptions options = fileDescriptor.getOptions();
@@ -57,8 +58,8 @@ public class MessageTypeCache {
                                     : "";
         final String sourceJavaPackage = options.getJavaPackage();
         String javaPackage = !sourceJavaPackage.isEmpty()
-                                   ? sourceJavaPackage + '.'
-                                   : "";
+                             ? sourceJavaPackage + '.'
+                             : "";
 
         if (!options.getJavaMultipleFiles()) {
             final String singleFileSuffix = JavaCode.getOuterClassName(fileDescriptor);
@@ -79,7 +80,7 @@ public class MessageTypeCache {
      *
      * @return current cache contents
      */
-    Map<String, String> getCachedTypes() {
+    public Map<String, String> getCachedTypes() {
         final ImmutableMap<String, String> immutable = ImmutableMap.copyOf(cachedMessageTypes);
         return immutable;
     }
