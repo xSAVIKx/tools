@@ -46,6 +46,9 @@ import java.util.Set;
 @SuppressWarnings("HardcodedLineSeparator")
 public class FailureWriter {
 
+    private static final String COMMA_SEPARATOR = ", ";
+    private static final String PUBLIC_MEMBER = "\tpublic";
+
     private final DescriptorProto failureDescriptor;
     private final File outputFile;
     private final String javaPackage;
@@ -75,7 +78,7 @@ public class FailureWriter {
             .put(FieldDescriptorProto.Type.TYPE_SINT32.name(), "int")
             .put(FieldDescriptorProto.Type.TYPE_SINT64.name(), "int")
 
-            /**
+            /*
              * Groups are NOT supported, so do not create an associated Java type for it.
              * The return value for the {@link FieldDescriptorProto.Type.TYPE_GROUP} key
              * is intended to be {@code null}.
@@ -140,6 +143,8 @@ public class FailureWriter {
         log().debug("Writing the imports");
 
         writer.write("import org.spine3.base.FailureThrowable;\n");
+        writer.write("import com.google.protobuf.GeneratedMessageV3;\n");
+        writer.write("import org.spine3.base.CommandContext;\n");
         writer.write("\n");
     }
 
@@ -156,16 +161,24 @@ public class FailureWriter {
         log().debug("Writing getFailure()");
 
         writer.write("\n\t@Override\n");
-        writer.write("\tpublic " + outerClassName + '.' + className + " getFailure() {\n");
-        writer.write("\t\treturn (" + outerClassName + '.' + className + ") super.getFailure();\n\t}\n");
+        writer.write(PUBLIC_MEMBER + ' ' + outerClassName + '.' + className + " getFailureMessage() {\n");
+        writer.write("\t\treturn (" + outerClassName + '.' + className + ") super.getFailureMessage();\n\t}\n");
     }
 
     @SuppressWarnings("MethodWithMultipleLoops")
     private void writeConstructor(OutputStreamWriter writer) throws IOException {
         log().debug("Writing the constructor");
 
-        writer.write("\tpublic " + className + '(');
+        writer.write(PUBLIC_MEMBER + ' ' + className + '(');
+
+        final String commandMsgCtorParam = "commandMessage";
+        final String commandContextCtorParam = "ctx";
+        writer.write("GeneratedMessageV3 " + commandMsgCtorParam + ", CommandContext " + commandContextCtorParam);
+
         final Set<Map.Entry<String, String>> fieldsEntries = readFieldValues().entrySet();
+        if (!fieldsEntries.isEmpty()) {
+            writer.write(COMMA_SEPARATOR);
+        }
 
         final Iterator<Map.Entry<String, String>> iterator = fieldsEntries.iterator();
         for (int i = 0; i < fieldsEntries.size(); i++) {
@@ -173,11 +186,13 @@ public class FailureWriter {
             writer.write(field.getValue() + ' ' + getJavaFieldName(field.getKey(), false));
             final boolean isNotLast = i != (fieldsEntries.size() - 1);
             if (isNotLast) {
-                writer.write(", ");
+                writer.write(COMMA_SEPARATOR);
             }
         }
         writer.write(") {\n");
-        writer.write("\t\tsuper(" + outerClassName + '.' + className + ".newBuilder()");
+        writer.write("\t\tsuper(" + commandMsgCtorParam + COMMA_SEPARATOR +
+                             commandContextCtorParam + COMMA_SEPARATOR +
+                             outerClassName + '.' + className + ".newBuilder()");
         for (Map.Entry<String, String> field : fieldsEntries) {
             final String upperCaseName = getJavaFieldName(field.getKey(), true);
             writer.write(".set" + upperCaseName + '(' + getJavaFieldName(field.getKey(), false) + ')');
