@@ -73,6 +73,9 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         //
         final String hardCodedPath = "/Users/illiashepilov/Projects/spine/tools/protobuf-plugin/build/descriptors/main.desc";
         final Set<WriterDto> dtos = process(hardCodedPath);
+        for (WriterDto dto: dtos){
+            new ValidatorWriter(dto).write();
+        }
         /////////////////
     }
 
@@ -82,7 +85,9 @@ public class ValidatorsGenPlugin extends SpinePlugin {
             public void execute(Task task) {
                 log().debug("Generating the validators from {}", path);
                 final Set<WriterDto> dtos = process(path);
-
+                for (WriterDto dto: dtos){
+                    new ValidatorWriter(dto).write();
+                }
             }
         };
     }
