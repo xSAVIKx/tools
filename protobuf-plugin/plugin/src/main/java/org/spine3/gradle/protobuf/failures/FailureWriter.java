@@ -19,12 +19,12 @@
  */
 package org.spine3.gradle.protobuf.failures;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spine3.gradle.protobuf.GenerationUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -58,34 +58,6 @@ public class FailureWriter {
 
     /** A map from Protobuf type name to Java class FQN. */
     private final Map<String, String> messageTypeMap;
-
-    // https://developers.google.com/protocol-buffers/docs/proto3#scalar
-    @SuppressWarnings({"DuplicateStringLiteralInspection", "ConstantConditions"})
-    private static final Map<String, String> PROTO_FIELD_TYPES = ImmutableMap.<String, String>builder()
-            .put(FieldDescriptorProto.Type.TYPE_DOUBLE.name(), "double")
-            .put(FieldDescriptorProto.Type.TYPE_FLOAT.name(), "float")
-            .put(FieldDescriptorProto.Type.TYPE_INT64.name(), "long")
-            .put(FieldDescriptorProto.Type.TYPE_UINT64.name(), "long")
-            .put(FieldDescriptorProto.Type.TYPE_INT32.name(), "int")
-            .put(FieldDescriptorProto.Type.TYPE_FIXED64.name(), "long")
-            .put(FieldDescriptorProto.Type.TYPE_FIXED32.name(), "int")
-            .put(FieldDescriptorProto.Type.TYPE_BOOL.name(), "boolean")
-            .put(FieldDescriptorProto.Type.TYPE_STRING.name(), "String")
-            .put(FieldDescriptorProto.Type.TYPE_BYTES.name(), "com.google.protobuf.ByteString")
-            .put(FieldDescriptorProto.Type.TYPE_UINT32.name(), "int")
-            .put(FieldDescriptorProto.Type.TYPE_SFIXED32.name(), "int")
-            .put(FieldDescriptorProto.Type.TYPE_SFIXED64.name(), "long")
-            .put(FieldDescriptorProto.Type.TYPE_SINT32.name(), "int")
-            .put(FieldDescriptorProto.Type.TYPE_SINT64.name(), "int")
-
-            /*
-             * Groups are NOT supported, so do not create an associated Java type for it.
-             * The return value for the {@link FieldDescriptorProto.Type.TYPE_GROUP} key
-             * is intended to be {@code null}.
-             **/
-            //.put(FieldDescriptorProto.Type.TYPE_GROUP.name(), "not supported")
-
-            .build();
 
     /**
      * Creates a new instance.
@@ -183,7 +155,7 @@ public class FailureWriter {
         final Iterator<Map.Entry<String, String>> iterator = fieldsEntries.iterator();
         for (int i = 0; i < fieldsEntries.size(); i++) {
             final Map.Entry<String, String> field = iterator.next();
-            writer.write(field.getValue() + ' ' + getJavaFieldName(field.getKey(), false));
+            writer.write(field.getValue() + ' ' + GenerationUtils.getJavaFieldName(field.getKey(), false));
             final boolean isNotLast = i != (fieldsEntries.size() - 1);
             if (isNotLast) {
                 writer.write(COMMA_SEPARATOR);
@@ -194,8 +166,8 @@ public class FailureWriter {
                              commandContextCtorParam + COMMA_SEPARATOR +
                              outerClassName + '.' + className + ".newBuilder()");
         for (Map.Entry<String, String> field : fieldsEntries) {
-            final String upperCaseName = getJavaFieldName(field.getKey(), true);
-            writer.write(".set" + upperCaseName + '(' + getJavaFieldName(field.getKey(), false) + ')');
+            final String upperCaseName = GenerationUtils.getJavaFieldName(field.getKey(), true);
+            writer.write(".set" + upperCaseName + '(' + GenerationUtils.getJavaFieldName(field.getKey(), false) + ')');
         }
         writer.write(".build());\n");
         writer.write("\t}\n");
@@ -206,30 +178,6 @@ public class FailureWriter {
         log().debug("Writing the file ending");
 
         writer.write("}\n");
-    }
-
-    /**
-     * Transforms Protobuf-style field name into corresponding Java-style field name.
-     *
-     * <p>For example, seat_assignment_id -> SeatAssignmentId
-     *
-     * @param protoFieldName  Protobuf field name.
-     * @param capitalizeFirst Indicates if we need first letter of the output to be capitalized.
-     * @return a field name
-     */
-    private static String getJavaFieldName(String protoFieldName, boolean capitalizeFirst) {
-        final String[] words = protoFieldName.split("_");
-        final StringBuilder builder = new StringBuilder(words[0]);
-        for (int i = 1; i < words.length; i++) {
-            final String word = words[i];
-            builder.append(Character.toUpperCase(word.charAt(0)))
-                   .append(word.substring(1));
-        }
-        String resultName = builder.toString();
-        if (capitalizeFirst) {
-            resultName = Character.toUpperCase(resultName.charAt(0)) + resultName.substring(1);
-        }
-        return resultName;
     }
 
     /**
@@ -252,8 +200,8 @@ public class FailureWriter {
                 }
                 value = messageTypeMap.get(typeName);
             } else {
-                value = PROTO_FIELD_TYPES.get(field.getType()
-                                                   .name());
+                value = GenerationUtils.getType(field.getType()
+                                                     .name()).getName();
             }
             result.put(field.getName(), value);
         }
