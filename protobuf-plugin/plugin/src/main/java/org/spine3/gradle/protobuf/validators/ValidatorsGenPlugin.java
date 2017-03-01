@@ -1,9 +1,8 @@
 package org.spine3.gradle.protobuf.validators;
 
-import com.google.protobuf.DescriptorProtos.FileOptions;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
-import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
+import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -12,13 +11,14 @@ import org.slf4j.LoggerFactory;
 import org.spine3.gradle.SpinePlugin;
 import org.spine3.gradle.protobuf.util.DescriptorSetUtil;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
+import static com.google.common.collect.Sets.newHashSet;
 import static org.gradle.internal.impldep.com.beust.jcommander.internal.Lists.newArrayList;
 import static org.gradle.internal.impldep.com.beust.jcommander.internal.Maps.newHashMap;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
@@ -48,16 +48,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         this.project = project;
 
         log().debug("Preparing to generate validating builders");
-
-        final Action<Task> mainScopeAction = new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                final String path = getMainDescriptorSetPath(project);
-                log().debug("Generating the validators from {}", path);
-                final List<DescriptorProto> descriptors = process(path);
-
-            }
-        };
+        final Action<Task> mainScopeAction = createAction(getMainDescriptorSetPath(project));
 
         logDependingTask(log(), GENERATE_VALIDATING_BUILDERS, COMPILE_JAVA, GENERATE_PROTO);
         final GradleTask generateValidator =
@@ -66,15 +57,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
                                                                       .applyNowTo(project);
 
         log().debug("Preparing to generate test validating builders");
-        final Action<Task> testScopeAction = new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                final String path = getTestDescriptorSetPath(project);
-                log().debug("Generating the test validators from {}", path);
-                final List<DescriptorProto> descriptors = process(path);
-
-            }
-        };
+        final Action<Task> testScopeAction = createAction(getTestDescriptorSetPath(project));
 
         logDependingTask(log(), GENERATE_TEST_VALIDATING_BUILDERS, COMPILE_TEST_JAVA, GENERATE_TEST_PROTO);
         final GradleTask generateTestValidator =
@@ -89,29 +72,47 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         // test
         //
         final String hardCodedPath = "/Users/illiashepilov/Projects/spine/tools/protobuf-plugin/build/descriptors/main.desc";
-        final List<DescriptorProto> descriptors = process(hardCodedPath);
+        final Set<WriterDto> dtos = process(hardCodedPath);
         /////////////////
+    }
+
+    private Action<Task> createAction(final String path) {
+        return new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                log().debug("Generating the validators from {}", path);
+                final Set<WriterDto> dtos = process(path);
+
+            }
+        };
+    }
+
+    private Set<WriterDto> process(String path) {
+        final List<FileDescriptorProto> files = getCommandProtoFileDescriptors(path);
+        final Set<WriterDto> dtos = getMessageDescriptors(files);
+        final Set<WriterDto> result = getFieldDescriptors(dtos);
+        return result;
+    }
+
+    private Set<WriterDto> getFieldDescriptors(Set<WriterDto> dtos) {
+        final Set<WriterDto> fieldDtos = newHashSet();
+        for (WriterDto dto : dtos) {
+            final DescriptorProto msgDescriptor = dto.getMsgDescriptor();
+            final List<FieldDescriptorProto> fieldDescriptors = msgDescriptor.getFieldList();
+            final List<DescriptorProto> descriptors = processFields(fieldDescriptors);
+            fieldDtos.add(dto);
+            final Set<WriterDto> fieldMessages = constructMessageFieldDto(dto.getJavaPackage(), descriptors);
+            fieldDtos.addAll(fieldMessages);
+        }
+        return fieldDtos;
     }
 
     private static void createValidationBuilder(WriterDto dto) {
         new ValidatorWriter(dto).write();
     }
 
-    private List<DescriptorProto> process(String path) {
-        final List<FileDescriptorProto> files = getCommandProtoFileDescriptors(path);
-        final List<WriterDto> dtos = getMessageDescriptors(files);
+    private List<DescriptorProto> processFields(List<FieldDescriptorProto> fieldDescriptors) {
         final List<DescriptorProto> descriptors = newArrayList();
-        for (WriterDto dto : dtos) {
-            final DescriptorProto msgDescriptor = dto.getMsgDescriptor();
-            descriptors.add(msgDescriptor);
-            final List<FieldDescriptorProto> fieldDescriptors = msgDescriptor.getFieldList();
-            processFields(descriptors, fieldDescriptors);
-        }
-        return descriptors;
-    }
-
-    private void processFields(List<DescriptorProto> descriptors,
-                               List<FieldDescriptorProto> fieldDescriptors) {
         for (FieldDescriptorProto fieldDescriptor : fieldDescriptors) {
             final boolean isMessage = fieldDescriptor.getType() != FieldDescriptorProto.Type.TYPE_MESSAGE;
             if (isMessage) {
@@ -123,6 +124,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
                 descriptors.add(descriptor);
             }
         }
+        return descriptors;
     }
 
     private static String getMessageName(String fullName) {
@@ -131,20 +133,22 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return msgName;
     }
 
-    private static List<WriterDto> getMessageDescriptors(List<FileDescriptorProto> files) {
-        final List<WriterDto> result = new ArrayList<>();
+    private static Set<WriterDto> getMessageDescriptors(List<FileDescriptorProto> files) {
+        final Set<WriterDto> result = newHashSet();
         for (FileDescriptorProto file : files) {
             final List<DescriptorProto> messages = file.getMessageTypeList();
-            final List<WriterDto> dtoList = constructMessageFieldDto(file, messages);
+            final String javaPackage = file.getOptions()
+                                           .getJavaPackage();
+            final Set<WriterDto> dtoList = constructMessageFieldDto(javaPackage, messages);
             result.addAll(dtoList);
         }
         return result;
     }
 
-    private static List<WriterDto> constructMessageFieldDto(FileDescriptorProto file, List<DescriptorProto> messages) {
-        final List<WriterDto> result = new ArrayList<>();
+    private static Set<WriterDto> constructMessageFieldDto(String javaPackage, List<DescriptorProto> messages) {
+        final Set<WriterDto> result = newHashSet();
         for (DescriptorProto message : messages) {
-            final WriterDto dto = createWriterDto(file, message);
+            final WriterDto dto = createWriterDto(javaPackage, message);
             result.add(dto);
         }
         return result;
@@ -175,11 +179,9 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         }
     }
 
-    private static WriterDto createWriterDto(FileDescriptorProto file, DescriptorProto message) {
-        final FileOptions fileOptions = file.getOptions();
-        final String packageName = fileOptions.getJavaPackage();
+    private static WriterDto createWriterDto(String javaPackage, DescriptorProto message) {
         final String className = message.getName() + JAVA_CLASS_NAME_SUFFIX;
-        final WriterDto result = new WriterDto(packageName, className, message);
+        final WriterDto result = new WriterDto(javaPackage, className, message);
         return result;
     }
 
