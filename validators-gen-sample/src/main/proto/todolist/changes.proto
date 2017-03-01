@@ -22,27 +22,12 @@ syntax = "proto3";
 
 package spine.examples.todolist;
 
-option (type_url_prefix) = "type.spine.examples.todolist";
 option java_package = "org.spine3.examples.todolist";
 option java_outer_classname = "ChangesProto";
 option java_multiple_files = true;
 option java_generate_equals_and_hash = true;
 
-import "spine/annotations.proto";
-import "spine/validate.proto";
-
 import "todolist/attributes.proto";
-import "todolist/values.proto";
-
-// Definition of a change in a task priority field.
-message PriorityChange {
-
-    // The value of the priority that's changing.
-    TaskPriority previous_value = 1;
-
-    // The new value of the priority.
-    TaskPriority new_value = 2;
-}
 
 // Definition of a change in a label details field.
 message LabelDetailsChange {
@@ -61,5 +46,18 @@ message DescriptionChange {
     string previous_value = 1;
 
     // The new value of the task description.
-    string new_value = 2 [(required) = true, (pattern).regex = "^[A-Za-z0-9\\s-()\\.+]{3,}$"];
+    string new_value = 2;
+}
+
+// DTO for the label details.
+//
+// Wrapped by several events to transfer the label data.
+//
+message LabelDetails {
+
+    // Label title.
+    string title = 1;
+
+    // Label color.
+    LabelColor color = 2;
 }
