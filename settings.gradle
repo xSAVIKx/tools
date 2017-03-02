@@ -21,3 +21,5 @@ project(':enrichment-lookup-sample').projectDir = "$rootDir/enrichment-lookup-sa
 include 'javadocs-checker'
 project(':javadocs-checker').projectDir = "$rootDir/javadocs-checker" as File
 
+include 'javadoc'
+project(':javadoc').projectDir = "$rootDir/javadoc" as File
