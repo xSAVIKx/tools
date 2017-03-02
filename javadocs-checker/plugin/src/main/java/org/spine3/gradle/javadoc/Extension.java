@@ -32,6 +32,7 @@ import static com.google.common.collect.Lists.newArrayList;
  *
  * @author Alexander Aleksandrov
  */
+@SuppressWarnings("PublicField")    // as this is a Gradle extension.
 public class Extension {
 
     public static List<String> getDirsToCheck(Project project) {

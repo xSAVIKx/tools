@@ -87,7 +87,7 @@ public class FqnCheckPlugin extends SpinePlugin {
             log().debug("Starting to check the files recursively in {}", path.toString());
             Files.walkFileTree(path, visitor);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to check the folder with its contents: " + path, e);
+            throw new IllegalStateException("Failed to check the folder with its contents: " + path, e);
         }
     }
 
