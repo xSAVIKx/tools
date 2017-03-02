@@ -2,6 +2,7 @@ package org.spine3.gradle.protobuf.validators;
 
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
+import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -120,21 +121,17 @@ public class ValidatorWriter {
             final String paramName = getJavaFieldName(descriptorField.getName(), false);
             final ParameterSpec firstParam = ParameterSpec.builder(String.class, paramName)
                                                           .build();
-            final ParameterizedTypeName parameterizedTypeName = ParameterizedTypeName.get(Stringifier.class,
-                                                                                          parameterClass,
-                                                                                          String.class);
-            final ParameterSpec secondParam = ParameterSpec.builder(parameterizedTypeName, "converter")
-                                                           .build();
             final String fieldName = getJavaFieldName(paramName, false);
             final String setterPart = getJavaFieldName(paramName, true);
             final String methodName = "set" + setterPart + "Raw";
+            System.out.println(parameterClass.getName());
             final MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
                                                     .addModifiers(Modifier.PUBLIC)
                                                     .addParameter(firstParam)
                                                     .addException(ConstraintViolationThrowable.class)
                                                     .addException(ConversionError.class)
-                                                    .addStatement("final $T convertedValue = getConvertedValue(" + paramName + ")", parameterClass)
-                                                    .addStatement("validate(convertedValue)")
+                                                    .addStatement("final $T convertedValue = getConvertedValue($T.class, " + paramName + ")", parameterClass, parameterClass)
+                                                    .addStatement("validate(fieldDesciptor, convertedValue, " + paramName+ ")")
                                                     .addStatement("this." + fieldName + " = convertedValue")
                                                     .build();
             setters.add(methodSpec);
