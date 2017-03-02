@@ -58,6 +58,11 @@ public enum TaskName {
     PRE_CLEAN("preClean"),
 
     /**
+     * The name of the task that checks for wrong FQN naming in javadocs
+     */
+    CHECK_FQN("checkFqn"),
+
+    /**
      * The name of the failure generation task added to the Gradle lifecycle..
      *
      * <p>Relates to `main` classes and resources scope.

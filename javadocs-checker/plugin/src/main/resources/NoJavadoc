@@ -1,0 +1,18 @@
+@SPI
+@ParametersAreNonnullByDefault
+package org.spine3.server.aggregate.storage;
+
+import org.spine3.SPI;
+
+import javax.annotation.ParametersAreNonnullByDefault;
+
+public class JavadocCheckerPlugin implements Plugin<Project> {
+
+    private static final String SPINE_JAVADOC_EXTENSION_NAME = "spineJavadoc";
+
+    @Override
+    public void apply(Project project) {
+        project.getExtensions().create(SPINE_JAVADOC_EXTENSION_NAME, Extension.class);
+        log().debug("Applying Spine javadocChecker plugin");
+        new FqnCheckPlugin().apply(project);
+    }
