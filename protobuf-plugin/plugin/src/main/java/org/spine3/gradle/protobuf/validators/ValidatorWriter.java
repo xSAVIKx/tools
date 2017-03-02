@@ -7,21 +7,20 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spine3.base.FieldPath;
+import org.spine3.base.Stringifier;
 import org.spine3.gradle.protobuf.GenerationUtils;
 import org.spine3.gradle.protobuf.MessageTypeCache;
-import org.spine3.server.validate.FieldValidator;
-import org.spine3.server.validate.FieldValidatorFactory;
-import org.spine3.server.validate.ValidatingBuilder;
-import org.spine3.validate.ConstraintViolation;
+import org.spine3.server.validate.CommonValidatingBuilder;
+import org.spine3.validate.ConstraintViolationThrowable;
+import org.spine3.validate.ConversionError;
 
 import javax.lang.model.element.Modifier;
 import java.io.File;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -61,7 +60,7 @@ public class ValidatorWriter {
         final MethodSpec constructor = createConstructor();
         methods.add(constructor);
         addFields(classBuilder, fields);
-        addMethods(classBuilder, methods);
+        addMethods(classBuilder, methods, descriptor);
         final TypeSpec classToWrite = classBuilder.build();
 
         try {
@@ -92,7 +91,7 @@ public class ValidatorWriter {
     private List<MethodSpec> createSetters(DescriptorProto descriptorProto) {
         final List<MethodSpec> setters = newArrayList();
         for (FieldDescriptorProto descriptorField : descriptorProto.getFieldList()) {
-            Class<?> parameterClass = getParameterClass(descriptorField);
+            final Class<?> parameterClass = getParameterClass(descriptorField);
             final String paramName = getJavaFieldName(descriptorField.getName(), false);
             final ParameterSpec parameter = ParameterSpec.builder(parameterClass, paramName)
                                                          .build();
@@ -102,13 +101,8 @@ public class ValidatorWriter {
             final MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
                                                     .addModifiers(Modifier.PUBLIC)
                                                     .addParameter(parameter)
-                                                    .addException(IOException.class) //TODO:2017-03-01:illiashepilov: set correct exception
-                                                    .addStatement("final $T fieldPath = $T.newBuilder().addFieldName($S).build()", FieldPath.class, FieldPath.class, fieldName)
-                                                    .addStatement("final $T<?> validator = $T.createStrict(descriptorField, " + fieldName + ", fieldPath)", FieldValidator.class, FieldValidatorFactory.class)
-                                                    .addStatement("final $T<$T> constraints = validator.validate()", List.class, ConstraintViolation.class)
-                                                    .beginControlFlow("if(!constraints.isEmpty())")
-                                                    .addStatement("throw new $T(constraints)", RuntimeException.class)//TODO:2017-03-01:illiashepilov: set ValidationFailure exception
-                                                    .endControlFlow()
+                                                    .addException(ConstraintViolationThrowable.class)
+                                                    .addStatement("validate(" + fieldName + ")")
                                                     .addStatement("this." + fieldName + " = " + fieldName)
                                                     .build();
             setters.add(methodSpec);
@@ -119,28 +113,33 @@ public class ValidatorWriter {
     private List<MethodSpec> createRawSetters(DescriptorProto descriptorProto) {
         final List<MethodSpec> setters = newArrayList();
         for (FieldDescriptorProto descriptorField : descriptorProto.getFieldList()) {
-            Class<?> parameterClass = getParameterClass(descriptorField);
+            final Class<?> parameterClass = getParameterClass(descriptorField);
+            if (parameterClass.equals(String.class)) {
+                return setters;
+            }
             final String paramName = getJavaFieldName(descriptorField.getName(), false);
-            final ParameterSpec parameter = ParameterSpec.builder(parameterClass, paramName)
-                                                         .build();
+            final ParameterSpec firstParam = ParameterSpec.builder(String.class, paramName)
+                                                          .build();
+            final ParameterizedTypeName parameterizedTypeName = ParameterizedTypeName.get(Stringifier.class,
+                                                                                          parameterClass,
+                                                                                          String.class);
+            final ParameterSpec secondParam = ParameterSpec.builder(parameterizedTypeName, "converter")
+                                                           .build();
             final String fieldName = getJavaFieldName(paramName, false);
             final String setterPart = getJavaFieldName(paramName, true);
             final String methodName = "set" + setterPart + "Raw";
             final MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
                                                     .addModifiers(Modifier.PUBLIC)
-                                                    .addParameter(parameter)
-                                                    .addException(IOException.class) //TODO:2017-03-01:illiashepilov: set correct exception
-                                                    .addException(SQLException.class) //TODO:2017-03-01:illiashepilov: set correct exception
-                                                    .addStatement("final $T fieldPath = $T.newBuilder().addFieldName($S).build()", FieldPath.class, FieldPath.class, descriptorField.getName())
-                                                    .addStatement("final $T<?> validator = $T.createStrict(descriptorField, " + fieldName + ", fieldPath)", FieldValidator.class, FieldValidatorFactory.class)
-                                                    .addStatement("final $T<$T> constraints = validator.validate()", List.class, ConstraintViolation.class)
-                                                    .beginControlFlow("if(!constraints.isEmpty())")
-                                                    .addStatement("throw new $T(constraints)", RuntimeException.class)//TODO:2017-03-01:illiashepilov: set ValidationFailure exception
-                                                    .endControlFlow()
-                                                    .addStatement("this." + fieldName + " = " + fieldName)
+                                                    .addParameter(firstParam)
+                                                    .addException(ConstraintViolationThrowable.class)
+                                                    .addException(ConversionError.class)
+                                                    .addStatement("final $T convertedValue = getConvertedValue(" + paramName + ")", parameterClass)
+                                                    .addStatement("validate(convertedValue)")
+                                                    .addStatement("this." + fieldName + " = convertedValue")
                                                     .build();
             setters.add(methodSpec);
         }
+
         return setters;
     }
 
@@ -160,8 +159,6 @@ public class ValidatorWriter {
         final MethodSpec buildMethod = MethodSpec.methodBuilder("build")
                                                  .addModifiers(Modifier.PUBLIC)
                                                  .returns(builtMessage)
-                                                 .addException(IOException.class) //TODO:2017-03-01:illiashepilov: set correct exception
-                                                 .addException(SQLException.class) //TODO:2017-03-01:illiashepilov: set correct exception
                                                  .addStatement(builder.toString(), builtMessage, builtMessage)
                                                  .addStatement("return result")
                                                  .build();
@@ -169,11 +166,11 @@ public class ValidatorWriter {
     }
 
     private MethodSpec createNewBuilderMethod(DescriptorProto descriptorProto) {
-        final ClassName thatClass = ClassName.get(writerDto.getJavaPackage(), writerDto.getJavaClass());
+        final ClassName builderClass = ClassName.get(writerDto.getJavaPackage(), writerDto.getJavaClass());
         final MethodSpec buildMethod = MethodSpec.methodBuilder("newBuilder")
                                                  .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                                                 .returns(thatClass)
-                                                 .addStatement("return new $T()", thatClass)
+                                                 .returns(builderClass)
+                                                 .addStatement("return new $T()", builderClass)
                                                  .build();
         return buildMethod;
     }
@@ -207,9 +204,15 @@ public class ValidatorWriter {
         return result;
     }
 
-    private static TypeSpec.Builder addMethods(TypeSpec.Builder builder, Iterable<MethodSpec> methodSpecs) {
+    private TypeSpec.Builder addMethods(TypeSpec.Builder builder,
+                                        Iterable<MethodSpec> methodSpecs,
+                                        DescriptorProto descriptorProto) {
+        final ClassName builtMessage = ClassName.get(writerDto.getJavaPackage(), descriptorProto.getName());
+        final ClassName commonValidator = ClassName.get(CommonValidatingBuilder.class.getPackage()
+                                                                                     .getName(), CommonValidatingBuilder.class.getName());
+        final ParameterizedTypeName superClass = ParameterizedTypeName.get(commonValidator, builtMessage);
         builder.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-               .addSuperinterface(ValidatingBuilder.class)
+               .superclass(superClass)
                .addMethods(methodSpecs);
         return builder;
     }
