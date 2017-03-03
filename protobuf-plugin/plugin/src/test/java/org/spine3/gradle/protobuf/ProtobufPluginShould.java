@@ -38,6 +38,8 @@ import static org.spine3.gradle.TaskName.GENERATE_FAILURES;
 import static org.spine3.gradle.TaskName.GENERATE_PROTO;
 import static org.spine3.gradle.TaskName.GENERATE_TEST_FAILURES;
 import static org.spine3.gradle.TaskName.GENERATE_TEST_PROTO;
+import static org.spine3.gradle.TaskName.GENERATE_TEST_VALIDATING_BUILDERS;
+import static org.spine3.gradle.TaskName.GENERATE_VALIDATING_BUILDERS;
 import static org.spine3.gradle.TaskName.MAP_PROTO_TO_JAVA;
 import static org.spine3.gradle.TaskName.MAP_TEST_PROTO_TO_JAVA;
 import static org.spine3.gradle.TaskName.PRE_CLEAN;
@@ -121,6 +123,22 @@ public class ProtobufPluginShould {
         assertNotNull(mapProto);
         assertTrue(dependsOn(mapProto, GENERATE_TEST_PROTO));
         assertTrue(dependsOn(task(PROCESS_TEST_RESOURCES), mapProto));
+    }
+
+    @Test
+    public void add_task_generation_validating_builders() {
+        final Task genValidatingBuilders = task(GENERATE_VALIDATING_BUILDERS);
+        assertNotNull(genValidatingBuilders);
+        assertTrue(dependsOn(genValidatingBuilders, GENERATE_PROTO));
+        assertTrue(dependsOn(task(COMPILE_JAVA), genValidatingBuilders));
+    }
+
+    @Test
+    public void add_task_generation_test_validating_builders() {
+        final Task genTestValidatingBuidlers = task(GENERATE_TEST_VALIDATING_BUILDERS);
+        assertNotNull(genTestValidatingBuidlers);
+        assertTrue(dependsOn(genTestValidatingBuidlers, GENERATE_TEST_PROTO));
+        assertTrue(dependsOn(task(COMPILE_TEST_JAVA), genTestValidatingBuidlers));
     }
 
     private Task task(TaskName taskName) {
