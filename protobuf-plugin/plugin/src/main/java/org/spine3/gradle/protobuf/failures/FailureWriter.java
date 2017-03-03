@@ -23,17 +23,29 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
+import com.google.protobuf.GeneratedMessageV3;
+import com.squareup.javapoet.AnnotationSpec;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spine3.base.CommandContext;
+import org.spine3.base.FailureThrowable;
 
+import javax.annotation.Generated;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.Iterator;
+import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PUBLIC;
+import static javax.lang.model.element.Modifier.STATIC;
 
 /**
  * Class, which writes Failure java code, based on it's descriptor.
@@ -47,7 +59,6 @@ import java.util.Set;
 public class FailureWriter {
 
     private static final String COMMA_SEPARATOR = ", ";
-    private static final String PUBLIC_MEMBER = "\tpublic";
 
     private final DescriptorProto failureDescriptor;
     private final File outputFile;
@@ -117,95 +128,92 @@ public class FailureWriter {
             Files.createParentDirs(outputFile);
             Files.touch(outputFile);
 
-            final FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-            final OutputStreamWriter writer = new OutputStreamWriter(fileOutputStream);
-            writePackage(writer);
-            readFieldValues();
-            writeImports(writer);
-            writeClassName(writer);
-            writeConstructor(writer);
-            writeGetFailure(writer);
-            writeEnding(writer);
-            writer.flush();
+            log().debug("Writing {} class signature", className);
+            final TypeSpec failure = TypeSpec.classBuilder(className)
+                                             .addAnnotation(generatedBySpineCompiler())
+                                             .addModifiers(PUBLIC)
+                                             .superclass(FailureThrowable.class)
+                                             .addField(serialVersionUID())
+                                             .addMethod(createConstructor())
+                                             .addMethod(createGetFailure())
+                                             .build();
+
+            final JavaFile javaFile = JavaFile.builder(javaPackage, failure)
+                                              .build();
+            javaFile.writeTo(outputFile);
+
             log().debug("File {} written successfully", outputFile.getPath());
         } catch (@SuppressWarnings("OverlyBroadCatchBlock") IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void writePackage(OutputStreamWriter writer) throws IOException {
-        log().debug("Writing the package");
-
-        writer.write("package " + javaPackage + ";\n\n");
-    }
-
-    private static void writeImports(OutputStreamWriter writer) throws IOException {
-        log().debug("Writing the imports");
-
-        writer.write("import org.spine3.base.FailureThrowable;\n");
-        writer.write("import com.google.protobuf.GeneratedMessageV3;\n");
-        writer.write("import org.spine3.base.CommandContext;\n");
-        writer.write("\n");
-    }
-
-    private void writeClassName(OutputStreamWriter writer) throws IOException {
-        log().debug("Writing {} class signature", className);
-
-        writer.write("@javax.annotation.Generated(\"by Spine compiler\")\n");
-        writer.write("public class " + className + " extends FailureThrowable {\n\n");
-
-        writer.write("\tprivate static final long serialVersionUID = 0L;\n\n");
-    }
-
-    private void writeGetFailure(OutputStreamWriter writer) throws IOException {
-        log().debug("Writing getFailure()");
-
-        writer.write("\n\t@Override\n");
-        writer.write(PUBLIC_MEMBER + ' ' + outerClassName + '.' + className + " getFailureMessage() {\n");
-        writer.write("\t\treturn (" + outerClassName + '.' + className + ") super.getFailureMessage();\n\t}\n");
-    }
-
     @SuppressWarnings("MethodWithMultipleLoops")
-    private void writeConstructor(OutputStreamWriter writer) throws IOException {
-        log().debug("Writing the constructor");
+    private MethodSpec createConstructor() {
+        log().debug("Creating the constructor");
 
-        writer.write(PUBLIC_MEMBER + ' ' + className + '(');
-
-        final String commandMsgCtorParam = "commandMessage";
-        final String commandContextCtorParam = "ctx";
-        writer.write("GeneratedMessageV3 " + commandMsgCtorParam + ", CommandContext " + commandContextCtorParam);
-
+        final String commandMsgParam = "commandMessage";
+        final String commandContextParam = "ctx";
         final Set<Map.Entry<String, String>> fieldsEntries = readFieldValues().entrySet();
-        if (!fieldsEntries.isEmpty()) {
-            writer.write(COMMA_SEPARATOR);
+
+        final MethodSpec.Builder builder = MethodSpec.constructorBuilder()
+                                                     .addModifiers(PUBLIC)
+                                                     .addParameter(GeneratedMessageV3.class, commandMsgParam)
+                                                     .addParameter(CommandContext.class, commandContextParam);
+
+        for (Map.Entry<String, String> field : fieldsEntries) {
+            final Class<?> cls = classFor(field.getKey());
+            builder.addParameter(cls, field.getValue());
         }
 
-        final Iterator<Map.Entry<String, String>> iterator = fieldsEntries.iterator();
-        for (int i = 0; i < fieldsEntries.size(); i++) {
-            final Map.Entry<String, String> field = iterator.next();
-            writer.write(field.getValue() + ' ' + getJavaFieldName(field.getKey(), false));
-            final boolean isNotLast = i != (fieldsEntries.size() - 1);
-            if (isNotLast) {
-                writer.write(COMMA_SEPARATOR);
-            }
-        }
-        writer.write(") {\n");
-        writer.write("\t\tsuper(" + commandMsgCtorParam + COMMA_SEPARATOR +
-                             commandContextCtorParam + COMMA_SEPARATOR +
-                             outerClassName + '.' + className + ".newBuilder()");
+        final StringBuilder superStatement = new StringBuilder(
+                "super(" + commandMsgParam + COMMA_SEPARATOR
+                        + commandContextParam + COMMA_SEPARATOR
+                        + outerClassName + '.' + className + ".newBuilder()");
         for (Map.Entry<String, String> field : fieldsEntries) {
             final String upperCaseName = getJavaFieldName(field.getKey(), true);
-            writer.write(".set" + upperCaseName + '(' + getJavaFieldName(field.getKey(), false) + ')');
+            superStatement.append(".set")
+                          .append(upperCaseName)
+                          .append('(')
+                          .append(getJavaFieldName(field.getKey(), false))
+                          .append(')');
         }
-        writer.write(".build());\n");
-        writer.write("\t}\n");
+        superStatement.append(".build())");
+
+        return builder.addStatement(superStatement.toString())
+                      .build();
     }
 
-    @SuppressWarnings("MethodMayBeStatic")
-    private void writeEnding(OutputStreamWriter writer) throws IOException {
-        log().debug("Writing the file ending");
+    private MethodSpec createGetFailure() {
+        log().debug("Creating getFailure()");
 
-        writer.write("}\n");
+        final Type returnType = classFor(outerClassName + '.' + className);
+        return MethodSpec.methodBuilder("getFailureMessage")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PUBLIC)
+                         .returns(returnType)
+                         .addStatement("return (" + returnType.toString() + ") super.getFailureMessage()")
+                         .build();
+    }
+
+    private static Class<?> classFor(String fullyQualifiedName) {
+        try {
+            return Class.forName(fullyQualifiedName);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static AnnotationSpec generatedBySpineCompiler() {
+        return AnnotationSpec.builder(Generated.class)
+                             .addMember("value", "by Spine compiler")
+                             .build();
+    }
+
+    private static FieldSpec serialVersionUID() {
+        return FieldSpec.builder(long.class, "serialVersionUID", PRIVATE, STATIC, FINAL)
+                        .initializer("0L")
+                        .build();
     }
 
     /**
