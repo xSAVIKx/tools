@@ -1,5 +1,6 @@
 package org.spine3.gradle.protobuf.validators;
 
+import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.Descriptors.FieldDescriptor;
@@ -25,6 +26,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.gradle.internal.impldep.com.beust.jcommander.internal.Lists.newArrayList;
+import static org.spine3.gradle.protobuf.GenerationUtils.getFieldType;
 import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
 
 /**
@@ -32,65 +34,68 @@ import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
  *
  * @author Illia Shepilov
  */
-public class ValidatorWriter {
+class ValidatorWriter {
 
     private static final String rootFolder = "generated/main/java/";
-    private final MessageTypeCache messageTypeCache;
-    private final WriterDto writerDto;
 
-    public ValidatorWriter(WriterDto writerDto, MessageTypeCache messageTypeCache) {
-        this.writerDto = writerDto;
+    private final String javaClass;
+    private final String javaPackage;
+    private final DescriptorProto descriptor;
+    private final MessageTypeCache messageTypeCache;
+
+    ValidatorWriter(WriterDto writerDto, MessageTypeCache messageTypeCache) {
+        this.javaClass = writerDto.getJavaClass();
+        this.javaPackage = writerDto.getJavaPackage();
+        this.descriptor = writerDto.getMsgDescriptor();
         this.messageTypeCache = messageTypeCache;
     }
 
-    public void write() {
-        log().debug("Writing the java class under {}", writerDto.getJavaPackage());
-        final File rootDirecroy = new File(rootFolder);
-
-        final DescriptorProto descriptor = writerDto.getMsgDescriptor();
-        final List<FieldSpec> fields = getFields();
-
+    void write() {
+        log().debug("Writing the java class under {}", javaPackage);
+        final File rootDirectory = new File(rootFolder);
         final List<MethodSpec> methods = newArrayList();
-        methods.add(createNewBuilderMethod(descriptor));
-        methods.addAll(createSetters(descriptor));
-        methods.addAll(createRawSetters(descriptor));
-        methods.add(createBuildMethod(descriptor));
-        final TypeSpec.Builder classBuilder = TypeSpec.classBuilder(writerDto.getJavaClass());
+
+        methods.add(createNewBuilderMethod());
+        methods.addAll(createSetters());
+        methods.addAll(createRawSetters());
+        methods.add(createBuildMethod());
         final MethodSpec constructor = createConstructor();
         methods.add(constructor);
+
+        final Collection<FieldSpec> fields = getFields();
+
+        final TypeSpec.Builder classBuilder = TypeSpec.classBuilder(javaClass);
         addFields(classBuilder, fields);
         addMethods(classBuilder, methods);
-        final TypeSpec classToWrite = classBuilder.build();
 
-        try {
-            writeClass(rootDirecroy, classToWrite);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        final TypeSpec javaClass = classBuilder.build();
+        writeClass(rootDirectory, javaClass);
     }
 
-    private List<FieldSpec> getFields() {
+    private Collection<FieldSpec> getFields() {
         final List<FieldSpec> fields = newArrayList();
-        for (FieldDescriptorProto fieldDescriptor : writerDto.getMsgDescriptor()
-                                                             .getFieldList()) {
-            final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
-            final FieldSpec field = FieldSpec.builder(getParameterClass(fieldDescriptor),
-                                                      fieldName,
-                                                      Modifier.PRIVATE)
-                                             .build();
+        for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
+            final FieldSpec field = constructField(fieldDescriptor);
             fields.add(field);
         }
         return fields;
     }
 
-    private static TypeSpec.Builder addFields(TypeSpec.Builder classBuilder, List<FieldSpec> fields) {
+    private FieldSpec constructField(FieldDescriptorProto fieldDescriptor) {
+        final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
+        final Class<?> fieldClass = getParameterClass(fieldDescriptor);
+        return FieldSpec.builder(fieldClass, fieldName, Modifier.PRIVATE)
+                        .build();
+    }
+
+    private static TypeSpec.Builder addFields(TypeSpec.Builder classBuilder, Iterable<FieldSpec> fields) {
         return classBuilder.addFields(fields);
     }
 
-    private List<MethodSpec> createSetters(DescriptorProto descriptorProto) {
+    private Collection<MethodSpec> createSetters() {
         final List<MethodSpec> setters = newArrayList();
         int index = 0;
-        for (FieldDescriptorProto descriptorField : descriptorProto.getFieldList()) {
+        for (FieldDescriptorProto descriptorField : descriptor.getFieldList()) {
             final Class<?> parameterClass = getParameterClass(descriptorField);
             final String paramName = getJavaFieldName(descriptorField.getName(), false);
             final ParameterSpec parameter = ParameterSpec.builder(parameterClass, paramName)
@@ -98,8 +103,8 @@ public class ValidatorWriter {
             final String fieldName = getJavaFieldName(paramName, false);
             final String setterPart = getJavaFieldName(paramName, true);
             final String methodName = "set" + setterPart;
-            final Class<?> defaultFieldType = GenerationUtils.getFieldType(descriptorField.getType()
-                                                                                          .name());
+            final Class<?> defaultFieldType = getFieldType(descriptorField.getType()
+                                                                          .name());
             final String fieldDescriptorType = defaultFieldType != null ? defaultFieldType.getName() : parameterClass.getName();
             final MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
                                                     .addModifiers(Modifier.PUBLIC)
@@ -115,11 +120,10 @@ public class ValidatorWriter {
         return setters;
     }
 
-    private List<MethodSpec> createRawSetters(DescriptorProto descriptorProto) {
+    private Collection<MethodSpec> createRawSetters() {
         final List<MethodSpec> setters = newArrayList();
         int index = 0;
-        for (FieldDescriptorProto descriptorField : descriptorProto.getFieldList()) {
-
+        for (FieldDescriptorProto descriptorField : descriptor.getFieldList()) {
             final Class<?> parameterClass = getParameterClass(descriptorField);
             if (parameterClass.equals(String.class)) {
                 return setters;
@@ -130,8 +134,9 @@ public class ValidatorWriter {
             final String fieldName = getJavaFieldName(paramName, false);
             final String setterPart = getJavaFieldName(paramName, true);
             final String methodName = "set" + setterPart + "Raw";
-            final Class<?> defaultFieldType = GenerationUtils.getFieldType(descriptorField.getType()
-                                                                                          .name());
+            final String descriptorFieldName = descriptorField.getType()
+                                                              .name();
+            final Class<?> defaultFieldType = getFieldType(descriptorFieldName);
             final String fieldDescriptorType = defaultFieldType != null ? defaultFieldType.getName() : parameterClass.getName();
             final MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
                                                     .addModifiers(Modifier.PUBLIC)
@@ -150,10 +155,9 @@ public class ValidatorWriter {
         return setters;
     }
 
-    private MethodSpec createBuildMethod(DescriptorProto descriptorProto) {
-
+    private MethodSpec createBuildMethod() {
         final StringBuilder builder = new StringBuilder("final $T result = $T.newBuilder()");
-        for (FieldDescriptorProto fieldDescription : descriptorProto.getFieldList()) {
+        for (FieldDescriptorProto fieldDescription : descriptor.getFieldList()) {
             builder.append(".")
                    .append("set")
                    .append(getJavaFieldName(fieldDescription.getName(), true))
@@ -173,8 +177,8 @@ public class ValidatorWriter {
         return buildMethod;
     }
 
-    private MethodSpec createNewBuilderMethod(DescriptorProto descriptorProto) {
-        final ClassName builderClass = ClassName.get(writerDto.getJavaPackage(), writerDto.getJavaClass());
+    private MethodSpec createNewBuilderMethod() {
+        final ClassName builderClass = ClassName.get(javaPackage, javaClass);
         final MethodSpec buildMethod = MethodSpec.methodBuilder("newBuilder")
                                                  .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                                                  .returns(builderClass)
@@ -186,8 +190,7 @@ public class ValidatorWriter {
     private Class<?> getParameterGeneralClass() {
         final Collection<String> values = messageTypeCache.getCachedTypes()
                                                           .values();
-        final String expectedClassName = writerDto.getJavaPackage() + "." + writerDto.getMsgDescriptor()
-                                                                                     .getName();
+        final String expectedClassName = javaPackage + "." + descriptor.getName();
         for (String value : values) {
             if (value.equals(expectedClassName)) {
                 try {
@@ -200,7 +203,7 @@ public class ValidatorWriter {
         throw new RuntimeException();
     }
 
-    private Class<?> getParameterClass(FieldDescriptorProto descriptorField) {
+    private Class<?> getParameterClass(DescriptorProtos.FieldDescriptorProtoOrBuilder descriptorField) {
         String typeName = descriptorField.getTypeName();
         if (typeName.isEmpty()) {
             return GenerationUtils.getType(descriptorField.getType()
@@ -216,10 +219,15 @@ public class ValidatorWriter {
         }
     }
 
-    private void writeClass(File rootFodler, TypeSpec validator) throws IOException {
-        JavaFile javaFile = JavaFile.builder(writerDto.getJavaPackage(), validator)
-                                    .build();
-        javaFile.writeTo(rootFodler);
+    private void writeClass(File rootFodler, TypeSpec validator) {
+        try {
+            JavaFile.builder(javaPackage, validator)
+                    .build()
+                    .writeTo(rootFodler);
+        } catch (
+                IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static MethodSpec createConstructor() {
@@ -230,7 +238,8 @@ public class ValidatorWriter {
     }
 
     private TypeSpec.Builder addMethods(TypeSpec.Builder builder, Iterable<MethodSpec> methodSpecs) {
-        final ParameterizedTypeName superClass = ParameterizedTypeName.get(CommonValidatingBuilder.class, getParameterGeneralClass());
+        final ParameterizedTypeName superClass =
+                ParameterizedTypeName.get(CommonValidatingBuilder.class, getParameterGeneralClass());
         builder.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                .superclass(superClass)
                .addMethods(methodSpecs);

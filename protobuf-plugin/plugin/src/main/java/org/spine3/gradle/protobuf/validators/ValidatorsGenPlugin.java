@@ -1,5 +1,6 @@
 package org.spine3.gradle.protobuf.validators;
 
+import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
@@ -113,7 +114,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return fieldDtos;
     }
 
-    private List<DescriptorProto> processFields(List<FieldDescriptorProto> fieldDescriptors) {
+    private List<DescriptorProto> processFields(Iterable<FieldDescriptorProto> fieldDescriptors) {
         final List<DescriptorProto> descriptors = newArrayList();
         for (FieldDescriptorProto fieldDescriptor : fieldDescriptors) {
             final boolean isMessage = fieldDescriptor.getType() != FieldDescriptorProto.Type.TYPE_MESSAGE;
@@ -135,7 +136,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return msgName;
     }
 
-    private Set<WriterDto> getMessageDescriptors(List<FileDescriptorProto> files) {
+    private Set<WriterDto> getMessageDescriptors(Iterable<FileDescriptorProto> files) {
         final Set<WriterDto> result = newHashSet();
         for (FileDescriptorProto file : files) {
             final List<DescriptorProto> messages = file.getMessageTypeList();
@@ -145,7 +146,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return result;
     }
 
-    private Set<WriterDto> constructMessageFieldDto(List<DescriptorProto> messages) {
+    private Set<WriterDto> constructMessageFieldDto(Iterable<DescriptorProto> messages) {
         final Set<WriterDto> result = newHashSet();
         for (DescriptorProto message : messages) {
             final WriterDto dto = createWriterDto(message);
@@ -181,7 +182,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return typeFiles;
     }
 
-    private void saveMessageToMap(FileDescriptorProto file) {
+    private void saveMessageToMap(DescriptorProtos.FileDescriptorProtoOrBuilder file) {
         List<DescriptorProto> messages = file.getMessageTypeList();
         for (DescriptorProto msg : messages) {
             allMessageDescriptors.put(msg.getName(), msg);
