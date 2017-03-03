@@ -40,7 +40,7 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
 public class ValidatorsGenPlugin extends SpinePlugin {
 
     private final Map<String, DescriptorProto> allMessageDescriptors = newHashMap();
-    private Project project;
+    private final Map<String, FileDescriptorProto> typeFiles = newHashMap();
 
     /** A map from Protobuf type name to Java class FQN. */
     private final MessageTypeCache messageTypeCache = new MessageTypeCache();
@@ -48,9 +48,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
     private static final Pattern COMPILE = Pattern.compile(".", Pattern.LITERAL);
 
     @Override
-    public void apply(final Project project) {
-        this.project = project;
-
+    public void apply(Project project) {
         log().debug("Preparing to generate validating builders");
         final Action<Task> mainScopeAction = createAction(getMainDescriptorSetPath(project));
 
@@ -73,8 +71,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
                     generateTestValidator);
 
         //TODO:2017-02-28:illiashepilov: Remove when implementation will be finished.
-        // test
-        //
+        //test
         final String hardCodedPath = "/Users/illiashepilov/Projects/spine/tools/protobuf-plugin/build/descriptors/main.desc";
         final Set<WriterDto> dtos = process(hardCodedPath);
         for (WriterDto dto : dtos) {
@@ -110,7 +107,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
             final List<FieldDescriptorProto> fieldDescriptors = msgDescriptor.getFieldList();
             final List<DescriptorProto> descriptors = processFields(fieldDescriptors);
             fieldDtos.add(dto);
-            final Set<WriterDto> fieldMessages = constructMessageFieldDto(dto.getJavaPackage(), descriptors);
+            final Set<WriterDto> fieldMessages = constructMessageFieldDto(descriptors);
             fieldDtos.addAll(fieldMessages);
         }
         return fieldDtos;
@@ -142,18 +139,16 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         final Set<WriterDto> result = newHashSet();
         for (FileDescriptorProto file : files) {
             final List<DescriptorProto> messages = file.getMessageTypeList();
-            final String javaPackage = file.getOptions()
-                                           .getJavaPackage();
-            final Set<WriterDto> dtoList = constructMessageFieldDto(javaPackage, messages);
+            final Set<WriterDto> dtoList = constructMessageFieldDto(messages);
             result.addAll(dtoList);
         }
         return result;
     }
 
-    private static Set<WriterDto> constructMessageFieldDto(String javaPackage, List<DescriptorProto> messages) {
+    private Set<WriterDto> constructMessageFieldDto(List<DescriptorProto> messages) {
         final Set<WriterDto> result = newHashSet();
         for (DescriptorProto message : messages) {
-            final WriterDto dto = createWriterDto(javaPackage, message);
+            final WriterDto dto = createWriterDto(message);
             result.add(dto);
         }
         return result;
@@ -167,6 +162,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
             final boolean isCommandFile = file.getName()
                                               .endsWith("commands.proto");
             saveMessageToMap(file);
+            fillMap(file);
             messageTypeCache.cacheTypes(file);
             if (isCommandFile) {
                 log().info("Found commands file: {}", file.getName());
@@ -178,6 +174,13 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return result;
     }
 
+    private Map<String, FileDescriptorProto> fillMap(FileDescriptorProto fileDescriptorProto) {
+        for (DescriptorProto message : fileDescriptorProto.getMessageTypeList()) {
+            typeFiles.put(message.getName(), fileDescriptorProto);
+        }
+        return typeFiles;
+    }
+
     private void saveMessageToMap(FileDescriptorProto file) {
         List<DescriptorProto> messages = file.getMessageTypeList();
         for (DescriptorProto msg : messages) {
@@ -185,14 +188,13 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         }
     }
 
-    private static WriterDto createWriterDto(String javaPackage, DescriptorProto message) {
+    private WriterDto createWriterDto(DescriptorProto message) {
         final String className = message.getName() + JAVA_CLASS_NAME_SUFFIX;
+        final String javaPackage = typeFiles.get(message.getName())
+                                            .getOptions()
+                                            .getJavaPackage();
         final WriterDto result = new WriterDto(javaPackage, className, message);
         return result;
-    }
-
-    public static void main(String[] args) {
-
     }
 
     private enum LogSingleton {
