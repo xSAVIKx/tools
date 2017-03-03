@@ -28,19 +28,22 @@ import java.util.List;
 import static com.google.common.collect.Lists.newArrayList;
 
 /**
- * A configuration for the {@link JavadocCheckerPlugin}
+ * A configuration for the {@link JavadocCheckerPlugin}.
  *
  * @author Alexander Aleksandrov
  */
 public class Extension {
 
+    private static final String DIRECTORY_TO_CHECK = "/src/main/java";
+
     private Extension(){
     }
 
     public static List<String> getDirsToCheck(Project project) {
+
         log().debug("Finding the directories to check");
         final String mainScopeJavaFolder = project.getProjectDir()
-                                                  .getAbsolutePath() + "/src/main/java";
+                                                  .getAbsolutePath() + DIRECTORY_TO_CHECK;
         final List<String> result = newArrayList(mainScopeJavaFolder);
         log().debug("{} directories found for the check: {}", result.size(), result);
 

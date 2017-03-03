@@ -25,7 +25,7 @@ package org.spine3.gradle.javadoc.fqnchecker;
 public class InvalidFqnUsageException extends RuntimeException {
 
     private final String filename;
-
+    private final String message = getMessage();
     public InvalidFqnUsageException(String filename, String message) {
         super(message);
         this.filename = filename;
@@ -34,7 +34,7 @@ public class InvalidFqnUsageException extends RuntimeException {
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public String toString() {
-        return "Invalid FQN usage found in file: " + filename + '.' +
-                "Details: " + getMessage();
+        final String str = getClass().getName();
+        return (message != null) ? (str + ": " + message) : str;
     }
 }

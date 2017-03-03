@@ -2,11 +2,13 @@ package org.spine3.gradle.javadoc.fqnchecker;
 
 import com.google.common.base.Optional;
 import org.gradle.internal.impldep.com.amazonaws.util.IOUtils;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /*
  * Copyright 2016, TeamDev Ltd. All rights reserved.
@@ -34,28 +36,28 @@ public class FqnCheckPluginShould {
     public void check_file_with_no_broken_links() {
         final String content = getFile("AggregateSampleFile");
         final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(content);
-        Assert.assertFalse(result.isPresent());
+        assertFalse(result.isPresent());
     }
 
     @Test
     public void check_file_with_long_FQN_name() {
         final String content = getFile("PackageInfoSampleFile");
         final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(content);
-        Assert.assertFalse(result.isPresent());
+        assertFalse(result.isPresent());
     }
 
     @Test
     public void check_file_with_no_javadoc() {
         final String content = getFile("NoJavadoc");
         final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(content);
-        Assert.assertFalse(result.isPresent());
+        assertFalse(result.isPresent());
     }
 
     @Test
     public void check_file_with_corrupted_javadoc() {
         final String content = getFile("AggregateCorruptedSampleFile");
         final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(content);
-        Assert.assertTrue(result.isPresent());
+        assertTrue(result.isPresent());
     }
 
     private String getFile(String fileName) {

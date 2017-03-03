@@ -40,6 +40,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static java.util.regex.Pattern.compile;
 import static org.spine3.gradle.TaskName.CHECK_FQN;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
@@ -50,22 +51,24 @@ import static org.spine3.gradle.javadoc.Extension.getDirsToCheck;
  * @author Alexander Aleksandrov
  */
 public class FqnCheckPlugin extends SpinePlugin {
+
     @Override
     public void apply(final Project project) {
         final Action<Task> checkJavadocAction = checkJavadocActionFor(project);
         newTask(CHECK_FQN, checkJavadocAction).insertAfterTask(COMPILE_JAVA)
                                               .insertBeforeTask(PROCESS_RESOURCES)
                                               .applyNowTo(project);
-        log().debug("Started to check Javadocs {}", checkJavadocAction);
+        log().debug("Starting to check Javadocs {}", checkJavadocAction);
     }
 
     private static Action<Task> checkJavadocActionFor(final Project project) {
-        log().debug("Checking files");
+        log().debug("Preparing an action for Javavdock checker");
         return new Action<Task>() {
             @Override
             public void execute(Task task) {
                 final List<String> dirsToCheck = getDirsToCheck(project);
                 findFqnLinksWithoutText(dirsToCheck);
+                log().debug("Ending an action");
             }
         };
     }
@@ -92,19 +95,22 @@ public class FqnCheckPlugin extends SpinePlugin {
     }
 
     /**
-     * Custom {@linkplain java.nio.file.FileVisitor visitor} which recursively deletes the contents of the walked folder.
+     * Custom {@linkplain java.nio.file.FileVisitor visitor} which recursively deletes the contents of
+     * the walked folder.
      */
     // A completely different behavior for the visitor methods is required.
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
+
     private static class RecursiveFileChecker extends SimpleFileVisitor<Path> {
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            super.visitFile(file, attrs);
             log().debug("Performing FQN check for the file: {}", file);
             check(file);
             return FileVisitResult.CONTINUE;
         }
 
+        @SuppressWarnings("MethodDoesntCallSuperMethod")
         @Override
         public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
             log().error("Error walking down the file tree for file: {}", file);
@@ -122,7 +128,7 @@ public class FqnCheckPlugin extends SpinePlugin {
         final String content = new String(rawContent);
         final Optional<InvalidFqnUsage> checkResult = check(content);
         if (checkResult.isPresent()) {
-            final String message = "Wrong FQN name of the link was found: " +
+            final String message = "Links with FQN should be in format {@link <FQN> <text>}. Wrong link found: " +
                     checkResult.get()
                                .getActualUsage() + " in :" + file;
             log().error(message);
@@ -133,13 +139,13 @@ public class FqnCheckPlugin extends SpinePlugin {
 
     @VisibleForTesting
     static Optional<InvalidFqnUsage> check(String content) {
-        String left = content;
+        String remainder = content;
 
         final String commentStart = CommentMarker.START.getValue();
         final String commentEnd = CommentMarker.END.getValue();
 
-        while (left.contains(commentStart)) {
-            final Optional<String> substring = substringBetween(left,
+        while (remainder.contains(commentStart)) {
+            final Optional<String> substring = substringBetween(remainder,
                                                                 commentStart,
                                                                 commentEnd);
             if (substring.isPresent()) {
@@ -148,9 +154,9 @@ public class FqnCheckPlugin extends SpinePlugin {
                 if (result.isPresent()) {
                     return result;
                 }
-                left = left.substring(comment.length() + commentStart.length() + commentEnd.length());
+                remainder = remainder.substring(comment.length() + commentStart.length() + commentEnd.length());
             }
-            left = substringStartsWith(left, commentStart);
+            remainder = substringStartsWith(remainder, commentStart);
 
         }
         return Optional.absent();
@@ -159,7 +165,7 @@ public class FqnCheckPlugin extends SpinePlugin {
     private static Optional<InvalidFqnUsage> checkSingleComment(String comment) {
         final Matcher matcher = JavadocPattern.LINK.getPattern()
                                                    .matcher(comment);
-        boolean found = matcher.find();
+        final boolean found = matcher.find();
         if (found) {
             final String improperUsage = matcher.group(0);
             final InvalidFqnUsage result = new InvalidFqnUsage(improperUsage);
@@ -187,10 +193,9 @@ public class FqnCheckPlugin extends SpinePlugin {
         final int start = str.indexOf(open);
         if (start != -1) {
             final int end = str.indexOf(close, start + open.length());
-            if (end != -1) {
-                final String result = str.substring(start + open.length(), end);
-                return Optional.of(result);
-            }
+            checkState(end != -1);
+            final String result = str.substring(start + open.length(), end);
+            return Optional.of(result);
         }
         return Optional.absent();
     }
@@ -212,7 +217,7 @@ public class FqnCheckPlugin extends SpinePlugin {
 
     private enum CommentMarker {
 
-        START("/*"),
+        START("/**"),
         END("*/");
 
         private final String value;
@@ -236,4 +241,3 @@ public class FqnCheckPlugin extends SpinePlugin {
         private final Logger value = LoggerFactory.getLogger(FqnCheckPlugin.class);
     }
 }
-

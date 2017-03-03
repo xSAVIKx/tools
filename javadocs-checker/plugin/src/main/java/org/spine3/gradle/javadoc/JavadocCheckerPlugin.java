@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 import org.spine3.gradle.javadoc.fqnchecker.FqnCheckPlugin;
 
 /**
+ * Plugin to check javadocs.
+ *
  * @author Alexander Aleksandrov
  */
 public class JavadocCheckerPlugin implements Plugin<Project> {
