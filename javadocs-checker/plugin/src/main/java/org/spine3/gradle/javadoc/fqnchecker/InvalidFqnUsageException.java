@@ -24,7 +24,7 @@ package org.spine3.gradle.javadoc.fqnchecker;
  */
 public class InvalidFqnUsageException extends RuntimeException {
 
-    private final String filename;
+    final String filename;
     private final String message = getMessage();
     public InvalidFqnUsageException(String filename, String message) {
         super(message);
