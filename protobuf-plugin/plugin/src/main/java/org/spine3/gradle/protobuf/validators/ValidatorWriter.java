@@ -39,7 +39,7 @@ class ValidatorWriter {
     private static final String ROOT_FOLDER = "generated/main/java/";
     private static final String REPEATED_FIELD_LABEL = "LABEL_REPEATED";
     private static final String CREATE_IF_NEEDED = "createIfNeeded()";
-    public static final String SETTER_PREFIX = "set";
+    private static final String SETTER_PREFIX = "set";
 
     private final String javaClass;
     private final String javaPackage;
@@ -62,7 +62,6 @@ class ValidatorWriter {
         methods.add(constructor);
         methods.add(createNewBuilderMethod());
         methods.addAll(createSetters());
-        methods.addAll(createRawSetters());
         methods.add(createBuildMethod());
         methods.addAll(createRepeatedFieldMethods());
 
@@ -79,32 +78,9 @@ class ValidatorWriter {
     private Collection<FieldSpec> getFields() {
         final List<FieldSpec> fields = newArrayList();
         for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
-            final String labelName = fieldDescriptor.getLabel()
-                                                    .name();
-            if (labelName.equals(REPEATED_FIELD_LABEL)) {
-                final FieldSpec repeatedField = constructRepeatedField(fieldDescriptor);
-                fields.add(repeatedField);
-                continue;
-            }
-            final FieldSpec field = constructField(fieldDescriptor);
-            fields.add(field);
+            fields.add(new FieldConstructor(fieldDescriptor).construct());
         }
         return fields;
-    }
-
-    private FieldSpec constructRepeatedField(FieldDescriptorProto fieldDescriptor) {
-        final ParameterizedTypeName param = ParameterizedTypeName.get(List.class, getParameterClass(fieldDescriptor));
-        final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
-        return FieldSpec.builder(param, fieldName, Modifier.PRIVATE)
-                        .build();
-    }
-
-    private FieldSpec constructField(FieldDescriptorProto fieldDescriptor) {
-        final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
-        final Class<?> fieldClass = getParameterClass(fieldDescriptor);
-        final FieldSpec result = FieldSpec.builder(fieldClass, fieldName, Modifier.PRIVATE)
-                                          .build();
-        return result;
     }
 
     private static TypeSpec.Builder addFields(TypeSpec.Builder classBuilder, Iterable<FieldSpec> fields) {
@@ -115,22 +91,86 @@ class ValidatorWriter {
         final List<MethodSpec> setters = newArrayList();
         int index = 0;
         for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
-
-            final String fieldLabel = fieldDescriptor.getLabel()
-                                                     .name();
-            if (fieldLabel.equals(REPEATED_FIELD_LABEL)) {
+            if (isRepeatedField(fieldDescriptor)) {
                 continue;
             }
+            final Collection<MethodSpec> methods = new FieldsMethodsConstructor(fieldDescriptor, index).construct();
+            setters.addAll(methods);
+            ++index;
+        }
+        return setters;
+    }
 
-            final String paramName = getJavaFieldName(fieldDescriptor.getName(), false);
+    private class FieldConstructor {
+
+        private final FieldDescriptorProto fieldDescriptor;
+
+        public FieldConstructor(FieldDescriptorProto fieldDescriptor) {
+            this.fieldDescriptor = fieldDescriptor;
+        }
+
+        public FieldSpec construct() {
+            if (isRepeatedField(fieldDescriptor)) {
+                final FieldSpec result = constructRepeatedField();
+                return result;
+            }
+
+            final FieldSpec result = constructField();
+            return result;
+        }
+
+        private FieldSpec constructRepeatedField() {
+            final ParameterizedTypeName param = ParameterizedTypeName.get(List.class, getParameterClass(fieldDescriptor));
+            final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
+            return FieldSpec.builder(param, fieldName, Modifier.PRIVATE)
+                            .build();
+        }
+
+        private FieldSpec constructField() {
+            final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
+            final Class<?> fieldClass = getParameterClass(fieldDescriptor);
+            final FieldSpec result = FieldSpec.builder(fieldClass, fieldName, Modifier.PRIVATE)
+                                              .build();
+            return result;
+        }
+    }
+
+    private class FieldsMethodsConstructor {
+
+        private final FieldDescriptorProto fieldDescriptor;
+        private final int fieldIndex;
+        private final Class<?> parameterClass;
+        private final ClassName builderClassName;
+        private final String paramName;
+        private final String setterPart;
+        private final String fieldName;
+
+        public FieldsMethodsConstructor(FieldDescriptorProto fieldDescriptor, int fieldIndex) {
+            this.fieldDescriptor = fieldDescriptor;
+            this.fieldIndex = fieldIndex;
+            this.parameterClass = getParameterClass(fieldDescriptor);
+            this.builderClassName = getBuilderClassName();
+            this.paramName = getJavaFieldName(fieldDescriptor.getName(), false);
+            this.setterPart = getJavaFieldName(paramName, true);
+            this.fieldName = getJavaFieldName(paramName, false);
+        }
+
+        public Collection<MethodSpec> construct() {
+            final List<MethodSpec> methods = newArrayList();
+            methods.add(constructSetter());
+
+            if (!parameterClass.equals(String.class)) {
+                methods.add(constructRawSetter());
+            }
+
+            return methods;
+        }
+
+        private MethodSpec constructSetter() {
+            final String methodName = SETTER_PREFIX + setterPart;
+            final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
             final ParameterSpec parameter = createParameterSpec(fieldDescriptor, false);
 
-            final String fieldName = getJavaFieldName(paramName, false);
-            final String setterPart = getJavaFieldName(paramName, true);
-            final String methodName = SETTER_PREFIX + setterPart;
-            final ClassName builderClassName = getBuilderClassName();
-
-            final String descriptorCodeLine = createDescriptorCodeLine(index, fieldDescriptor);
             final MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
                                                     .addModifiers(Modifier.PUBLIC)
                                                     .returns(builderClassName)
@@ -141,39 +181,14 @@ class ValidatorWriter {
                                                     .addStatement("this." + fieldName + " = " + fieldName)
                                                     .addStatement("return this")
                                                     .build();
-            setters.add(methodSpec);
-            ++index;
+            return methodSpec;
         }
-        return setters;
-    }
 
-    private Collection<MethodSpec> createRawSetters() {
-        final List<MethodSpec> setters = newArrayList();
-        int index = 0;
-        for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
-            final Class<?> parameterClass = getParameterClass(fieldDescriptor);
-
-            // To avoid useless conversion from String to String.
-            if (parameterClass.equals(String.class)) {
-                return setters;
-            }
-
-            final String fieldLabel = fieldDescriptor.getLabel()
-                                                     .name();
-
-            if (fieldLabel.equals(REPEATED_FIELD_LABEL)) {
-                continue;
-            }
-
-            final String paramName = getJavaFieldName(fieldDescriptor.getName(), false);
+        private MethodSpec constructRawSetter() {
+            final String methodName = SETTER_PREFIX + setterPart + "Raw";
+            final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
             final ParameterSpec parameter = createParameterSpec(fieldDescriptor, true);
 
-            final String fieldName = getJavaFieldName(paramName, false);
-            final String setterPart = getJavaFieldName(paramName, true);
-            final String methodName = SETTER_PREFIX + setterPart + "Raw";
-            final ClassName builderClassName = getBuilderClassName();
-
-            final String descriptorCodeLine = createDescriptorCodeLine(index, fieldDescriptor);
             final MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
                                                     .addModifiers(Modifier.PUBLIC)
                                                     .returns(builderClassName)
@@ -186,19 +201,16 @@ class ValidatorWriter {
                                                     .addStatement("this." + fieldName + " = convertedValue")
                                                     .addStatement("return this")
                                                     .build();
-            setters.add(methodSpec);
-            ++index;
+            return methodSpec;
         }
 
-        return setters;
-    }
-
-    private ParameterSpec createParameterSpec(FieldDescriptorProto fieldDescriptor, boolean raw) {
-        final Class<?> parameterClass = raw ? String.class : getParameterClass(fieldDescriptor);
-        final String paramName = getJavaFieldName(fieldDescriptor.getName(), false);
-        final ParameterSpec result = ParameterSpec.builder(parameterClass, paramName)
-                                                  .build();
-        return result;
+        private ParameterSpec createParameterSpec(FieldDescriptorProto fieldDescriptor, boolean raw) {
+            final Class<?> parameterClass = raw ? String.class : getParameterClass(fieldDescriptor);
+            final String paramName = getJavaFieldName(fieldDescriptor.getName(), false);
+            final ParameterSpec result = ParameterSpec.builder(parameterClass, paramName)
+                                                      .build();
+            return result;
+        }
     }
 
     private String getFieldDescriptorType(FieldDescriptorProto fieldDescriptor) {
