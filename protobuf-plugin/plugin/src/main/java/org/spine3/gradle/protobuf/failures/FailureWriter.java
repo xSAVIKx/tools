@@ -20,24 +20,27 @@
 package org.spine3.gradle.protobuf.failures;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Files;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.GeneratedMessageV3;
 import com.squareup.javapoet.AnnotationSpec;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import org.apache.commons.lang3.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.base.CommandContext;
 import org.spine3.base.FailureThrowable;
+import org.spine3.util.Exceptions;
 
 import javax.annotation.Generated;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Type;
+import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -61,7 +64,7 @@ public class FailureWriter {
     private static final String COMMA_SEPARATOR = ", ";
 
     private final DescriptorProto failureDescriptor;
-    private final File outputFile;
+    private final File outputDirectory;
     private final String javaPackage;
 
     private final String outerClassName;
@@ -102,17 +105,17 @@ public class FailureWriter {
      * Creates a new instance.
      *
      * @param failureDescriptor {@link DescriptorProto} of failure's proto message
-     * @param outputFile        a {@link File} to write Failure code
+     * @param outputDirectory   a {@linkplain File directory} to write a Failure
      * @param javaPackage       Failure's java package
      * @param messageTypeMap    pre-scanned map with proto types and their appropriate Java classes
      */
     public FailureWriter(DescriptorProto failureDescriptor,
-                         File outputFile,
+                         File outputDirectory,
                          String javaPackage,
                          String javaOuterClassName,
                          Map<String, String> messageTypeMap) {
         this.failureDescriptor = failureDescriptor;
-        this.outputFile = outputFile;
+        this.outputDirectory = outputDirectory;
         this.javaPackage = javaPackage;
         this.outerClassName = javaOuterClassName;
         this.className = failureDescriptor.getName();
@@ -124,46 +127,49 @@ public class FailureWriter {
      */
     void write() {
         try {
-            log().debug("Writing the java class under {}", outputFile.getPath());
-            Files.createParentDirs(outputFile);
-            Files.touch(outputFile);
+            log().debug("Creating the output directory {}", outputDirectory.getPath());
+            Files.createDirectories(outputDirectory.toPath());
 
-            log().debug("Writing {} class signature", className);
+            log().debug("Constructing {}", className);
             final TypeSpec failure = TypeSpec.classBuilder(className)
-                                             .addAnnotation(generatedBySpineCompiler())
+                                             .addAnnotation(constructGeneratedAnnotation())
                                              .addModifiers(PUBLIC)
                                              .superclass(FailureThrowable.class)
-                                             .addField(serialVersionUID())
-                                             .addMethod(createConstructor())
-                                             .addMethod(createGetFailure())
+                                             .addField(constructSerialVersionUID())
+                                             .addMethod(constructConstructor())
+                                             .addMethod(constructGetFailureMessage())
                                              .build();
 
             final JavaFile javaFile = JavaFile.builder(javaPackage, failure)
                                               .build();
-            javaFile.writeTo(outputFile);
 
-            log().debug("File {} written successfully", outputFile.getPath());
-        } catch (@SuppressWarnings("OverlyBroadCatchBlock") IOException e) {
+            log().debug("Writing {}", className);
+            javaFile.writeTo(outputDirectory);
+            log().debug("Failure {} written successfully", className);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @SuppressWarnings("MethodWithMultipleLoops")
-    private MethodSpec createConstructor() {
-        log().debug("Creating the constructor");
+    private MethodSpec constructConstructor() {
+        log().debug("Constructing the constructor");
 
         final String commandMsgParam = "commandMessage";
         final String commandContextParam = "ctx";
+        final String failureMsgParam = "failureMessage";
         final Set<Map.Entry<String, String>> fieldsEntries = readFieldValues().entrySet();
 
         final MethodSpec.Builder builder = MethodSpec.constructorBuilder()
                                                      .addModifiers(PUBLIC)
                                                      .addParameter(GeneratedMessageV3.class, commandMsgParam)
-                                                     .addParameter(CommandContext.class, commandContextParam);
+                                                     .addParameter(CommandContext.class, commandContextParam)
+                                                     .addParameter(GeneratedMessageV3.class, failureMsgParam);
 
         for (Map.Entry<String, String> field : fieldsEntries) {
-            final Class<?> cls = classFor(field.getKey());
-            builder.addParameter(cls, field.getValue());
+            final TypeName parameterTypeName = typeNameFor(field.getValue());
+            final String parameterName = getJavaFieldName(field.getKey(), false);
+            builder.addParameter(parameterTypeName, parameterName);
         }
 
         final StringBuilder superStatement = new StringBuilder(
@@ -184,36 +190,41 @@ public class FailureWriter {
                       .build();
     }
 
-    private MethodSpec createGetFailure() {
-        log().debug("Creating getFailure()");
+    private MethodSpec constructGetFailureMessage() {
+        log().debug("Constructing getFailureMessage()");
 
-        final Type returnType = classFor(outerClassName + '.' + className);
+        final TypeName returnTypeName = ClassName.get(outerClassName, className);
         return MethodSpec.methodBuilder("getFailureMessage")
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC)
-                         .returns(returnType)
-                         .addStatement("return (" + returnType.toString() + ") super.getFailureMessage()")
+                         .returns(returnTypeName)
+                         .addStatement("return (" + returnTypeName + ") super.getFailureMessage()")
                          .build();
     }
 
-    private static Class<?> classFor(String fullyQualifiedName) {
-        try {
-            return Class.forName(fullyQualifiedName);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private static AnnotationSpec generatedBySpineCompiler() {
+    private static AnnotationSpec constructGeneratedAnnotation() {
         return AnnotationSpec.builder(Generated.class)
-                             .addMember("value", "by Spine compiler")
+                             .addMember("value", "$S", "by Spine compiler")
                              .build();
     }
 
-    private static FieldSpec serialVersionUID() {
-        return FieldSpec.builder(long.class, "serialVersionUID", PRIVATE, STATIC, FINAL)
+    private static FieldSpec constructSerialVersionUID() {
+        return FieldSpec.builder(long.class, "constructSerialVersionUID", PRIVATE, STATIC, FINAL)
                         .initializer("0L")
                         .build();
+    }
+
+    //TODO:2017-03-06:dmytro.grankin: check for correctness with repeated fields
+    private static TypeName typeNameFor(String fullyQualifiedName) {
+        try {
+            return ClassName.bestGuess(fullyQualifiedName);
+        } catch (IllegalArgumentException e) {
+            try {
+                return TypeName.get(ClassUtils.getClass(fullyQualifiedName));
+            } catch (ClassNotFoundException notFoundEx) {
+                throw Exceptions.wrappedCause(notFoundEx);
+            }
+        }
     }
 
     /**
