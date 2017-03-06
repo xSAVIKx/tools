@@ -20,6 +20,8 @@
 package org.spine3.gradle.javadoc.fqnchecker;
 
 /**
+ * Thrown to indicate that invalid FQN usage was found.
+ *
  * @author Alexander Aleksandrov
  */
 public class InvalidFqnUsageException extends RuntimeException {
