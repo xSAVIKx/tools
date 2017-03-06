@@ -37,6 +37,8 @@ message LabelDetailsChange {
 
     // The new value of the label details.
     LabelDetails new_details = 2;
+
+    repeated LabelDetails details = 3;
 }
 
 // Definition of a change in a task desciption field.
