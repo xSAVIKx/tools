@@ -1,6 +1,5 @@
 package org.spine3.gradle.protobuf.validators;
 
-import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.Descriptors.FieldDescriptor;
@@ -22,6 +21,7 @@ import org.spine3.validate.ConversionError;
 import javax.lang.model.element.Modifier;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -36,7 +36,10 @@ import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
  */
 class ValidatorWriter {
 
-    private static final String rootFolder = "generated/main/java/";
+    private static final String ROOT_FOLDER = "generated/main/java/";
+    private static final String REPEATED_FIELD_LABEL = "LABEL_REPEATED";
+    private static final String CREATE_IF_NEEDED = "createIfNeeded()";
+    public static final String SETTER_PREFIX = "set";
 
     private final String javaClass;
     private final String javaPackage;
@@ -52,15 +55,16 @@ class ValidatorWriter {
 
     void write() {
         log().debug("Writing the java class under {}", javaPackage);
-        final File rootDirectory = new File(rootFolder);
+        final File rootDirectory = new File(ROOT_FOLDER);
         final List<MethodSpec> methods = newArrayList();
 
+        final MethodSpec constructor = createConstructor();
+        methods.add(constructor);
         methods.add(createNewBuilderMethod());
         methods.addAll(createSetters());
         methods.addAll(createRawSetters());
         methods.add(createBuildMethod());
-        final MethodSpec constructor = createConstructor();
-        methods.add(constructor);
+        methods.addAll(createRepeatedFieldMethods());
 
         final Collection<FieldSpec> fields = getFields();
 
@@ -75,17 +79,32 @@ class ValidatorWriter {
     private Collection<FieldSpec> getFields() {
         final List<FieldSpec> fields = newArrayList();
         for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
+            final String labelName = fieldDescriptor.getLabel()
+                                                    .name();
+            if (labelName.equals(REPEATED_FIELD_LABEL)) {
+                final FieldSpec repeatedField = constructRepeatedField(fieldDescriptor);
+                fields.add(repeatedField);
+                continue;
+            }
             final FieldSpec field = constructField(fieldDescriptor);
             fields.add(field);
         }
         return fields;
     }
 
+    private FieldSpec constructRepeatedField(FieldDescriptorProto fieldDescriptor) {
+        final ParameterizedTypeName param = ParameterizedTypeName.get(List.class, getParameterClass(fieldDescriptor));
+        final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
+        return FieldSpec.builder(param, fieldName, Modifier.PRIVATE)
+                        .build();
+    }
+
     private FieldSpec constructField(FieldDescriptorProto fieldDescriptor) {
         final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
         final Class<?> fieldClass = getParameterClass(fieldDescriptor);
-        return FieldSpec.builder(fieldClass, fieldName, Modifier.PRIVATE)
-                        .build();
+        final FieldSpec result = FieldSpec.builder(fieldClass, fieldName, Modifier.PRIVATE)
+                                          .build();
+        return result;
     }
 
     private static TypeSpec.Builder addFields(TypeSpec.Builder classBuilder, Iterable<FieldSpec> fields) {
@@ -95,24 +114,32 @@ class ValidatorWriter {
     private Collection<MethodSpec> createSetters() {
         final List<MethodSpec> setters = newArrayList();
         int index = 0;
-        for (FieldDescriptorProto descriptorField : descriptor.getFieldList()) {
-            final Class<?> parameterClass = getParameterClass(descriptorField);
-            final String paramName = getJavaFieldName(descriptorField.getName(), false);
-            final ParameterSpec parameter = ParameterSpec.builder(parameterClass, paramName)
-                                                         .build();
+        for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
+
+            final String fieldLabel = fieldDescriptor.getLabel()
+                                                     .name();
+            if (fieldLabel.equals(REPEATED_FIELD_LABEL)) {
+                continue;
+            }
+
+            final String paramName = getJavaFieldName(fieldDescriptor.getName(), false);
+            final ParameterSpec parameter = createParameterSpec(fieldDescriptor, false);
+
             final String fieldName = getJavaFieldName(paramName, false);
             final String setterPart = getJavaFieldName(paramName, true);
-            final String methodName = "set" + setterPart;
-            final Class<?> defaultFieldType = getFieldType(descriptorField.getType()
-                                                                          .name());
-            final String fieldDescriptorType = defaultFieldType != null ? defaultFieldType.getName() : parameterClass.getName();
+            final String methodName = SETTER_PREFIX + setterPart;
+            final ClassName builderClassName = getBuilderClassName();
+
+            final String descriptorCodeLine = createDescriptorCodeLine(index, fieldDescriptor);
             final MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
                                                     .addModifiers(Modifier.PUBLIC)
+                                                    .returns(builderClassName)
                                                     .addParameter(parameter)
                                                     .addException(ConstraintViolationThrowable.class)
-                                                    .addStatement("final $T fieldDescriptor = " + fieldDescriptorType + ".getDescriptor().getFields().get(" + index + ")", FieldDescriptor.class)
+                                                    .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                                     .addStatement("validate(fieldDescriptor, " + paramName + ", $S)", paramName)
                                                     .addStatement("this." + fieldName + " = " + fieldName)
+                                                    .addStatement("return this")
                                                     .build();
             setters.add(methodSpec);
             ++index;
@@ -123,30 +150,41 @@ class ValidatorWriter {
     private Collection<MethodSpec> createRawSetters() {
         final List<MethodSpec> setters = newArrayList();
         int index = 0;
-        for (FieldDescriptorProto descriptorField : descriptor.getFieldList()) {
-            final Class<?> parameterClass = getParameterClass(descriptorField);
+        for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
+            final Class<?> parameterClass = getParameterClass(fieldDescriptor);
+
+            // To avoid useless conversion from String to String.
             if (parameterClass.equals(String.class)) {
                 return setters;
             }
-            final String paramName = getJavaFieldName(descriptorField.getName(), false);
-            final ParameterSpec firstParam = ParameterSpec.builder(String.class, paramName)
-                                                          .build();
+
+            final String fieldLabel = fieldDescriptor.getLabel()
+                                                     .name();
+
+            if (fieldLabel.equals(REPEATED_FIELD_LABEL)) {
+                continue;
+            }
+
+            final String paramName = getJavaFieldName(fieldDescriptor.getName(), false);
+            final ParameterSpec parameter = createParameterSpec(fieldDescriptor, true);
+
             final String fieldName = getJavaFieldName(paramName, false);
             final String setterPart = getJavaFieldName(paramName, true);
-            final String methodName = "set" + setterPart + "Raw";
-            final String descriptorFieldName = descriptorField.getType()
-                                                              .name();
-            final Class<?> defaultFieldType = getFieldType(descriptorFieldName);
-            final String fieldDescriptorType = defaultFieldType != null ? defaultFieldType.getName() : parameterClass.getName();
+            final String methodName = SETTER_PREFIX + setterPart + "Raw";
+            final ClassName builderClassName = getBuilderClassName();
+
+            final String descriptorCodeLine = createDescriptorCodeLine(index, fieldDescriptor);
             final MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
                                                     .addModifiers(Modifier.PUBLIC)
-                                                    .addParameter(firstParam)
+                                                    .returns(builderClassName)
+                                                    .addParameter(parameter)
                                                     .addException(ConstraintViolationThrowable.class)
                                                     .addException(ConversionError.class)
-                                                    .addStatement("final $T fieldDescriptor = " + fieldDescriptorType + ".getDescriptor().getFields().get(" + index + ")", FieldDescriptor.class)
+                                                    .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                                     .addStatement("final $T convertedValue = getConvertedValue($T.class, " + paramName + ")", parameterClass, parameterClass)
                                                     .addStatement("validate(fieldDescriptor, convertedValue, " + paramName + ")")
                                                     .addStatement("this." + fieldName + " = convertedValue")
+                                                    .addStatement("return this")
                                                     .build();
             setters.add(methodSpec);
             ++index;
@@ -155,14 +193,239 @@ class ValidatorWriter {
         return setters;
     }
 
+    private ParameterSpec createParameterSpec(FieldDescriptorProto fieldDescriptor, boolean raw) {
+        final Class<?> parameterClass = raw ? String.class : getParameterClass(fieldDescriptor);
+        final String paramName = getJavaFieldName(fieldDescriptor.getName(), false);
+        final ParameterSpec result = ParameterSpec.builder(parameterClass, paramName)
+                                                  .build();
+        return result;
+    }
+
+    private String getFieldDescriptorType(FieldDescriptorProto fieldDescriptor) {
+        final Class<?> parameterClass = getParameterClass(fieldDescriptor);
+        final String descriptorTypeName = fieldDescriptor.getType()
+                                                         .name();
+        final Class<?> defaultFieldType = getFieldType(descriptorTypeName);
+        final String result = defaultFieldType != null ? defaultFieldType.getName() : parameterClass.getName();
+        return result;
+    }
+
+    private String createDescriptorCodeLine(int index, FieldDescriptorProto fieldDescriptor) {
+        final String fieldDescriptorType = getFieldDescriptorType(fieldDescriptor);
+        final String result = "final $T fieldDescriptor = " + fieldDescriptorType +
+                ".getDescriptor().getFields().get(" + index + ")";
+        return result;
+    }
+
+    private ClassName getBuilderClassName() {
+        final ClassName builderClassName = ClassName.get(javaPackage, javaClass);
+        return builderClassName;
+    }
+
+    private class RepeatedFieldMethodsConstructor {
+
+        private final FieldDescriptorProto fieldDescriptor;
+        private final int fieldIndex;
+        private final String methodPartName;
+        private final ClassName builderClass;
+        private final Class<?> parameterClass;
+        private final String javaFieldName;
+
+        public RepeatedFieldMethodsConstructor(FieldDescriptorProto fieldDescriptor, int fieldIndex) {
+            this.fieldDescriptor = fieldDescriptor;
+            this.fieldIndex = fieldIndex;
+            methodPartName = getJavaFieldName(fieldDescriptor.getName(), true);
+            javaFieldName = getJavaFieldName(fieldDescriptor.getName(), false);
+            builderClass = getBuilderClassName();
+            parameterClass = getParameterClass(fieldDescriptor);
+        }
+
+        public Collection<MethodSpec> construct() {
+            final List<MethodSpec> methods = newArrayList();
+            methods.addAll(createRepeatedMethods());
+            methods.addAll(createRepeatedRawMethods());
+            return methods;
+        }
+
+        private Collection<MethodSpec> createRepeatedRawMethods() {
+            final List<MethodSpec> methods = newArrayList();
+
+            methods.add(createRawAddByIndexMethod());
+            methods.add(createRawAddObjectMethod());
+
+            return methods;
+        }
+
+        private Collection<MethodSpec> createRepeatedMethods() {
+            final List<MethodSpec> methods = newArrayList();
+            final MethodSpec checkRepeatedFieldMethod = createCheckRepeatedFieldMethod();
+
+            methods.add(checkRepeatedFieldMethod);
+            methods.add(createClearMethod());
+            methods.add(createAddByIndexMethod());
+            methods.add(createAddObjectMethod());
+            methods.add(createRemoveByIndexMethod());
+            methods.add(createRemoveObject());
+
+            return methods;
+        }
+
+        private MethodSpec createRawAddObjectMethod() {
+            final String methodName = getJavaFieldName("addRaw" + methodPartName, false);
+            final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
+
+            final MethodSpec result = MethodSpec.methodBuilder(methodName)
+                                                .returns(builderClass)
+                                                .addModifiers(Modifier.PUBLIC)
+                                                .addParameter(String.class, "value")
+                                                .addException(ConstraintViolationThrowable.class)
+                                                .addException(ConversionError.class)
+                                                .addStatement(CREATE_IF_NEEDED)
+                                                .addStatement("final $T convertedValue = getConvertedValue($T.class, value)", parameterClass, parameterClass)
+                                                .addStatement(descriptorCodeLine, FieldDescriptor.class)
+                                                .addStatement("validate(fieldDescriptor, convertedValue, $S)", fieldDescriptor.getName())
+                                                .addStatement(javaFieldName + ".add(convertedValue)")
+                                                .addStatement("return this")
+                                                .build();
+            return result;
+        }
+
+        private MethodSpec createRawAddByIndexMethod() {
+            final String methodName = getJavaFieldName("addRaw" + methodPartName, false);
+            final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
+
+            final MethodSpec result = MethodSpec.methodBuilder(methodName)
+                                                .returns(builderClass)
+                                                .addModifiers(Modifier.PUBLIC)
+                                                .addParameter(int.class, "index")
+                                                .addParameter(String.class, "value")
+                                                .addException(ConstraintViolationThrowable.class)
+                                                .addException(ConversionError.class)
+                                                .addStatement(CREATE_IF_NEEDED)
+                                                .addStatement("final $T convertedValue = getConvertedValue($T.class, value)", parameterClass, parameterClass)
+                                                .addStatement(descriptorCodeLine, FieldDescriptor.class)
+                                                .addStatement("validate(fieldDescriptor, convertedValue, $S)", fieldDescriptor.getName())
+                                                .addStatement(javaFieldName + ".add(index, convertedValue)")
+                                                .addStatement("return this")
+                                                .build();
+            return result;
+        }
+
+        private MethodSpec createAddObjectMethod() {
+            final String methodName = getJavaFieldName("add" + methodPartName, false);
+            final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
+
+            final MethodSpec result = MethodSpec.methodBuilder(methodName)
+                                                .returns(builderClass)
+                                                .addModifiers(Modifier.PUBLIC)
+                                                .addParameter(parameterClass, "value")
+                                                .addException(ConstraintViolationThrowable.class)
+                                                .addStatement(CREATE_IF_NEEDED)
+                                                .addStatement(descriptorCodeLine, FieldDescriptor.class)
+                                                .addStatement("validate(fieldDescriptor, " + javaFieldName + ", $S)", javaFieldName)
+                                                .addStatement(javaFieldName + ".add(value)")
+                                                .addStatement("return this")
+                                                .build();
+            return result;
+        }
+
+        private MethodSpec createAddByIndexMethod() {
+            final String methodName = getJavaFieldName("add" + methodPartName, false);
+            final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
+
+            final MethodSpec result = MethodSpec.methodBuilder(methodName)
+                                                .returns(builderClass)
+                                                .addModifiers(Modifier.PUBLIC)
+                                                .addParameter(int.class, "index")
+                                                .addParameter(parameterClass, "value")
+                                                .addException(ConstraintViolationThrowable.class)
+                                                .addStatement(javaFieldName + ".add(index, value)")
+                                                .addStatement(descriptorCodeLine, FieldDescriptor.class)
+                                                .addStatement("validate(fieldDescriptor, " + javaFieldName + ", $S)", javaFieldName)
+                                                .addStatement(CREATE_IF_NEEDED)
+                                                .addStatement("return this")
+                                                .build();
+            return result;
+        }
+
+        private MethodSpec createRemoveObject() {
+            final String removeMethodName = getJavaFieldName("remove" + methodPartName, false);
+            final MethodSpec result = MethodSpec.methodBuilder(removeMethodName)
+                                                .addModifiers(Modifier.PUBLIC)
+                                                .returns(builderClass)
+                                                .addParameter(parameterClass, "value")
+                                                .addStatement(javaFieldName + ".remove(value)")
+                                                .addStatement("return this")
+                                                .build();
+            return result;
+        }
+
+        private MethodSpec createRemoveByIndexMethod() {
+            final String methodName = getJavaFieldName("remove" + methodPartName, false);
+
+            final MethodSpec result = MethodSpec.methodBuilder(methodName)
+                                                .addModifiers(Modifier.PUBLIC)
+                                                .returns(builderClass)
+                                                .addParameter(int.class, "index")
+                                                .addStatement(CREATE_IF_NEEDED)
+                                                .addStatement(javaFieldName + ".remove(index)")
+                                                .addStatement("return this")
+                                                .build();
+            return result;
+        }
+
+        private MethodSpec createClearMethod() {
+            final MethodSpec result = MethodSpec.methodBuilder("clear")
+                                                .addModifiers(Modifier.PUBLIC)
+                                                .returns(builderClass)
+                                                .addStatement(CREATE_IF_NEEDED)
+                                                .addStatement(javaFieldName + ".clear()")
+                                                .addStatement("return this")
+                                                .build();
+            return result;
+        }
+
+        private MethodSpec createCheckRepeatedFieldMethod() {
+            final MethodSpec result = MethodSpec.methodBuilder("createIfNeeded")
+                                                .addModifiers(Modifier.PRIVATE)
+                                                .beginControlFlow("if(" + javaFieldName + " == null)")
+                                                .addStatement(javaFieldName + " = new $T<>()", ArrayList.class)
+                                                .endControlFlow()
+                                                .build();
+            return result;
+        }
+    }
+
+    private Collection<MethodSpec> createRepeatedFieldMethods() {
+        final List<MethodSpec> methods = newArrayList();
+        int fieldIndex = 0;
+        for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
+            final String labelName = fieldDescriptor.getLabel()
+                                                    .name();
+            if (labelName.equals(REPEATED_FIELD_LABEL)) {
+                final Collection<MethodSpec> repeatedFieldMethods =
+                        new RepeatedFieldMethodsConstructor(fieldDescriptor, fieldIndex).construct();
+                methods.addAll(repeatedFieldMethods);
+            }
+            ++fieldIndex;
+        }
+        return methods;
+    }
+
     private MethodSpec createBuildMethod() {
         final StringBuilder builder = new StringBuilder("final $T result = $T.newBuilder()");
-        for (FieldDescriptorProto fieldDescription : descriptor.getFieldList()) {
-            builder.append(".")
-                   .append("set")
-                   .append(getJavaFieldName(fieldDescription.getName(), true))
+        for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
+            builder.append(".");
+
+            if (isRepeatedField(fieldDescriptor)) {
+                builder.append("addAll");
+            } else {
+                builder.append(SETTER_PREFIX);
+            }
+
+            builder.append(getJavaFieldName(fieldDescriptor.getName(), true))
                    .append("(")
-                   .append(getJavaFieldName(fieldDescription.getName(), false))
+                   .append(getJavaFieldName(fieldDescriptor.getName(), false))
                    .append(")");
         }
         builder.append(".build()");
@@ -177,8 +440,15 @@ class ValidatorWriter {
         return buildMethod;
     }
 
+    private static boolean isRepeatedField(FieldDescriptorProto fieldDescriptor) {
+        final String labelName = fieldDescriptor.getLabel()
+                                                .name();
+        final boolean result = labelName.equals(REPEATED_FIELD_LABEL);
+        return result;
+    }
+
     private MethodSpec createNewBuilderMethod() {
-        final ClassName builderClass = ClassName.get(javaPackage, javaClass);
+        final ClassName builderClass = getBuilderClassName();
         final MethodSpec buildMethod = MethodSpec.methodBuilder("newBuilder")
                                                  .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                                                  .returns(builderClass)
@@ -203,10 +473,10 @@ class ValidatorWriter {
         throw new RuntimeException();
     }
 
-    private Class<?> getParameterClass(DescriptorProtos.FieldDescriptorProtoOrBuilder descriptorField) {
-        String typeName = descriptorField.getTypeName();
+    private Class<?> getParameterClass(FieldDescriptorProto fieldDescriptor) {
+        String typeName = fieldDescriptor.getTypeName();
         if (typeName.isEmpty()) {
-            return GenerationUtils.getType(descriptorField.getType()
+            return GenerationUtils.getType(fieldDescriptor.getType()
                                                           .name());
         }
         typeName = typeName.substring(1);
