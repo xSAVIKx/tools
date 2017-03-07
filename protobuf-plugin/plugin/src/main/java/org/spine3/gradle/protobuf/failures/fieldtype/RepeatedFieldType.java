@@ -27,6 +27,8 @@ import org.spine3.util.Exceptions;
 
 import java.util.Collection;
 
+import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.isProtoPrimitive;
+
 /**
  * Represents repeated {@linkplain FieldType field type}.
  *
@@ -34,7 +36,7 @@ import java.util.Collection;
  */
 public class RepeatedFieldType implements FieldType {
 
-    private final String componentType;
+    private final String componentTypeName;
 
     /**
      * Constructs the {@link RepeatedFieldType} based on component type.
@@ -42,7 +44,7 @@ public class RepeatedFieldType implements FieldType {
      * @param componentTypeName the component type name
      */
     RepeatedFieldType(String componentTypeName) {
-        this.componentType = componentTypeName;
+        this.componentTypeName = componentTypeName;
     }
 
     /**
@@ -50,19 +52,19 @@ public class RepeatedFieldType implements FieldType {
      */
     @Override
     public TypeName getTypeName() {
-        TypeName componentTypeName;
+        final TypeName componentType;
 
-        try {
-            componentTypeName = ClassName.bestGuess(componentType);
-        } catch (IllegalArgumentException e) {
+        if (isProtoPrimitive(componentTypeName)) {
             try {
-                componentTypeName = TypeName.get(ClassUtils.getClass(componentType));
-            } catch (ClassNotFoundException notFoundEx) {
-                throw Exceptions.wrappedCause(notFoundEx);
+                componentType = TypeName.get(ClassUtils.getClass(componentTypeName));
+            } catch (ClassNotFoundException e) {
+                throw Exceptions.wrappedCause(e);
             }
+        } else {
+            componentType = ClassName.bestGuess(componentTypeName);
         }
 
-        return ParameterizedTypeName.get(ClassName.get(Collection.class), componentTypeName);
+        return ParameterizedTypeName.get(ClassName.get(Collection.class), componentType);
     }
 
     /**

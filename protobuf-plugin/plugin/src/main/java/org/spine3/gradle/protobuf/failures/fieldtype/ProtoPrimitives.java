@@ -19,52 +19,34 @@
  */
 package org.spine3.gradle.protobuf.failures.fieldtype;
 
-import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.TypeName;
-import org.apache.commons.lang3.ClassUtils;
-import org.spine3.util.Exceptions;
-
-import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.isProtoPrimitive;
-
 /**
- * Represents single {@linkplain FieldType field type}.
- *
- * @author Dmytro Grankin
+ * Enumeration of the java primitives, which
+ * can be received from proto message.
  */
-public class SingleFieldType implements FieldType {
+enum ProtoPrimitives {
+    INT("int"),
+    LONG("long"),
+    FLOAT("float"),
+    DOUBLE("double"),
+    BOOLEAN("boolean");
 
     private final String name;
 
-    /**
-     * Constructs the {@link SingleFieldType} based on field type name.
-     *
-     * @param name the field type name
-     */
-    SingleFieldType(String name) {
+    ProtoPrimitives(String name) {
         this.name = name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public TypeName getTypeName() {
-        if (isProtoPrimitive(name)) {
-            try {
-                return TypeName.get(ClassUtils.getClass(name));
-            } catch (ClassNotFoundException e) {
-                throw Exceptions.wrappedCause(e);
-            }
-        } else {
-            return ClassName.bestGuess(name);
-        }
+    public String getName() {
+        return name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getSetterSuffix() {
-        return "set";
+    public static boolean isProtoPrimitive(String name) {
+        for (ProtoPrimitives primitive : ProtoPrimitives.values()) {
+            if (name.equals(primitive.getName())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

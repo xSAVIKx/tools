@@ -19,13 +19,16 @@
  */
 package org.spine3.gradle.protobuf.failures.fieldtype;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
+import com.google.protobuf.DescriptorProtos.FieldDescriptorProtoOrBuilder;
 import org.apache.commons.lang3.ClassUtils;
+import org.spine3.util.Exceptions;
 
 import java.util.Map;
+
+import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.*;
 
 /**
  * Factory for creation {@link FieldType} instances.
@@ -40,21 +43,21 @@ public class FieldTypeFactory {
     // https://developers.google.com/protocol-buffers/docs/proto3#scalar
     @SuppressWarnings({"DuplicateStringLiteralInspection", "ConstantConditions"})
     private static final Map<String, String> PROTO_FIELD_TYPES = ImmutableMap.<String, String>builder()
-            .put(Type.TYPE_DOUBLE.name(), "double")
-            .put(Type.TYPE_FLOAT.name(), "float")
-            .put(Type.TYPE_INT64.name(), "long")
-            .put(Type.TYPE_UINT64.name(), "long")
-            .put(Type.TYPE_INT32.name(), "int")
-            .put(Type.TYPE_FIXED64.name(), "long")
-            .put(Type.TYPE_FIXED32.name(), "int")
-            .put(Type.TYPE_BOOL.name(), "boolean")
+            .put(Type.TYPE_DOUBLE.name(), DOUBLE.getName())
+            .put(Type.TYPE_FLOAT.name(), FLOAT.getName())
+            .put(Type.TYPE_INT64.name(), LONG.getName())
+            .put(Type.TYPE_UINT64.name(), LONG.getName())
+            .put(Type.TYPE_INT32.name(), INT.getName())
+            .put(Type.TYPE_FIXED64.name(), LONG.getName())
+            .put(Type.TYPE_FIXED32.name(), INT.getName())
+            .put(Type.TYPE_BOOL.name(), BOOLEAN.getName())
             .put(Type.TYPE_STRING.name(), "String")
             .put(Type.TYPE_BYTES.name(), "com.google.protobuf.ByteString")
-            .put(Type.TYPE_UINT32.name(), "int")
-            .put(Type.TYPE_SFIXED32.name(), "int")
-            .put(Type.TYPE_SFIXED64.name(), "long")
-            .put(Type.TYPE_SINT32.name(), "int")
-            .put(Type.TYPE_SINT64.name(), "int")
+            .put(Type.TYPE_UINT32.name(), INT.getName())
+            .put(Type.TYPE_SFIXED32.name(), INT.getName())
+            .put(Type.TYPE_SFIXED64.name(), LONG.getName())
+            .put(Type.TYPE_SINT32.name(), INT.getName())
+            .put(Type.TYPE_SINT64.name(), INT.getName())
 
             /*
              * Groups are NOT supported, so do not create an associated Java type for it.
@@ -75,12 +78,13 @@ public class FieldTypeFactory {
     }
 
     /**
-     * Creates a {@link FieldType} instances based on {@link FieldDescriptorProto}.
+     * Creates a {@link FieldType} instances based on
+     * {@linkplain FieldDescriptorProtoOrBuilder field descriptor proto}.
      *
      * @param field the proto field descriptor
      * @return the field type
      */
-    public FieldType create(FieldDescriptorProto field) {
+    public FieldType create(FieldDescriptorProtoOrBuilder field) {
         return create(getFieldTypeName(field), isRepeated(field));
     }
 
@@ -90,7 +94,7 @@ public class FieldTypeFactory {
                : new SingleFieldType(name);
     }
 
-    private String getFieldTypeName(FieldDescriptorProto field) {
+    private String getFieldTypeName(FieldDescriptorProtoOrBuilder field) {
         final String fieldTypeName;
 
         if (field.getType() == Type.TYPE_MESSAGE
@@ -106,23 +110,26 @@ public class FieldTypeFactory {
                                                        .name());
         }
 
-        final Optional<String> boxedTypeName = getBoxedTypeName(fieldTypeName);
-        return boxedTypeName.isPresent()
-               ? boxedTypeName.get()
+        return isProtoPrimitive(fieldTypeName)
+               ? getBoxedPrimitiveName(fieldTypeName)
                : fieldTypeName;
     }
 
-    private static boolean isRepeated(FieldDescriptorProto field) {
+    private static boolean isRepeated(FieldDescriptorProtoOrBuilder field) {
         return field.getLabel() == FieldDescriptorProto.Label.LABEL_REPEATED;
     }
 
-    private static Optional<String> getBoxedTypeName(String primitiveName) {
+    private static String getBoxedPrimitiveName(String primitiveName) {
+        if (!isProtoPrimitive(primitiveName)) {
+            throw new IllegalStateException("Primitive name expected.");
+        }
+
         try {
             final Class<?> primitiveClass = ClassUtils.getClass(primitiveName);
-            return Optional.of(ClassUtils.primitiveToWrapper(primitiveClass)
-                                         .getName());
+            return ClassUtils.primitiveToWrapper(primitiveClass)
+                             .getName();
         } catch (ClassNotFoundException e) {
-            return Optional.absent();
+            throw Exceptions.wrappedCause(e);
         }
     }
 }
