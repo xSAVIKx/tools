@@ -36,9 +36,9 @@ public interface FieldType {
     TypeName getTypeName();
 
     /**
-     * Returns the setter suffix for specific {@link FieldType}.
+     * Returns the setter prefix for specific {@link FieldType}.
      *
-     * @return the setter suffix
+     * @return the setter prefix
      */
-    String getSetterSuffix();
+    String getSetterPrefix();
 }

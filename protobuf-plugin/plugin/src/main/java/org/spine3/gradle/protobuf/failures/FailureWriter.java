@@ -151,7 +151,7 @@ public class FailureWriter {
             final String upperCaseName = getJavaFieldName(field.getKey(), true);
             superStatement.append('.')
                           .append(field.getValue()
-                                       .getSetterSuffix())
+                                       .getSetterPrefix())
                           .append(upperCaseName)
                           .append('(')
                           .append(getJavaFieldName(field.getKey(), false))

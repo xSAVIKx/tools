@@ -64,7 +64,7 @@ public class SingleFieldType implements FieldType {
      * {@inheritDoc}
      */
     @Override
-    public String getSetterSuffix() {
+    public String getSetterPrefix() {
         return "set";
     }
 }

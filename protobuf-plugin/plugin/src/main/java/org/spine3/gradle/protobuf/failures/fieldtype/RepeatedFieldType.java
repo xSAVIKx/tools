@@ -71,7 +71,7 @@ public class RepeatedFieldType implements FieldType {
      * {@inheritDoc}
      */
     @Override
-    public String getSetterSuffix() {
+    public String getSetterPrefix() {
         return "addAll";
     }
 }
