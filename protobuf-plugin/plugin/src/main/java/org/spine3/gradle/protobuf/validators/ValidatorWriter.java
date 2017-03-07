@@ -12,9 +12,11 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spine3.base.PluralKey;
+import org.spine3.base.SingularKey;
 import org.spine3.gradle.protobuf.GenerationUtils;
 import org.spine3.gradle.protobuf.MessageTypeCache;
-import org.spine3.server.validate.CommonValidatingBuilder;
+import org.spine3.server.validate.AbstractValidatingBuilder;
 import org.spine3.validate.ConstraintViolationThrowable;
 import org.spine3.validate.ConversionError;
 
@@ -38,19 +40,21 @@ class ValidatorWriter {
 
     private static final String ROOT_FOLDER = "generated/main/java/";
     private static final String REPEATED_FIELD_LABEL = "LABEL_REPEATED";
-    private static final String CREATE_IF_NEEDED = "createIfNeeded()";
     private static final String SETTER_PREFIX = "set";
+    private static final String ADD_ALL_PREFIX = "addAll";
 
     private final String javaClass;
     private final String javaPackage;
     private final DescriptorProto descriptor;
     private final MessageTypeCache messageTypeCache;
+    private final Class<?> builderGenericClass;
 
     ValidatorWriter(WriterDto writerDto, MessageTypeCache messageTypeCache) {
         this.javaClass = writerDto.getJavaClass();
         this.javaPackage = writerDto.getJavaPackage();
         this.descriptor = writerDto.getMsgDescriptor();
         this.messageTypeCache = messageTypeCache;
+        builderGenericClass = getValidatingBuilderGenericClass();
     }
 
     void write() {
@@ -94,7 +98,7 @@ class ValidatorWriter {
             if (isRepeatedField(fieldDescriptor)) {
                 continue;
             }
-            final Collection<MethodSpec> methods = new FieldsMethodsConstructor(fieldDescriptor, index).construct();
+            final Collection<MethodSpec> methods = new SettersConstructor(fieldDescriptor, index).construct();
             setters.addAll(methods);
             ++index;
         }
@@ -135,7 +139,7 @@ class ValidatorWriter {
         }
     }
 
-    private class FieldsMethodsConstructor {
+    private class SettersConstructor {
 
         private final FieldDescriptorProto fieldDescriptor;
         private final int fieldIndex;
@@ -145,7 +149,7 @@ class ValidatorWriter {
         private final String setterPart;
         private final String fieldName;
 
-        public FieldsMethodsConstructor(FieldDescriptorProto fieldDescriptor, int fieldIndex) {
+        public SettersConstructor(FieldDescriptorProto fieldDescriptor, int fieldIndex) {
             this.fieldDescriptor = fieldDescriptor;
             this.fieldIndex = fieldIndex;
             this.parameterClass = getParameterClass(fieldDescriptor);
@@ -177,7 +181,7 @@ class ValidatorWriter {
                                                     .addParameter(parameter)
                                                     .addException(ConstraintViolationThrowable.class)
                                                     .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                                    .addStatement("validate(fieldDescriptor, " + paramName + ", $S)", paramName)
+                                                    .addStatement("validate(fieldDescriptor, " + paramName + ", $S)", fieldDescriptor.getName())
                                                     .addStatement("this." + fieldName + " = " + fieldName)
                                                     .addStatement("return this")
                                                     .build();
@@ -196,8 +200,8 @@ class ValidatorWriter {
                                                     .addException(ConstraintViolationThrowable.class)
                                                     .addException(ConversionError.class)
                                                     .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                                    .addStatement("final $T convertedValue = getConvertedValue($T.class, " + paramName + ")", parameterClass, parameterClass)
-                                                    .addStatement("validate(fieldDescriptor, convertedValue, " + paramName + ")")
+                                                    .addStatement("final $T convertedValue = getConvertedValue(new $T<>($T.class), " + paramName + ")", parameterClass, SingularKey.class, parameterClass)
+                                                    .addStatement("validate(fieldDescriptor, convertedValue, $S)", fieldDescriptor.getName())
                                                     .addStatement("this." + fieldName + " = convertedValue")
                                                     .addStatement("return this")
                                                     .build();
@@ -213,19 +217,15 @@ class ValidatorWriter {
         }
     }
 
-    private String getFieldDescriptorType(FieldDescriptorProto fieldDescriptor) {
-        final Class<?> parameterClass = getParameterClass(fieldDescriptor);
+    private String createDescriptorCodeLine(int index, FieldDescriptorProto fieldDescriptor) {
         final String descriptorTypeName = fieldDescriptor.getType()
                                                          .name();
         final Class<?> defaultFieldType = getFieldType(descriptorTypeName);
-        final String result = defaultFieldType != null ? defaultFieldType.getName() : parameterClass.getName();
-        return result;
-    }
 
-    private String createDescriptorCodeLine(int index, FieldDescriptorProto fieldDescriptor) {
-        final String fieldDescriptorType = getFieldDescriptorType(fieldDescriptor);
+        final int fieldIndex = defaultFieldType == null ? index : 0;
+        final String fieldDescriptorType = defaultFieldType != null ? defaultFieldType.getName() : builderGenericClass.getName();
         final String result = "final $T fieldDescriptor = " + fieldDescriptorType +
-                ".getDescriptor().getFields().get(" + index + ")";
+                ".getDescriptor().getFields().get(" + fieldIndex + ")";
         return result;
     }
 
@@ -235,6 +235,11 @@ class ValidatorWriter {
     }
 
     private class RepeatedFieldMethodsConstructor {
+
+        private static final String CREATE_IF_NEEDED = "createIfNeeded()";
+        public static final String ADD_RAW_PREFIX = "addRaw";
+        public static final String ADD_PREFIX = "add";
+        public static final String REMOVE_PREFIX = "remove";
 
         private final FieldDescriptorProto fieldDescriptor;
         private final int fieldIndex;
@@ -264,6 +269,7 @@ class ValidatorWriter {
 
             methods.add(createRawAddByIndexMethod());
             methods.add(createRawAddObjectMethod());
+            methods.add(createRawAddAllMethod());
 
             return methods;
         }
@@ -283,7 +289,7 @@ class ValidatorWriter {
         }
 
         private MethodSpec createRawAddObjectMethod() {
-            final String methodName = getJavaFieldName("addRaw" + methodPartName, false);
+            final String methodName = getJavaFieldName(ADD_RAW_PREFIX + methodPartName, false);
             final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
 
             final MethodSpec result = MethodSpec.methodBuilder(methodName)
@@ -293,7 +299,7 @@ class ValidatorWriter {
                                                 .addException(ConstraintViolationThrowable.class)
                                                 .addException(ConversionError.class)
                                                 .addStatement(CREATE_IF_NEEDED)
-                                                .addStatement("final $T convertedValue = getConvertedValue($T.class, value)", parameterClass, parameterClass)
+                                                .addStatement("final $T convertedValue = getConvertedValue(new $T<>($T.class), value)", parameterClass, SingularKey.class, parameterClass)
                                                 .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                                 .addStatement("validate(fieldDescriptor, convertedValue, $S)", fieldDescriptor.getName())
                                                 .addStatement(javaFieldName + ".add(convertedValue)")
@@ -303,7 +309,7 @@ class ValidatorWriter {
         }
 
         private MethodSpec createRawAddByIndexMethod() {
-            final String methodName = getJavaFieldName("addRaw" + methodPartName, false);
+            final String methodName = getJavaFieldName(ADD_RAW_PREFIX + methodPartName, false);
             final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
 
             final MethodSpec result = MethodSpec.methodBuilder(methodName)
@@ -314,7 +320,7 @@ class ValidatorWriter {
                                                 .addException(ConstraintViolationThrowable.class)
                                                 .addException(ConversionError.class)
                                                 .addStatement(CREATE_IF_NEEDED)
-                                                .addStatement("final $T convertedValue = getConvertedValue($T.class, value)", parameterClass, parameterClass)
+                                                .addStatement("final $T convertedValue = getConvertedValue(new $T<>($T.class), value)", parameterClass, SingularKey.class, parameterClass)
                                                 .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                                 .addStatement("validate(fieldDescriptor, convertedValue, $S)", fieldDescriptor.getName())
                                                 .addStatement(javaFieldName + ".add(index, convertedValue)")
@@ -323,8 +329,48 @@ class ValidatorWriter {
             return result;
         }
 
+        private MethodSpec createRawAddAllMethod() {
+            final String methodName = getJavaFieldName("addAllRaw" + methodPartName, false);
+            final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
+
+            final MethodSpec result = MethodSpec.methodBuilder(methodName)
+                                                .returns(builderClass)
+                                                .addModifiers(Modifier.PUBLIC)
+                                                .addParameter(String.class, "value")
+                                                .addException(ConstraintViolationThrowable.class)
+                                                .addException(ConversionError.class)
+                                                .addStatement(CREATE_IF_NEEDED)
+                                                .addStatement("final $T<$T> convertedValue = getConvertedValue(new $T<>($T.class, $T.class), value)", List.class, parameterClass, PluralKey.class, List.class, parameterClass)
+                                                .addStatement(descriptorCodeLine, FieldDescriptor.class)
+                                                .addStatement("validate(fieldDescriptor, convertedValue, $S)", fieldDescriptor.getName())
+                                                .addStatement(javaFieldName + ".addAll(convertedValue)")
+                                                .addStatement("return this")
+                                                .build();
+            return result;
+        }
+
+        private MethodSpec createAddAllMethod() {
+            final String methodName = getJavaFieldName(ADD_ALL_PREFIX + methodPartName, false);
+            final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
+            final ParameterizedTypeName parameter = ParameterizedTypeName.get(List.class, parameterClass);
+            final MethodSpec result = MethodSpec.methodBuilder(methodName)
+                                                .returns(builderClass)
+                                                .addModifiers(Modifier.PUBLIC)
+                                                .addParameter(parameter, "value")
+                                                .addException(ConstraintViolationThrowable.class)
+                                                .addException(ConversionError.class)
+                                                .addStatement(CREATE_IF_NEEDED)
+                                                .addStatement("final $T<$T> convertedValue = getConvertedValue(new $T<>($T.class, $T.class), value)", List.class, parameterClass, PluralKey.class, List.class, parameterClass)
+                                                .addStatement(descriptorCodeLine, FieldDescriptor.class)
+                                                .addStatement("validate(fieldDescriptor, convertedValue, $S)", fieldDescriptor.getName())
+                                                .addStatement(javaFieldName + ".addAll(convertedValue)")
+                                                .addStatement("return this")
+                                                .build();
+            return result;
+        }
+
         private MethodSpec createAddObjectMethod() {
-            final String methodName = getJavaFieldName("add" + methodPartName, false);
+            final String methodName = getJavaFieldName(ADD_PREFIX + methodPartName, false);
             final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
 
             final MethodSpec result = MethodSpec.methodBuilder(methodName)
@@ -342,7 +388,7 @@ class ValidatorWriter {
         }
 
         private MethodSpec createAddByIndexMethod() {
-            final String methodName = getJavaFieldName("add" + methodPartName, false);
+            final String methodName = getJavaFieldName(ADD_PREFIX + methodPartName, false);
             final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
 
             final MethodSpec result = MethodSpec.methodBuilder(methodName)
@@ -361,7 +407,7 @@ class ValidatorWriter {
         }
 
         private MethodSpec createRemoveObject() {
-            final String removeMethodName = getJavaFieldName("remove" + methodPartName, false);
+            final String removeMethodName = getJavaFieldName(REMOVE_PREFIX + methodPartName, false);
             final MethodSpec result = MethodSpec.methodBuilder(removeMethodName)
                                                 .addModifiers(Modifier.PUBLIC)
                                                 .returns(builderClass)
@@ -373,7 +419,7 @@ class ValidatorWriter {
         }
 
         private MethodSpec createRemoveByIndexMethod() {
-            final String methodName = getJavaFieldName("remove" + methodPartName, false);
+            final String methodName = getJavaFieldName(REMOVE_PREFIX + methodPartName, false);
 
             final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                                 .addModifiers(Modifier.PUBLIC)
@@ -430,7 +476,7 @@ class ValidatorWriter {
             builder.append(".");
 
             if (isRepeatedField(fieldDescriptor)) {
-                builder.append("addAll");
+                builder.append(ADD_ALL_PREFIX);
             } else {
                 builder.append(SETTER_PREFIX);
             }
@@ -442,11 +488,10 @@ class ValidatorWriter {
         }
         builder.append(".build()");
 
-        final Class<?> builtMessage = getParameterGeneralClass();
         final MethodSpec buildMethod = MethodSpec.methodBuilder("build")
                                                  .addModifiers(Modifier.PUBLIC)
-                                                 .returns(builtMessage)
-                                                 .addStatement(builder.toString(), builtMessage, builtMessage)
+                                                 .returns(builderGenericClass)
+                                                 .addStatement(builder.toString(), builderGenericClass, builderGenericClass)
                                                  .addStatement("return result")
                                                  .build();
         return buildMethod;
@@ -469,7 +514,7 @@ class ValidatorWriter {
         return buildMethod;
     }
 
-    private Class<?> getParameterGeneralClass() {
+    private Class<?> getValidatingBuilderGenericClass() {
         final Collection<String> values = messageTypeCache.getCachedTypes()
                                                           .values();
         final String expectedClassName = javaPackage + "." + descriptor.getName();
@@ -521,7 +566,7 @@ class ValidatorWriter {
 
     private TypeSpec.Builder addMethods(TypeSpec.Builder builder, Iterable<MethodSpec> methodSpecs) {
         final ParameterizedTypeName superClass =
-                ParameterizedTypeName.get(CommonValidatingBuilder.class, getParameterGeneralClass());
+                ParameterizedTypeName.get(AbstractValidatingBuilder.class, builderGenericClass);
         builder.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                .superclass(superClass)
                .addMethods(methodSpecs);
