@@ -54,37 +54,6 @@ public class GenerationUtils {
 
             .build();
 
-            //TODO:2017-03-03:illiashepilov: think how to avoid two maps filling.
-    private static final Map<String, Class<?>> PROTO_FIELD_TYPES_JAVA = ImmutableMap.<String, Class<?>>builder()
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_DOUBLE.name(), DoubleValue.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_FLOAT.name(), FloatValue.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT64.name(), Int64Value.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_UINT64.name(), UInt64Value.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT32.name(), Int32Value.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_FIXED64.name(), Fixed64Change.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_FIXED32.name(), Fixed32Change.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_BOOL.name(), BoolValue.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING.name(), StringValue.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_BYTES.name(), ByteString.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_UINT32.name(), UInt32Value.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_SFIXED32.name(), Sfixed32Change.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_SFIXED64.name(), Sfixed64Change.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_SINT32.name(), SInt32Change.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_SINT64.name(), SInt64Change.class)
-
-            /*
-             * Groups are NOT supported, so do not create an associated Java type for it.
-             * The return value for the {@link FieldDescriptorProto.Type.TYPE_GROUP} key
-             * is intended to be {@code null}.
-             **/
-            //.put(FieldDescriptorProto.Type.TYPE_GROUP.name(), "not supported")
-
-            .build();
-
-    public static Class<?> getFieldType(String typeName) {
-        return PROTO_FIELD_TYPES_JAVA.get(typeName);
-    }
-
     public static Class<?> getType(String type) {
         return PROTO_FIELD_TYPES.get(type);
     }
