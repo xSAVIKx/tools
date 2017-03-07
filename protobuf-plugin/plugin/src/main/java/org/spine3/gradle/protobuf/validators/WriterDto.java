@@ -1,7 +1,7 @@
 package org.spine3.gradle.protobuf.validators;
 
 import com.google.common.base.Objects;
-import com.google.protobuf.DescriptorProtos;
+import com.google.protobuf.DescriptorProtos.DescriptorProto;
 
 /**
  * @author Illia Shepilov
@@ -10,9 +10,9 @@ class WriterDto {
 
     private final String javaPackage;
     private final String javaClass;
-    private final DescriptorProtos.DescriptorProto msgDescriptor;
+    private final DescriptorProto msgDescriptor;
 
-    WriterDto(String javaPackage, String javaClass, DescriptorProtos.DescriptorProto msgDescriptor) {
+    WriterDto(String javaPackage, String javaClass, DescriptorProto msgDescriptor) {
         this.javaPackage = javaPackage;
         this.javaClass = javaClass;
         this.msgDescriptor = msgDescriptor;
@@ -27,7 +27,7 @@ class WriterDto {
         return javaClass;
     }
 
-    public DescriptorProtos.DescriptorProto getMsgDescriptor() {
+    public DescriptorProto getMsgDescriptor() {
         return msgDescriptor;
     }
 
