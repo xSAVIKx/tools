@@ -58,7 +58,6 @@ public class ValidatorsGenPlugin extends SpinePlugin {
                 newTask(GENERATE_VALIDATING_BUILDERS, mainScopeAction).insertAfterTask(GENERATE_PROTO)
                                                                       .insertBeforeTask(COMPILE_JAVA)
                                                                       .applyNowTo(project);
-
         log().debug("Preparing to generate test validating builders");
         final Action<Task> testScopeAction = createAction(getTestDescriptorSetPath(project));
 
