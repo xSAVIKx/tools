@@ -18,6 +18,7 @@ import java.util.List;
 
 import static org.gradle.internal.impldep.com.google.common.base.Preconditions.checkArgument;
 import static org.gradle.internal.impldep.com.google.common.base.Preconditions.checkNotNull;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.SETTER_PREFIX;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
 
@@ -27,6 +28,7 @@ public class SettersConstructor extends MethodConstructor {
     private final int fieldIndex;
     private final Class<?> parameterClass;
     private final ClassName builderClassName;
+    private final Class<?> builderGenericClass;
     private final String paramName;
     private final String setterPart;
     private final String fieldName;
@@ -34,6 +36,7 @@ public class SettersConstructor extends MethodConstructor {
     private SettersConstructor(SettersConstructorBuilder builder) {
         this.fieldDescriptor = builder.fieldDescriptor;
         this.fieldIndex = builder.fieldIndex;
+        this.builderGenericClass = builder.builderGenericClass;
         this.parameterClass = getParameterClass(fieldDescriptor, builder.messageTypeCache);
         this.builderClassName = getBuilderClassName(builder.javaPackage, builder.javaClass);
         this.paramName = GenerationUtils.getJavaFieldName(fieldDescriptor.getName(), false);
@@ -54,7 +57,7 @@ public class SettersConstructor extends MethodConstructor {
 
     private MethodSpec constructSetter() {
         final String methodName = SETTER_PREFIX + setterPart;
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClass);
         final ParameterSpec parameter = createParameterSpec(fieldDescriptor, false);
 
         final MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
@@ -73,7 +76,7 @@ public class SettersConstructor extends MethodConstructor {
 
     private MethodSpec constructRawSetter() {
         final String methodName = SETTER_PREFIX + setterPart + "Raw";
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClass);
         final ParameterSpec parameter = createParameterSpec(fieldDescriptor, true);
 
         final MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
@@ -113,6 +116,7 @@ public class SettersConstructor extends MethodConstructor {
         private String javaClass;
         private MessageTypeCache messageTypeCache;
         private FieldDescriptorProto fieldDescriptor;
+        private Class<?> builderGenericClass;
         private int fieldIndex;
 
         public SettersConstructorBuilder setFieldIndex(int fieldIndex) {
@@ -145,11 +149,17 @@ public class SettersConstructor extends MethodConstructor {
             return this;
         }
 
+        public SettersConstructorBuilder setBuilderGenericClass(Class<?> builderGenericClass) {
+            this.builderGenericClass = builderGenericClass;
+            return this;
+        }
+
         public SettersConstructor build() {
             checkNotNull(javaClass);
             checkNotNull(javaPackage);
             checkNotNull(messageTypeCache);
             checkNotNull(fieldDescriptor);
+            checkNotNull(builderGenericClass);
             checkArgument(fieldIndex >= 0);
             return new SettersConstructor(this);
         }

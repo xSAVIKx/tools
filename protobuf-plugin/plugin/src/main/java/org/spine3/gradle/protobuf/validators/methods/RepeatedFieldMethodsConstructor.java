@@ -21,6 +21,7 @@ import static org.gradle.internal.impldep.com.beust.jcommander.internal.Lists.ne
 import static org.gradle.internal.impldep.com.google.common.base.Preconditions.checkArgument;
 import static org.gradle.internal.impldep.com.google.common.base.Preconditions.checkNotNull;
 import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_ALL_PREFIX;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
 
 /**
@@ -39,10 +40,12 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
     private final ClassName builderClass;
     private final Class<?> parameterClass;
     private final String javaFieldName;
+    private final Class<?> builderGenericClass;
 
     public RepeatedFieldMethodsConstructor(RepeatedFieldMethodsConstructorBuilder builder) {
         this.fieldDescriptor = builder.fieldDescriptor;
         this.fieldIndex = builder.fieldIndex;
+        this.builderGenericClass = builder.builderGenericClass;
         methodPartName = getJavaFieldName(fieldDescriptor.getName(), true);
         javaFieldName = getJavaFieldName(fieldDescriptor.getName(), false);
         builderClass = getBuilderClassName(builder.javaPackage, builder.javaClass);
@@ -83,7 +86,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
 
     private MethodSpec createRawAddObjectMethod() {
         final String methodName = getJavaFieldName(ADD_RAW_PREFIX + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClass);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClass)
@@ -107,7 +110,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
 
     private MethodSpec createRawAddByIndexMethod() {
         final String methodName = getJavaFieldName(ADD_RAW_PREFIX + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClass);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClass)
@@ -132,7 +135,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
 
     private MethodSpec createRawAddAllMethod() {
         final String methodName = getJavaFieldName("addAllRaw" + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClass);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClass)
@@ -158,7 +161,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
 
     private MethodSpec createAddAllMethod() {
         final String methodName = getJavaFieldName(ADD_ALL_PREFIX + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClass);
         final ParameterizedTypeName parameter = ParameterizedTypeName.get(List.class, parameterClass);
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClass)
@@ -184,7 +187,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
 
     private MethodSpec createAddObjectMethod() {
         final String methodName = getJavaFieldName(ADD_PREFIX + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClass);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClass)
@@ -202,7 +205,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
 
     private MethodSpec createAddByIndexMethod() {
         final String methodName = getJavaFieldName(ADD_PREFIX + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, fieldDescriptor);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClass);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClass)
@@ -276,6 +279,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
         private String javaClass;
         private MessageTypeCache messageTypeCache;
         private FieldDescriptorProto fieldDescriptor;
+        private Class<?> builderGenericClass;
         private int fieldIndex;
 
         public RepeatedFieldMethodsConstructorBuilder setFieldIndex(int fieldIndex) {
@@ -308,11 +312,17 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
             return this;
         }
 
+        public RepeatedFieldMethodsConstructorBuilder setBuilderGenericClass(Class<?> builderGenericClass) {
+            this.builderGenericClass = builderGenericClass;
+            return this;
+        }
+
         public RepeatedFieldMethodsConstructor build() {
             checkNotNull(javaClass);
             checkNotNull(javaPackage);
             checkNotNull(messageTypeCache);
             checkNotNull(fieldDescriptor);
+            checkNotNull(builderGenericClass);
             checkArgument(fieldIndex >= 0);
             return new RepeatedFieldMethodsConstructor(this);
         }

@@ -23,8 +23,11 @@ import java.util.List;
 
 import static org.gradle.internal.impldep.com.beust.jcommander.internal.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_ALL_PREFIX;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.SETTER_PREFIX;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatingBuilderGenericClass;
 
 /**
  * Class, which writes Validator java code, based on it's descriptor.
@@ -47,7 +50,7 @@ class ValidatorWriter {
         this.javaPackage = writerDto.getJavaPackage();
         this.descriptor = writerDto.getMsgDescriptor();
         this.messageTypeCache = messageTypeCache;
-        builderGenericClass = getValidatingBuilderGenericClass();
+        builderGenericClass = getValidatingBuilderGenericClass(javaPackage, messageTypeCache, descriptor.getName());
     }
 
     void write() {
@@ -95,6 +98,7 @@ class ValidatorWriter {
                                                                      .setFieldIndex(index)
                                                                      .setJavaClass(javaClass)
                                                                      .setJavaPackage(javaPackage)
+                                                                     .setBuilderGenericClass(builderGenericClass)
                                                                      .setMessageTypeCache(messageTypeCache)
                                                                      .build();
             final Collection<MethodSpec> methods = constructor.construct();
@@ -148,11 +152,11 @@ class ValidatorWriter {
             if (labelName.equals(REPEATED_FIELD_LABEL)) {
                 final RepeatedFieldMethodsConstructor constructor =
                         RepeatedFieldMethodsConstructor.newBuilder()
-                        RepeatedFieldMethodsConstructor.newBuilder()
                                                        .setFieldDescriptor(fieldDescriptor)
                                                        .setFieldIndex(fieldIndex)
                                                        .setJavaClass(javaClass)
                                                        .setJavaPackage(javaPackage)
+                                                       .setBuilderGenericClass(builderGenericClass)
                                                        .setMessageTypeCache(messageTypeCache)
                                                        .build();
                 final Collection<MethodSpec> repeatedFieldMethods = constructor.construct();
@@ -207,22 +211,6 @@ class ValidatorWriter {
                                                  .addStatement("return new $T()", builderClass)
                                                  .build();
         return buildMethod;
-    }
-
-    private Class<?> getValidatingBuilderGenericClass() {
-        final Collection<String> values = messageTypeCache.getCachedTypes()
-                                                          .values();
-        final String expectedClassName = javaPackage + '.' + descriptor.getName();
-        for (String value : values) {
-            if (value.equals(expectedClassName)) {
-                try {
-                    return Class.forName(value);
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-        throw new RuntimeException();
     }
 
     private void writeClass(File rootFolder, TypeSpec validator) {

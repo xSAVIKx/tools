@@ -1,7 +1,5 @@
 package org.spine3.gradle.protobuf.validators.methods;
 
-import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
-
 /**
  * @author Illia Shepilov
  */
@@ -12,8 +10,6 @@ abstract class MethodConstructor {
     static final String VALUE = "value";
     static final String THIS_POINTER = "this.";
     static final String ADD_ALL_CONVERTED_VALUE = ".addAll(convertedValue)";
-    static final String SETTER_PREFIX = "set";
-    static final String ADD_ALL_PREFIX = "addAll";
 
     static String createValidateConvertedValueStatement() {
         final String result = "validate(fieldDescriptor, convertedValue, $S)";
@@ -25,7 +21,7 @@ abstract class MethodConstructor {
         return result;
     }
 
-    String createDescriptorCodeLine(int index, FieldDescriptorProto fieldDescriptor) {
+    String createDescriptorCodeLine(int index, Class<?> builderGenericClass) {
         final String result = "final $T fieldDescriptor = " + builderGenericClass.getName() +
                 ".getDescriptor().getFields().get(" + index + ')';
         return result;
