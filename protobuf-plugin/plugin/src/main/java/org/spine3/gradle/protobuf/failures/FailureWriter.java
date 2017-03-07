@@ -19,7 +19,6 @@
  */
 package org.spine3.gradle.protobuf.failures;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.GeneratedMessageV3;
@@ -30,12 +29,12 @@ import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import org.apache.commons.lang3.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.base.CommandContext;
 import org.spine3.base.FailureThrowable;
-import org.spine3.util.Exceptions;
+import org.spine3.gradle.protobuf.failures.fieldtype.FieldType;
+import org.spine3.gradle.protobuf.failures.fieldtype.FieldTypeFactory;
 
 import javax.annotation.Generated;
 import java.io.File;
@@ -70,36 +69,7 @@ public class FailureWriter {
     private final String outerClassName;
     private final String className;
 
-    /** A map from Protobuf type name to Java class FQN. */
-    private final Map<String, String> messageTypeMap;
-
-    // https://developers.google.com/protocol-buffers/docs/proto3#scalar
-    @SuppressWarnings({"DuplicateStringLiteralInspection", "ConstantConditions"})
-    private static final Map<String, String> PROTO_FIELD_TYPES = ImmutableMap.<String, String>builder()
-            .put(FieldDescriptorProto.Type.TYPE_DOUBLE.name(), "double")
-            .put(FieldDescriptorProto.Type.TYPE_FLOAT.name(), "float")
-            .put(FieldDescriptorProto.Type.TYPE_INT64.name(), "long")
-            .put(FieldDescriptorProto.Type.TYPE_UINT64.name(), "long")
-            .put(FieldDescriptorProto.Type.TYPE_INT32.name(), "int")
-            .put(FieldDescriptorProto.Type.TYPE_FIXED64.name(), "long")
-            .put(FieldDescriptorProto.Type.TYPE_FIXED32.name(), "int")
-            .put(FieldDescriptorProto.Type.TYPE_BOOL.name(), "boolean")
-            .put(FieldDescriptorProto.Type.TYPE_STRING.name(), "String")
-            .put(FieldDescriptorProto.Type.TYPE_BYTES.name(), "com.google.protobuf.ByteString")
-            .put(FieldDescriptorProto.Type.TYPE_UINT32.name(), "int")
-            .put(FieldDescriptorProto.Type.TYPE_SFIXED32.name(), "int")
-            .put(FieldDescriptorProto.Type.TYPE_SFIXED64.name(), "long")
-            .put(FieldDescriptorProto.Type.TYPE_SINT32.name(), "int")
-            .put(FieldDescriptorProto.Type.TYPE_SINT64.name(), "int")
-
-            /*
-             * Groups are NOT supported, so do not create an associated Java type for it.
-             * The return value for the {@link FieldDescriptorProto.Type.TYPE_GROUP} key
-             * is intended to be {@code null}.
-             **/
-            //.put(FieldDescriptorProto.Type.TYPE_GROUP.name(), "not supported")
-
-            .build();
+    private final FieldTypeFactory fieldTypeFactory;
 
     /**
      * Creates a new instance.
@@ -119,7 +89,7 @@ public class FailureWriter {
         this.javaPackage = javaPackage;
         this.outerClassName = javaOuterClassName;
         this.className = failureDescriptor.getName();
-        this.messageTypeMap = messageTypeMap;
+        this.fieldTypeFactory = new FieldTypeFactory(messageTypeMap);
     }
 
     /**
@@ -158,7 +128,7 @@ public class FailureWriter {
         final String commandMsgParam = "commandMessage";
         final String commandContextParam = "ctx";
         final String failureMsgParam = "failureMessage";
-        final Set<Map.Entry<String, String>> fieldsEntries = readFieldValues().entrySet();
+        final Set<Map.Entry<String, FieldType>> fieldsEntries = readFieldValues().entrySet();
 
         final MethodSpec.Builder builder = MethodSpec.constructorBuilder()
                                                      .addModifiers(PUBLIC)
@@ -166,8 +136,9 @@ public class FailureWriter {
                                                      .addParameter(CommandContext.class, commandContextParam)
                                                      .addParameter(GeneratedMessageV3.class, failureMsgParam);
 
-        for (Map.Entry<String, String> field : fieldsEntries) {
-            final TypeName parameterTypeName = typeNameFor(field.getValue());
+        for (Map.Entry<String, FieldType> field : fieldsEntries) {
+            final TypeName parameterTypeName = field.getValue()
+                                                    .getTypeName();
             final String parameterName = getJavaFieldName(field.getKey(), false);
             builder.addParameter(parameterTypeName, parameterName);
         }
@@ -176,9 +147,11 @@ public class FailureWriter {
                 "super(" + commandMsgParam + COMMA_SEPARATOR
                         + commandContextParam + COMMA_SEPARATOR
                         + outerClassName + '.' + className + ".newBuilder()");
-        for (Map.Entry<String, String> field : fieldsEntries) {
+        for (Map.Entry<String, FieldType> field : fieldsEntries) {
             final String upperCaseName = getJavaFieldName(field.getKey(), true);
-            superStatement.append(".set")
+            superStatement.append('.')
+                          .append(field.getValue()
+                                       .getSetterSuffix())
                           .append(upperCaseName)
                           .append('(')
                           .append(getJavaFieldName(field.getKey(), false))
@@ -214,19 +187,6 @@ public class FailureWriter {
                         .build();
     }
 
-    //TODO:2017-03-06:dmytro.grankin: check for correctness with repeated fields
-    private static TypeName typeNameFor(String fullyQualifiedName) {
-        try {
-            return ClassName.bestGuess(fullyQualifiedName);
-        } catch (IllegalArgumentException e) {
-            try {
-                return TypeName.get(ClassUtils.getClass(fullyQualifiedName));
-            } catch (ClassNotFoundException notFoundEx) {
-                throw Exceptions.wrappedCause(notFoundEx);
-            }
-        }
-    }
-
     /**
      * Transforms Protobuf-style field name into corresponding Java-style field name.
      *
@@ -256,25 +216,12 @@ public class FailureWriter {
      *
      * @return name-to-value String map
      */
-    private Map<String, String> readFieldValues() {
+    private Map<String, FieldType> readFieldValues() {
         log().debug("Reading all the field values from the descriptor: {}", failureDescriptor);
 
-        final Map<String, String> result = new LinkedHashMap<>();
+        final Map<String, FieldType> result = new LinkedHashMap<>();
         for (FieldDescriptorProto field : failureDescriptor.getFieldList()) {
-            final String value;
-            if (field.getType() == FieldDescriptorProto.Type.TYPE_MESSAGE ||
-                    field.getType() == FieldDescriptorProto.Type.TYPE_ENUM) {
-                String typeName = field.getTypeName();
-                // it has a redundant dot in the beginning
-                if (typeName.startsWith(".")) {
-                    typeName = typeName.substring(1);
-                }
-                value = messageTypeMap.get(typeName);
-            } else {
-                value = PROTO_FIELD_TYPES.get(field.getType()
-                                                   .name());
-            }
-            result.put(field.getName(), value);
+            result.put(field.getName(), fieldTypeFactory.create(field));
         }
         log().debug("Read fields: {}", result);
 
