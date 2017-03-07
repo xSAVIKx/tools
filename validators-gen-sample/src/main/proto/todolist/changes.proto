@@ -27,6 +27,8 @@ option java_outer_classname = "ChangesProto";
 option java_multiple_files = true;
 option java_generate_equals_and_hash = true;
 
+import "spine/annotations.proto";
+import "spine/validate.proto";
 import "todolist/attributes.proto";
 
 // Definition of a change in a label details field.
@@ -48,7 +50,7 @@ message DescriptionChange {
     string previous_value = 1;
 
     // The new value of the task description.
-    string new_value = 2;
+    string new_value = 2[(pattern).regex = "a-z{1}"];
 }
 
 // DTO for the label details.
