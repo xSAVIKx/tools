@@ -28,7 +28,6 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.gradle.internal.impldep.com.beust.jcommander.internal.Lists.newArrayList;
-import static org.spine3.gradle.protobuf.GenerationUtils.getFieldType;
 import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
 
 /**
@@ -42,6 +41,11 @@ class ValidatorWriter {
     private static final String REPEATED_FIELD_LABEL = "LABEL_REPEATED";
     private static final String SETTER_PREFIX = "set";
     private static final String ADD_ALL_PREFIX = "addAll";
+    private static final String RETURN_THIS = "return this";
+    private static final String INDEX = "index";
+    private static final String VALUE = "value";
+    private static final String THIS_POINTER = "this.";
+    private static final String ADD_ALL_CONVERTED_VALUE = ".addAll(convertedValue)";
 
     private final String javaClass;
     private final String javaPackage;
@@ -58,7 +62,7 @@ class ValidatorWriter {
     }
 
     void write() {
-        log().debug("Writing the java class under {}", javaPackage);
+        log().debug("Writing the %s under %s", javaClass, javaPackage);
         final File rootDirectory = new File(ROOT_FOLDER);
         final List<MethodSpec> methods = newArrayList();
 
@@ -69,9 +73,8 @@ class ValidatorWriter {
         methods.add(createBuildMethod());
         methods.addAll(createRepeatedFieldMethods());
 
-        final Collection<FieldSpec> fields = getFields();
-
         final TypeSpec.Builder classBuilder = TypeSpec.classBuilder(javaClass);
+        final Collection<FieldSpec> fields = getFields();
         addFields(classBuilder, fields);
         addMethods(classBuilder, methods);
 
@@ -109,7 +112,7 @@ class ValidatorWriter {
 
         private final FieldDescriptorProto fieldDescriptor;
 
-        public FieldConstructor(FieldDescriptorProto fieldDescriptor) {
+        private FieldConstructor(FieldDescriptorProto fieldDescriptor) {
             this.fieldDescriptor = fieldDescriptor;
         }
 
@@ -124,7 +127,8 @@ class ValidatorWriter {
         }
 
         private FieldSpec constructRepeatedField() {
-            final ParameterizedTypeName param = ParameterizedTypeName.get(List.class, getParameterClass(fieldDescriptor));
+            final ParameterizedTypeName param =
+                    ParameterizedTypeName.get(List.class, getParameterClass(fieldDescriptor));
             final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
             return FieldSpec.builder(param, fieldName, Modifier.PRIVATE)
                             .build();
@@ -149,7 +153,7 @@ class ValidatorWriter {
         private final String setterPart;
         private final String fieldName;
 
-        public SettersConstructor(FieldDescriptorProto fieldDescriptor, int fieldIndex) {
+        private SettersConstructor(FieldDescriptorProto fieldDescriptor, int fieldIndex) {
             this.fieldDescriptor = fieldDescriptor;
             this.fieldIndex = fieldIndex;
             this.parameterClass = getParameterClass(fieldDescriptor);
@@ -181,9 +185,10 @@ class ValidatorWriter {
                                                     .addParameter(parameter)
                                                     .addException(ConstraintViolationThrowable.class)
                                                     .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                                    .addStatement("validate(fieldDescriptor, " + paramName + ", $S)", fieldDescriptor.getName())
-                                                    .addStatement("this." + fieldName + " = " + fieldName)
-                                                    .addStatement("return this")
+                                                    .addStatement(createValidateStatement(paramName),
+                                                                  fieldDescriptor.getName())
+                                                    .addStatement(THIS_POINTER + fieldName + " = " + fieldName)
+                                                    .addStatement(RETURN_THIS)
                                                     .build();
             return methodSpec;
         }
@@ -200,10 +205,14 @@ class ValidatorWriter {
                                                     .addException(ConstraintViolationThrowable.class)
                                                     .addException(ConversionError.class)
                                                     .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                                    .addStatement("final $T convertedValue = getConvertedValue(new $T<>($T.class), " + paramName + ")", parameterClass, SingularKey.class, parameterClass)
-                                                    .addStatement("validate(fieldDescriptor, convertedValue, $S)", fieldDescriptor.getName())
-                                                    .addStatement("this." + fieldName + " = convertedValue")
-                                                    .addStatement("return this")
+                                                    .addStatement("final $T convertedValue = getConvertedValue(new $T<>($T.class), " + paramName + ')',
+                                                                  parameterClass,
+                                                                  SingularKey.class,
+                                                                  parameterClass)
+                                                    .addStatement(createValidateConvertedValueStatement(),
+                                                                  fieldDescriptor.getName())
+                                                    .addStatement(THIS_POINTER + fieldName + " = convertedValue")
+                                                    .addStatement(RETURN_THIS)
                                                     .build();
             return methodSpec;
         }
@@ -217,15 +226,19 @@ class ValidatorWriter {
         }
     }
 
-    private String createDescriptorCodeLine(int index, FieldDescriptorProto fieldDescriptor) {
-        final String descriptorTypeName = fieldDescriptor.getType()
-                                                         .name();
-        final Class<?> defaultFieldType = getFieldType(descriptorTypeName);
+    private static String createValidateConvertedValueStatement() {
+        final String result = "validate(fieldDescriptor, convertedValue, $S)";
+        return result;
+    }
 
-        final int fieldIndex = defaultFieldType == null ? index : 0;
-        final String fieldDescriptorType = defaultFieldType != null ? defaultFieldType.getName() : builderGenericClass.getName();
-        final String result = "final $T fieldDescriptor = " + fieldDescriptorType +
-                ".getDescriptor().getFields().get(" + fieldIndex + ")";
+    private static String createValidateStatement(String fileValue) {
+        final String result = "validate(fieldDescriptor, " + fileValue + ", $S)";
+        return result;
+    }
+
+    private String createDescriptorCodeLine(int index, FieldDescriptorProto fieldDescriptor) {
+        final String result = "final $T fieldDescriptor = " + builderGenericClass.getName() +
+                ".getDescriptor().getFields().get(" + index + ')';
         return result;
     }
 
@@ -237,9 +250,9 @@ class ValidatorWriter {
     private class RepeatedFieldMethodsConstructor {
 
         private static final String CREATE_IF_NEEDED = "createIfNeeded()";
-        public static final String ADD_RAW_PREFIX = "addRaw";
-        public static final String ADD_PREFIX = "add";
-        public static final String REMOVE_PREFIX = "remove";
+        private static final String ADD_RAW_PREFIX = "addRaw";
+        private static final String ADD_PREFIX = "add";
+        private static final String REMOVE_PREFIX = "remove";
 
         private final FieldDescriptorProto fieldDescriptor;
         private final int fieldIndex;
@@ -248,7 +261,7 @@ class ValidatorWriter {
         private final Class<?> parameterClass;
         private final String javaFieldName;
 
-        public RepeatedFieldMethodsConstructor(FieldDescriptorProto fieldDescriptor, int fieldIndex) {
+        private RepeatedFieldMethodsConstructor(FieldDescriptorProto fieldDescriptor, int fieldIndex) {
             this.fieldDescriptor = fieldDescriptor;
             this.fieldIndex = fieldIndex;
             methodPartName = getJavaFieldName(fieldDescriptor.getName(), true);
@@ -284,6 +297,7 @@ class ValidatorWriter {
             methods.add(createAddObjectMethod());
             methods.add(createRemoveByIndexMethod());
             methods.add(createRemoveObject());
+            methods.add(createAddAllMethod());
 
             return methods;
         }
@@ -295,15 +309,19 @@ class ValidatorWriter {
             final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                                 .returns(builderClass)
                                                 .addModifiers(Modifier.PUBLIC)
-                                                .addParameter(String.class, "value")
+                                                .addParameter(String.class, VALUE)
                                                 .addException(ConstraintViolationThrowable.class)
                                                 .addException(ConversionError.class)
                                                 .addStatement(CREATE_IF_NEEDED)
-                                                .addStatement("final $T convertedValue = getConvertedValue(new $T<>($T.class), value)", parameterClass, SingularKey.class, parameterClass)
+                                                .addStatement(createGetConvertedSingularValue(),
+                                                              parameterClass,
+                                                              SingularKey.class,
+                                                              parameterClass)
                                                 .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                                .addStatement("validate(fieldDescriptor, convertedValue, $S)", fieldDescriptor.getName())
+                                                .addStatement(createValidateConvertedValueStatement(),
+                                                              fieldDescriptor.getName())
                                                 .addStatement(javaFieldName + ".add(convertedValue)")
-                                                .addStatement("return this")
+                                                .addStatement(RETURN_THIS)
                                                 .build();
             return result;
         }
@@ -315,16 +333,20 @@ class ValidatorWriter {
             final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                                 .returns(builderClass)
                                                 .addModifiers(Modifier.PUBLIC)
-                                                .addParameter(int.class, "index")
-                                                .addParameter(String.class, "value")
+                                                .addParameter(int.class, INDEX)
+                                                .addParameter(String.class, VALUE)
                                                 .addException(ConstraintViolationThrowable.class)
                                                 .addException(ConversionError.class)
                                                 .addStatement(CREATE_IF_NEEDED)
-                                                .addStatement("final $T convertedValue = getConvertedValue(new $T<>($T.class), value)", parameterClass, SingularKey.class, parameterClass)
+                                                .addStatement(createGetConvertedSingularValue(),
+                                                              parameterClass,
+                                                              SingularKey.class,
+                                                              parameterClass)
                                                 .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                                .addStatement("validate(fieldDescriptor, convertedValue, $S)", fieldDescriptor.getName())
+                                                .addStatement(createValidateConvertedValueStatement(),
+                                                              fieldDescriptor.getName())
                                                 .addStatement(javaFieldName + ".add(index, convertedValue)")
-                                                .addStatement("return this")
+                                                .addStatement(RETURN_THIS)
                                                 .build();
             return result;
         }
@@ -336,15 +358,21 @@ class ValidatorWriter {
             final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                                 .returns(builderClass)
                                                 .addModifiers(Modifier.PUBLIC)
-                                                .addParameter(String.class, "value")
+                                                .addParameter(String.class, VALUE)
                                                 .addException(ConstraintViolationThrowable.class)
                                                 .addException(ConversionError.class)
                                                 .addStatement(CREATE_IF_NEEDED)
-                                                .addStatement("final $T<$T> convertedValue = getConvertedValue(new $T<>($T.class, $T.class), value)", List.class, parameterClass, PluralKey.class, List.class, parameterClass)
+                                                .addStatement(createGetConvertedPluralValue(),
+                                                              List.class,
+                                                              parameterClass,
+                                                              PluralKey.class,
+                                                              List.class,
+                                                              parameterClass)
                                                 .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                                .addStatement("validate(fieldDescriptor, convertedValue, $S)", fieldDescriptor.getName())
-                                                .addStatement(javaFieldName + ".addAll(convertedValue)")
-                                                .addStatement("return this")
+                                                .addStatement(createValidateConvertedValueStatement(),
+                                                              fieldDescriptor.getName())
+                                                .addStatement(javaFieldName + ADD_ALL_CONVERTED_VALUE)
+                                                .addStatement(RETURN_THIS)
                                                 .build();
             return result;
         }
@@ -356,15 +384,21 @@ class ValidatorWriter {
             final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                                 .returns(builderClass)
                                                 .addModifiers(Modifier.PUBLIC)
-                                                .addParameter(parameter, "value")
+                                                .addParameter(parameter, VALUE)
                                                 .addException(ConstraintViolationThrowable.class)
                                                 .addException(ConversionError.class)
                                                 .addStatement(CREATE_IF_NEEDED)
-                                                .addStatement("final $T<$T> convertedValue = getConvertedValue(new $T<>($T.class, $T.class), value)", List.class, parameterClass, PluralKey.class, List.class, parameterClass)
+                                                .addStatement(createGetConvertedPluralValue(),
+                                                              List.class,
+                                                              parameterClass,
+                                                              PluralKey.class,
+                                                              List.class,
+                                                              parameterClass)
                                                 .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                                .addStatement("validate(fieldDescriptor, convertedValue, $S)", fieldDescriptor.getName())
-                                                .addStatement(javaFieldName + ".addAll(convertedValue)")
-                                                .addStatement("return this")
+                                                .addStatement(createValidateConvertedValueStatement(),
+                                                              fieldDescriptor.getName())
+                                                .addStatement(javaFieldName + ADD_ALL_CONVERTED_VALUE)
+                                                .addStatement(RETURN_THIS)
                                                 .build();
             return result;
         }
@@ -376,13 +410,13 @@ class ValidatorWriter {
             final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                                 .returns(builderClass)
                                                 .addModifiers(Modifier.PUBLIC)
-                                                .addParameter(parameterClass, "value")
+                                                .addParameter(parameterClass, VALUE)
                                                 .addException(ConstraintViolationThrowable.class)
                                                 .addStatement(CREATE_IF_NEEDED)
                                                 .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                                .addStatement("validate(fieldDescriptor, " + javaFieldName + ", $S)", javaFieldName)
+                                                .addStatement(createValidateStatement(javaFieldName), javaFieldName)
                                                 .addStatement(javaFieldName + ".add(value)")
-                                                .addStatement("return this")
+                                                .addStatement(RETURN_THIS)
                                                 .build();
             return result;
         }
@@ -394,14 +428,14 @@ class ValidatorWriter {
             final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                                 .returns(builderClass)
                                                 .addModifiers(Modifier.PUBLIC)
-                                                .addParameter(int.class, "index")
-                                                .addParameter(parameterClass, "value")
+                                                .addParameter(int.class, INDEX)
+                                                .addParameter(parameterClass, VALUE)
                                                 .addException(ConstraintViolationThrowable.class)
                                                 .addStatement(javaFieldName + ".add(index, value)")
                                                 .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                                .addStatement("validate(fieldDescriptor, " + javaFieldName + ", $S)", javaFieldName)
+                                                .addStatement(createValidateStatement(javaFieldName), javaFieldName)
                                                 .addStatement(CREATE_IF_NEEDED)
-                                                .addStatement("return this")
+                                                .addStatement(RETURN_THIS)
                                                 .build();
             return result;
         }
@@ -411,9 +445,9 @@ class ValidatorWriter {
             final MethodSpec result = MethodSpec.methodBuilder(removeMethodName)
                                                 .addModifiers(Modifier.PUBLIC)
                                                 .returns(builderClass)
-                                                .addParameter(parameterClass, "value")
+                                                .addParameter(parameterClass, VALUE)
                                                 .addStatement(javaFieldName + ".remove(value)")
-                                                .addStatement("return this")
+                                                .addStatement(RETURN_THIS)
                                                 .build();
             return result;
         }
@@ -424,10 +458,10 @@ class ValidatorWriter {
             final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                                 .addModifiers(Modifier.PUBLIC)
                                                 .returns(builderClass)
-                                                .addParameter(int.class, "index")
+                                                .addParameter(int.class, INDEX)
                                                 .addStatement(CREATE_IF_NEEDED)
                                                 .addStatement(javaFieldName + ".remove(index)")
-                                                .addStatement("return this")
+                                                .addStatement(RETURN_THIS)
                                                 .build();
             return result;
         }
@@ -438,7 +472,7 @@ class ValidatorWriter {
                                                 .returns(builderClass)
                                                 .addStatement(CREATE_IF_NEEDED)
                                                 .addStatement(javaFieldName + ".clear()")
-                                                .addStatement("return this")
+                                                .addStatement(RETURN_THIS)
                                                 .build();
             return result;
         }
@@ -452,6 +486,16 @@ class ValidatorWriter {
                                                 .build();
             return result;
         }
+    }
+
+    private static String createGetConvertedPluralValue() {
+        final String result = "final $T<$T> convertedValue = getConvertedValue(new $T<>($T.class, $T.class), value)";
+        return result;
+    }
+
+    private static String createGetConvertedSingularValue() {
+        final String result = "final $T convertedValue = getConvertedValue(new $T<>($T.class), value)";
+        return result;
     }
 
     private Collection<MethodSpec> createRepeatedFieldMethods() {
@@ -473,7 +517,7 @@ class ValidatorWriter {
     private MethodSpec createBuildMethod() {
         final StringBuilder builder = new StringBuilder("final $T result = $T.newBuilder()");
         for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
-            builder.append(".");
+            builder.append('.');
 
             if (isRepeatedField(fieldDescriptor)) {
                 builder.append(ADD_ALL_PREFIX);
@@ -482,16 +526,18 @@ class ValidatorWriter {
             }
 
             builder.append(getJavaFieldName(fieldDescriptor.getName(), true))
-                   .append("(")
+                   .append('(')
                    .append(getJavaFieldName(fieldDescriptor.getName(), false))
-                   .append(")");
+                   .append(')');
         }
         builder.append(".build()");
 
         final MethodSpec buildMethod = MethodSpec.methodBuilder("build")
                                                  .addModifiers(Modifier.PUBLIC)
                                                  .returns(builderGenericClass)
-                                                 .addStatement(builder.toString(), builderGenericClass, builderGenericClass)
+                                                 .addStatement(builder.toString(),
+                                                               builderGenericClass,
+                                                               builderGenericClass)
                                                  .addStatement("return result")
                                                  .build();
         return buildMethod;
@@ -517,7 +563,7 @@ class ValidatorWriter {
     private Class<?> getValidatingBuilderGenericClass() {
         final Collection<String> values = messageTypeCache.getCachedTypes()
                                                           .values();
-        final String expectedClassName = javaPackage + "." + descriptor.getName();
+        final String expectedClassName = javaPackage + '.' + descriptor.getName();
         for (String value : values) {
             if (value.equals(expectedClassName)) {
                 try {
@@ -546,11 +592,11 @@ class ValidatorWriter {
         }
     }
 
-    private void writeClass(File rootFodler, TypeSpec validator) {
+    private void writeClass(File rootFolder, TypeSpec validator) {
         try {
             JavaFile.builder(javaPackage, validator)
                     .build()
-                    .writeTo(rootFodler);
+                    .writeTo(rootFolder);
         } catch (
                 IOException e) {
             throw new RuntimeException(e);
