@@ -23,6 +23,7 @@ import static org.gradle.internal.impldep.com.google.common.base.Preconditions.c
 import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_ALL_PREFIX;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
 
 /**
  * @author Illia Shepilov
@@ -49,7 +50,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
         methodPartName = getJavaFieldName(fieldDescriptor.getName(), true);
         javaFieldName = getJavaFieldName(fieldDescriptor.getName(), false);
         builderClass = getBuilderClassName(builder.javaPackage, builder.javaClass);
-        parameterClass = ValidatingUtils.getParameterClass(fieldDescriptor, builder.messageTypeCache);
+        parameterClass = getParameterClass(fieldDescriptor, builder.messageTypeCache);
     }
 
     public Collection<MethodSpec> construct() {
