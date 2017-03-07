@@ -170,16 +170,10 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
                                             .addException(ConstraintViolationThrowable.class)
                                             .addException(ConversionError.class)
                                             .addStatement(CREATE_IF_NEEDED)
-                                            .addStatement(createGetConvertedPluralValue(),
-                                                          List.class,
-                                                          parameterClass,
-                                                          PluralKey.class,
-                                                          List.class,
-                                                          parameterClass)
                                             .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
-                                            .addStatement(createValidateConvertedValueStatement(),
+                                            .addStatement(createValidateStatement(fieldDescriptor.getName()),
                                                           fieldDescriptor.getName())
-                                            .addStatement(javaFieldName + ADD_ALL_CONVERTED_VALUE)
+                                            .addStatement(javaFieldName + ".addAll(value)")
                                             .addStatement(RETURN_THIS)
                                             .build();
         return result;
