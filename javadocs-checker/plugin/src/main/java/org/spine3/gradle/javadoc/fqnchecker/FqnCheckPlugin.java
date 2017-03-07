@@ -30,6 +30,7 @@ import org.spine3.gradle.SpinePlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -48,6 +49,9 @@ import static org.spine3.gradle.TaskName.PROCESS_RESOURCES;
 import static org.spine3.gradle.javadoc.Extension.getDirsToCheck;
 
 /**
+ * The plugin that verifies Javadocs comment for broken links that stated
+ * in wrong format. In case if it's found build process will be failed.
+ *
  * @author Alexander Aleksandrov
  */
 public class FqnCheckPlugin extends SpinePlugin {
@@ -90,13 +94,14 @@ public class FqnCheckPlugin extends SpinePlugin {
             log().debug("Starting to check the files recursively in {}", path.toString());
             Files.walkFileTree(path, visitor);
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to check the folder with its contents: " + path, e);
+            throw new IllegalStateException("Failed to check the folder with its contents: " +
+                                                    path, e);
         }
     }
 
     /**
-     * Custom {@linkplain java.nio.file.FileVisitor visitor} which recursively deletes the contents of
-     * the walked folder.
+     * Custom {@linkplain java.nio.file.FileVisitor visitor} which recursively checks
+     * the contents of the walked folder.
      */
     // A completely different behavior for the visitor methods is required.
 
@@ -119,18 +124,17 @@ public class FqnCheckPlugin extends SpinePlugin {
     }
 
     static void check(Path file) throws InvalidFqnUsageException {
+        final String content;
         final byte[] rawContent;
         try {
-            rawContent = Files.readAllBytes(file);
+            content = Files.readAllLines(file, StandardCharsets.UTF_8).toString();
         } catch (IOException e) {
             throw new IllegalStateException("Cannot read the contents of the file: " + file, e);
         }
-        final String content = new String(rawContent);
         final Optional<InvalidFqnUsage> checkResult = check(content);
         if (checkResult.isPresent()) {
-            final String message = "Links with FQN should be in format {@link <FQN> <text>}. Wrong link found: " +
-                    checkResult.get()
-                               .getActualUsage() + " in :" + file;
+            final String message = "Links with FQN should be in format {@link <FQN> <text>}." +
+                    " Wrong link found: " + checkResult.get().getActualUsage() + " in :" + file;
             log().error(message);
             throw new InvalidFqnUsageException(file.toFile()
                                                    .getAbsolutePath(), message);
@@ -154,7 +158,9 @@ public class FqnCheckPlugin extends SpinePlugin {
                 if (result.isPresent()) {
                     return result;
                 }
-                remainder = remainder.substring(comment.length() + commentStart.length() + commentEnd.length());
+                remainder = remainder.substring(comment.length() +
+                                                        commentStart.length() +
+                                                        commentEnd.length());
             }
             remainder = substringStartsWith(remainder, commentStart);
 
@@ -202,7 +208,7 @@ public class FqnCheckPlugin extends SpinePlugin {
 
     private enum JavadocPattern {
 
-        LINK(compile("(\\{@link|\\{@linkplain) *(org\\.)([a-zA-Z]|[0-9]*|\\.*)*(\\}|\\ *\\})"));
+        LINK(compile("(\\{@link|\\{@linkplain) *((?!-)[a-zA-Z0-9-]{1,63}[a-zA-Z0-9-]\\.)+[a-zA-Z]{2,63}(\\}|\\ *\\})"));
 
         private final Pattern pattern;
 

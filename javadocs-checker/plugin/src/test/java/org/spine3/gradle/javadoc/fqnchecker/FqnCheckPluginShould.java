@@ -34,33 +34,33 @@ public class FqnCheckPluginShould {
 
     @Test
     public void check_file_with_no_broken_links() {
-        final String content = getFile("AggregateSampleFile");
+        final String content = getFromFile("AggregateSampleFile");
         final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(content);
         assertFalse(result.isPresent());
     }
 
     @Test
     public void check_file_with_long_FQN_name() {
-        final String content = getFile("PackageInfoSampleFile");
+        final String content = getFromFile("PackageInfoSampleFile");
         final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(content);
         assertFalse(result.isPresent());
     }
 
     @Test
     public void check_file_with_no_javadoc() {
-        final String content = getFile("NoJavadoc");
+        final String content = getFromFile("NoJavadoc");
         final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(content);
         assertFalse(result.isPresent());
     }
 
     @Test
     public void check_file_with_corrupted_javadoc() {
-        final String content = getFile("AggregateCorruptedSampleFile");
+        final String content = getFromFile("AggregateCorruptedSampleFile");
         final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(content);
         assertTrue(result.isPresent());
     }
 
-    private String getFile(String fileName) {
+    private String getFromFile(String fileName) {
 
         String result = "";
 

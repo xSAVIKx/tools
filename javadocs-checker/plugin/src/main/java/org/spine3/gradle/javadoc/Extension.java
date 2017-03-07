@@ -32,12 +32,10 @@ import static com.google.common.collect.Lists.newArrayList;
  *
  * @author Alexander Aleksandrov
  */
+@SuppressWarnings("UtilityClass")    // as this is a Gradle extension.
 public class Extension {
 
     private static final String DIRECTORY_TO_CHECK = "/src/main/java";
-
-    private Extension(){
-    }
 
     public static List<String> getDirsToCheck(Project project) {
 
