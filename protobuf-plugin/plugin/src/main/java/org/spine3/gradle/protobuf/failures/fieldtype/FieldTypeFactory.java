@@ -23,12 +23,14 @@ import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProtoOrBuilder;
-import org.apache.commons.lang3.ClassUtils;
-import org.spine3.util.Exceptions;
 
 import java.util.Map;
 
-import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.*;
+import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.BOOLEAN;
+import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.DOUBLE;
+import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.FLOAT;
+import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.INT;
+import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.LONG;
 
 /**
  * Factory for creation {@link FieldType} instances.
@@ -93,8 +95,6 @@ public class FieldTypeFactory {
     }
 
     private String getFieldTypeName(FieldDescriptorProtoOrBuilder field) {
-        final String fieldTypeName;
-
         if (field.getType() == Type.TYPE_MESSAGE
                 || field.getType() == Type.TYPE_ENUM) {
             String typeName = field.getTypeName();
@@ -102,32 +102,14 @@ public class FieldTypeFactory {
             if (typeName.startsWith(".")) {
                 typeName = typeName.substring(1);
             }
-            fieldTypeName = messageTypeMap.get(typeName);
+            return messageTypeMap.get(typeName);
         } else {
-            fieldTypeName = PROTO_FIELD_TYPES.get(field.getType()
-                                                       .name());
+            return PROTO_FIELD_TYPES.get(field.getType()
+                                              .name());
         }
-
-        return isProtoPrimitive(fieldTypeName)
-               ? getBoxedPrimitiveName(fieldTypeName)
-               : fieldTypeName;
     }
 
     private static boolean isRepeated(FieldDescriptorProtoOrBuilder field) {
         return field.getLabel() == FieldDescriptorProto.Label.LABEL_REPEATED;
-    }
-
-    private static String getBoxedPrimitiveName(String primitiveName) {
-        if (!isProtoPrimitive(primitiveName)) {
-            throw new IllegalStateException("Primitive name expected.");
-        }
-
-        try {
-            final Class<?> primitiveClass = ClassUtils.getClass(primitiveName);
-            return ClassUtils.primitiveToWrapper(primitiveClass)
-                             .getName();
-        } catch (ClassNotFoundException e) {
-            throw Exceptions.wrappedCause(e);
-        }
     }
 }
