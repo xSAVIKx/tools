@@ -85,13 +85,11 @@ public class FieldTypeFactory {
      * @return the field type
      */
     public FieldType create(FieldDescriptorProtoOrBuilder field) {
-        return create(getFieldTypeName(field), isRepeated(field));
-    }
+        final String fieldTypeName = getFieldTypeName(field);
 
-    private static FieldType create(String name, boolean repeated) {
-        return repeated
-               ? new RepeatedFieldType(name)
-               : new SingleFieldType(name);
+        return isRepeated(field)
+               ? new RepeatedFieldType(fieldTypeName)
+               : new SingleFieldType(fieldTypeName);
     }
 
     private String getFieldTypeName(FieldDescriptorProtoOrBuilder field) {
