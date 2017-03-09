@@ -21,4 +21,7 @@
 /**
  * Classes for working with different proto field types.
  */
+@ParametersAreNonnullByDefault
 package org.spine3.gradle.protobuf.failures.fieldtype;
+
+import javax.annotation.ParametersAreNonnullByDefault;
