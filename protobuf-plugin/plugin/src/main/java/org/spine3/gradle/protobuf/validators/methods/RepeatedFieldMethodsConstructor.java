@@ -36,9 +36,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static org.gradle.internal.impldep.com.beust.jcommander.internal.Lists.newArrayList;
-import static org.gradle.internal.impldep.com.google.common.base.Preconditions.checkArgument;
-import static org.gradle.internal.impldep.com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_ALL_PREFIX;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;

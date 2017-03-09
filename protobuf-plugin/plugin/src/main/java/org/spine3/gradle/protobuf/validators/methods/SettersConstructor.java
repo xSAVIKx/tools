@@ -25,7 +25,6 @@ import com.google.protobuf.Descriptors;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
-import org.gradle.internal.impldep.com.beust.jcommander.internal.Lists;
 import org.spine3.base.SingularKey;
 import org.spine3.gradle.protobuf.GenerationUtils;
 import org.spine3.gradle.protobuf.MessageTypeCache;
@@ -36,8 +35,9 @@ import javax.lang.model.element.Modifier;
 import java.util.Collection;
 import java.util.List;
 
-import static org.gradle.internal.impldep.com.google.common.base.Preconditions.checkArgument;
-import static org.gradle.internal.impldep.com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.SETTER_PREFIX;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
@@ -65,7 +65,7 @@ public class SettersConstructor extends MethodConstructor {
     }
 
     public Collection<MethodSpec> construct() {
-        final List<MethodSpec> methods = Lists.newArrayList();
+        final List<MethodSpec> methods = newArrayList();
         methods.add(constructSetter());
 
         if (!parameterClass.equals(String.class)) {
