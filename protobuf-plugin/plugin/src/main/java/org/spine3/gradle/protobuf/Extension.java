@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonList;
 import static org.spine3.gradle.protobuf.ProtobufPlugin.SPINE_PROTOBUF_EXTENSION_NAME;
 
@@ -85,7 +86,7 @@ public class Extension {
 
     public static String getMainTargetGenResourcesDir(Project project) {
         final String path = spineProtobuf(project).mainTargetGenResourcesDir;
-        if (path == null || path.isEmpty()) {
+        if (isNullOrEmpty(path)) {
             return project.getProjectDir()
                           .getAbsolutePath() + "/generated/main/resources";
         } else {
@@ -95,7 +96,7 @@ public class Extension {
 
     public static String getTestTargetGenResourcesDir(Project project) {
         final String path = spineProtobuf(project).testTargetGenResourcesDir;
-        if (path == null || path.isEmpty()) {
+        if (isNullOrEmpty(path)) {
             return project.getProjectDir()
                           .getAbsolutePath() + "/generated/test/resources";
         } else {
@@ -105,7 +106,7 @@ public class Extension {
 
     public static String getMainDescriptorSetPath(Project project) {
         final String path = spineProtobuf(project).mainDescriptorSetPath;
-        if (path == null || path.isEmpty()) {
+        if (isNullOrEmpty(path)) {
             return project.getProjectDir()
                           .getAbsolutePath() + "/build/descriptors/main.desc";
         } else {
@@ -115,7 +116,7 @@ public class Extension {
 
     public static String getTestDescriptorSetPath(Project project) {
         final String path = spineProtobuf(project).testDescriptorSetPath;
-        if (path == null || path.isEmpty()) {
+        if (isNullOrEmpty(path)) {
             return project.getProjectDir()
                           .getAbsolutePath() + "/build/descriptors/test.desc";
         } else {
@@ -125,7 +126,7 @@ public class Extension {
 
     public static String getTargetGenFailuresRootDir(Project project) {
         final String path = spineProtobuf(project).targetGenFailuresRootDir;
-        if (path == null || path.isEmpty()) {
+        if (isNullOrEmpty(path)) {
             return project.getProjectDir()
                           .getAbsolutePath() + "/generated/main/spine";
         } else {
@@ -135,7 +136,7 @@ public class Extension {
 
     public static String getTargetTestGenFailuresRootDir(Project project) {
         final String path = spineProtobuf(project).targetTestGenFailuresRootDir;
-        if (path == null || path.isEmpty()) {
+        if (isNullOrEmpty(path)) {
             return project.getProjectDir()
                           .getAbsolutePath() + "/generated/test/spine";
         } else {
