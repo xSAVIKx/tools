@@ -214,7 +214,7 @@ public class FailureWriter {
     /**
      * Reads all descriptor fields.
      *
-     * @return name-to-value String map
+     * @return name-to-{@link FieldType} map
      */
     private Map<String, FieldType> readFieldValues() {
         log().debug("Reading all the field values from the descriptor: {}", failureDescriptor);
