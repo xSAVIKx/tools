@@ -65,6 +65,11 @@ public class Extension {
     public String targetGenFailuresRootDir;
 
     /**
+     * The absolute path to the test target generated failures root directory.
+     */
+    public String targetTestGenFailuresRootDir;
+
+    /**
      * The absolute path to directory to delete.
      *
      * <p>Either this property OR {@code dirsToClean} property is used.
@@ -123,6 +128,16 @@ public class Extension {
         if (path == null || path.isEmpty()) {
             return project.getProjectDir()
                           .getAbsolutePath() + "/generated/main/spine";
+        } else {
+            return path;
+        }
+    }
+
+    public static String getTargetTestGenFailuresRootDir(Project project) {
+        final String path = spineProtobuf(project).targetTestGenFailuresRootDir;
+        if (path == null || path.isEmpty()) {
+            return project.getProjectDir()
+                          .getAbsolutePath() + "/generated/test/spine";
         } else {
             return path;
         }
