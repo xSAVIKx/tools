@@ -33,7 +33,7 @@ import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.isPr
  */
 public class SingularFieldType implements FieldType {
 
-    private final String name;
+    private final TypeName typeName;
 
     /**
      * Constructs the {@link SingularFieldType} based on field type name.
@@ -41,7 +41,7 @@ public class SingularFieldType implements FieldType {
      * @param name the field type name
      */
     SingularFieldType(String name) {
-        this.name = name;
+        typeName = constructTypeNameFor(name);
     }
 
     /**
@@ -49,6 +49,18 @@ public class SingularFieldType implements FieldType {
      */
     @Override
     public TypeName getTypeName() {
+        return typeName;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSetterPrefix() {
+        return "set";
+    }
+
+    private static TypeName constructTypeNameFor(String name) {
         if (isProtoPrimitive(name)) {
             try {
                 return TypeName.get(ClassUtils.getClass(name));
@@ -60,11 +72,8 @@ public class SingularFieldType implements FieldType {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public String getSetterPrefix() {
-        return "set";
+    public String toString() {
+        return typeName.toString();
     }
 }

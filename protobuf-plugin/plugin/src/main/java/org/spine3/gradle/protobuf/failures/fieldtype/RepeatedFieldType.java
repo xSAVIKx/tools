@@ -36,7 +36,7 @@ import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.isPr
  */
 public class RepeatedFieldType implements FieldType {
 
-    private final String componentTypeName;
+    private final TypeName typeName;
 
     /**
      * Constructs the {@link RepeatedFieldType} based on component type.
@@ -44,7 +44,7 @@ public class RepeatedFieldType implements FieldType {
      * @param componentTypeName the component type name
      */
     RepeatedFieldType(String componentTypeName) {
-        this.componentTypeName = componentTypeName;
+        typeName = constructTypeNameFor(componentTypeName);
     }
 
     /**
@@ -52,6 +52,18 @@ public class RepeatedFieldType implements FieldType {
      */
     @Override
     public TypeName getTypeName() {
+        return typeName;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSetterPrefix() {
+        return "addAll";
+    }
+
+    private static TypeName constructTypeNameFor(String componentTypeName) {
         final TypeName componentType;
 
         if (isProtoPrimitive(componentTypeName)) {
@@ -67,11 +79,8 @@ public class RepeatedFieldType implements FieldType {
         return ParameterizedTypeName.get(ClassName.get(Collection.class), componentType);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public String getSetterPrefix() {
-        return "addAll";
+    public String toString() {
+        return typeName.toString();
     }
 }
