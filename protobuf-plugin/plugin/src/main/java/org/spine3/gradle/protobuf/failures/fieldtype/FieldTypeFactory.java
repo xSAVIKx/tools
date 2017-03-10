@@ -91,7 +91,7 @@ public class FieldTypeFactory {
 
         return isRepeated(field)
                ? new RepeatedFieldType(fieldTypeName)
-               : new SingleFieldType(fieldTypeName);
+               : new SingularFieldType(fieldTypeName);
     }
 
     private String getFieldTypeName(FieldDescriptorProtoOrBuilder field) {

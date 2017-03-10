@@ -27,20 +27,20 @@ import org.spine3.util.Exceptions;
 import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.isProtoPrimitive;
 
 /**
- * Represents single {@linkplain FieldType field type}.
+ * Represents singular {@linkplain FieldType field type}.
  *
  * @author Dmytro Grankin
  */
-public class SingleFieldType implements FieldType {
+public class SingularFieldType implements FieldType {
 
     private final String name;
 
     /**
-     * Constructs the {@link SingleFieldType} based on field type name.
+     * Constructs the {@link SingularFieldType} based on field type name.
      *
      * @param name the field type name
      */
-    SingleFieldType(String name) {
+    SingularFieldType(String name) {
         this.name = name;
     }
 
