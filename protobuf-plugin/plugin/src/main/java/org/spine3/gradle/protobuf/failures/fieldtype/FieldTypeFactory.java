@@ -23,9 +23,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProtoOrBuilder;
+import com.squareup.javapoet.TypeName;
 
+import java.util.AbstractMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
+import static com.google.protobuf.DescriptorProtos.DescriptorProto;
 import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.BOOLEAN;
 import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.DOUBLE;
 import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.FLOAT;
@@ -70,6 +74,8 @@ public class FieldTypeFactory {
 
             .build();
 
+    private static final String MAP_EXPECTED = "Map expected.";
+
     /**
      * Creates new instance.
      *
@@ -84,14 +90,19 @@ public class FieldTypeFactory {
      * {@linkplain FieldDescriptorProtoOrBuilder field descriptor proto}.
      *
      * @param field the proto field descriptor
+     * @param nestedTypes the nested types of the message containing the field
      * @return the field type
      */
-    public FieldType create(FieldDescriptorProtoOrBuilder field) {
-        final String fieldTypeName = getFieldTypeName(field);
+    public FieldType create(FieldDescriptorProtoOrBuilder field, Iterable<DescriptorProto> nestedTypes) {
+        if (isMap(field)) {
+            return new MapFieldType(getEntryTypeNames(field, nestedTypes));
+        } else {
+            final String fieldTypeName = getFieldTypeName(field);
 
-        return isRepeated(field)
-               ? new RepeatedFieldType(fieldTypeName)
-               : new SingularFieldType(fieldTypeName);
+            return isRepeated(field)
+                   ? new RepeatedFieldType(fieldTypeName)
+                   : new SingularFieldType(fieldTypeName);
+        }
     }
 
     private String getFieldTypeName(FieldDescriptorProtoOrBuilder field) {
@@ -109,7 +120,74 @@ public class FieldTypeFactory {
         }
     }
 
+    /**
+     * Returns the key and the value type names for the map field
+     * based on the passed nested types.
+     *
+     * @param map the field representing map
+     * @param nestedTypes the nested types of the message containing the field
+     * @return the entry containing the key and the value type names
+     */
+    private Map.Entry<TypeName, TypeName> getEntryTypeNames(FieldDescriptorProtoOrBuilder map,
+                                                            Iterable<DescriptorProto> nestedTypes) {
+        if (!isMap(map)) {
+            throw new IllegalStateException(MAP_EXPECTED);
+        }
+
+        final int keyFieldIndex = 0;
+        final int valueFieldIndex = 1;
+
+        final DescriptorProto mapEntryDescriptor = getDescriptorForMapField(map, nestedTypes);
+        final TypeName keyTypeName = create(mapEntryDescriptor.getField(keyFieldIndex), nestedTypes).getTypeName();
+        final TypeName valueTypeName = create(mapEntryDescriptor.getField(valueFieldIndex), nestedTypes).getTypeName();
+
+        return new AbstractMap.SimpleEntry<>(keyTypeName, valueTypeName);
+    }
+
     private static boolean isRepeated(FieldDescriptorProtoOrBuilder field) {
         return field.getLabel() == FieldDescriptorProto.Label.LABEL_REPEATED;
+    }
+
+    private static boolean isMap(FieldDescriptorProtoOrBuilder field) {
+        return field.getTypeName()
+                    .endsWith('.' + getEntryNameFor(field));
+    }
+
+    /**
+     * Returns corresponding nested type descriptor for the map field.
+     *
+     * <p>Based on the fact that a message contains a nested type for
+     * every map field. The nested type contains map entry description.
+     *
+     * @param mapField the field representing map
+     * @param nestedTypes the nested types of the message containing the field
+     * @return the nested type descriptor for map field
+     */
+    private static DescriptorProto getDescriptorForMapField(FieldDescriptorProtoOrBuilder mapField,
+                                                            Iterable<DescriptorProto> nestedTypes) {
+        if (!isMap(mapField)) {
+            throw new IllegalStateException(MAP_EXPECTED);
+        }
+
+        final String entryName = getEntryNameFor(mapField).substring(1);
+        for (DescriptorProto nestedType : nestedTypes) {
+            if (nestedType.getName()
+                          .equals(entryName)) {
+                return nestedType;
+            }
+        }
+
+        throw new IllegalStateException("Nested type for map field should be present.");
+    }
+
+    private static String getEntryNameFor(FieldDescriptorProtoOrBuilder mapField) {
+        final Pattern replacementPattern = Pattern.compile("_");
+        final char capitalizedFirstSymbol = Character.toUpperCase(mapField.getJsonName()
+                                                                          .charAt(0));
+        final String remainingPart = mapField.getName()
+                                             .substring(1)
+                                             .replaceAll(replacementPattern.pattern(), "");
+
+        return capitalizedFirstSymbol + remainingPart + "Entry";
     }
 }

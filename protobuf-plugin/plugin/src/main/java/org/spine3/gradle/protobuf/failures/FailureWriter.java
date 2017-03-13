@@ -41,6 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -220,8 +221,9 @@ public class FailureWriter {
         log().debug("Reading all the field values from the descriptor: {}", failureDescriptor);
 
         final Map<String, FieldType> result = new LinkedHashMap<>();
+        final List<DescriptorProto> nestedTypes = failureDescriptor.getNestedTypeList();
         for (FieldDescriptorProto field : failureDescriptor.getFieldList()) {
-            result.put(field.getName(), fieldTypeFactory.create(field));
+            result.put(field.getName(), fieldTypeFactory.create(field, nestedTypes));
         }
         log().debug("Read fields: {}", result);
 
