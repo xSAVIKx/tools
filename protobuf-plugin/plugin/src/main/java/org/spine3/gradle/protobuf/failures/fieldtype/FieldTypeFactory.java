@@ -169,7 +169,7 @@ public class FieldTypeFactory {
             throw new IllegalStateException(MAP_EXPECTED);
         }
 
-        final String entryName = getEntryNameFor(mapField).substring(1);
+        final String entryName = getEntryNameFor(mapField);
         for (DescriptorProto nestedType : nestedTypes) {
             if (nestedType.getName()
                           .equals(entryName)) {
