@@ -68,7 +68,9 @@ public class RepeatedFieldType implements FieldType {
 
         if (isProtoPrimitive(componentTypeName)) {
             try {
-                componentType = TypeName.get(ClassUtils.getClass(componentTypeName));
+                final Class<?> primitiveClass = ClassUtils.getClass(componentTypeName);
+                componentType = TypeName.get(primitiveClass)
+                                        .box();
             } catch (ClassNotFoundException e) {
                 throw Exceptions.wrappedCause(e);
             }
