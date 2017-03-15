@@ -1,7 +1,7 @@
 final SPINE_VERSION = '0.8.0'
 final PLUGIN_VERSION = '0.8.0'
 
-final PLUGIN_PUBLISH_VERSION = '0.8.3-SNAPSHOT'
+final PLUGIN_PUBLISH_VERSION = '0.8.3.1-SNAPSHOT'
 
 buildscript {
     ext {
@@ -29,7 +29,7 @@ ext {
     publishPlugin = "$rootDir/scripts/publish.gradle"
 
     credentialsPropertyFile = 'credentials.properties'
-    projectsToPublish = ['common', 'protobuf-plugin', 'reflections-plugin', 'javadocs-checker', 'javadoc']
+    projectsToPublish = ['common', 'protobuf-plugin', 'reflections-plugin', 'javadoc-checker', 'javadoc']
 }
 
 subprojects {
