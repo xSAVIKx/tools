@@ -52,10 +52,8 @@ public class FqnCheckPluginShould {
     private String resourceFolder = "";
 
     @Rule
-    private final TemporaryFolder testProjectDir = new TemporaryFolder();
-    private final Path testSources = testProjectDir.getRoot()
-                                           .toPath()
-                                           .resolve("src/main/java");
+    public final TemporaryFolder testProjectDir = new TemporaryFolder();
+
 
     public void setUpTestProject() throws IOException {
         final Path buildFile = testProjectDir.getRoot()
@@ -65,6 +63,9 @@ public class FqnCheckPluginShould {
                 getClass().getClassLoader()
                           .getResourceAsStream("projects/JavaDocCheckerPlugin/build.gradle");
 
+        final Path testSources = testProjectDir.getRoot()
+                                               .toPath()
+                                               .resolve("src/main/java");
         Files.copy(buildFileContent, buildFile);
         Files.createDirectories(testSources);
 
@@ -78,6 +79,9 @@ public class FqnCheckPluginShould {
     @Test
     public void fail_build_if_wrong_fqn_name_found() throws IOException {
         setUpTestProject();
+        final Path testSources = testProjectDir.getRoot()
+                                               .toPath()
+                                               .resolve("src/main/java");
         FileUtils.copyDirectory(new File(resourceFolder), new File(testSources.toString()));
 
         BuildResult buildResult = GradleRunner.create()
@@ -92,6 +96,9 @@ public class FqnCheckPluginShould {
     @Test
     public void allow_correct_fqn_name_format() throws IOException {
         setUpTestProject();
+        final Path testSources = testProjectDir.getRoot()
+                                               .toPath()
+                                               .resolve("src/main/java");
         final Path wrongFqnFormat = Paths.get(testSources.toString() + "/WrongFQNformat");
         FileUtils.copyDirectory(new File(resourceFolder), new File(testSources.toString()));
         Files.deleteIfExists(wrongFqnFormat);

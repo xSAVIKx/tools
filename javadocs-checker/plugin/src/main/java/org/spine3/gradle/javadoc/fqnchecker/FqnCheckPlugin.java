@@ -42,11 +42,11 @@ import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Lists.newArrayList;
 import static java.util.regex.Pattern.compile;
 import static org.spine3.gradle.TaskName.CHECK_FQN;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
 import static org.spine3.gradle.TaskName.PROCESS_RESOURCES;
-import static org.spine3.gradle.javadoc.Extension.getDirsToCheck;
 
 /**
  * The plugin that verifies Javadocs comment for broken links that stated
@@ -55,6 +55,8 @@ import static org.spine3.gradle.javadoc.Extension.getDirsToCheck;
  * @author Alexander Aleksandrov
  */
 public class FqnCheckPlugin extends SpinePlugin {
+
+    private static final String DIRECTORY_TO_CHECK = "/src/main/java";
 
     @Override
     public void apply(final Project project) {
@@ -75,6 +77,16 @@ public class FqnCheckPlugin extends SpinePlugin {
                 log().debug("Ending an action");
             }
         };
+    }
+    public static List<String> getDirsToCheck(Project project) {
+
+        log().debug("Finding the directories to check");
+        final String mainScopeJavaFolder = project.getProjectDir()
+                                                  .getAbsolutePath() + DIRECTORY_TO_CHECK;
+        final List<String> result = newArrayList(mainScopeJavaFolder);
+        log().debug("{} directories found for the check: {}", result.size(), result);
+
+        return result;
     }
 
     private static void findFqnLinksWithoutText(List<String> pathsToDirs) {
