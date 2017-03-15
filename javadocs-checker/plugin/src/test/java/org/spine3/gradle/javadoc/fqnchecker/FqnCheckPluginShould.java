@@ -1,15 +1,3 @@
-package org.spine3.gradle.javadoc.fqnchecker;
-
-import com.google.common.base.Optional;
-import org.gradle.internal.impldep.com.amazonaws.util.IOUtils;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 /*
  * Copyright 2016, TeamDev Ltd. All rights reserved.
  *
@@ -29,41 +17,137 @@ import static org.junit.Assert.assertTrue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.spine3.gradle.javadoc.fqnchecker;
+
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
+import org.gradle.internal.impldep.com.amazonaws.util.IOUtils;
+import org.gradle.internal.impldep.org.apache.commons.io.FileUtils;
+import org.gradle.testkit.runner.BuildResult;
+import org.gradle.testkit.runner.BuildTask;
+import org.gradle.testkit.runner.GradleRunner;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
+
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class FqnCheckPluginShould {
 
+    private final String resources = "C:/Projects/tools/javadocs-checker/plugin/src/main/resources/";
+
+    @Rule
+    public final TemporaryFolder testProjectDir = new TemporaryFolder();
+
+    public void setUpTestProject() throws IOException {
+        final Path buildFile = testProjectDir.getRoot()
+                                             .toPath()
+                                             .resolve("build.gradle");
+        final InputStream buildFileContent =
+                getClass().getClassLoader()
+                          .getResourceAsStream("projects/JavaDocCheckerPlugin/build.gradle");
+
+        final Path testSources = testProjectDir.getRoot()
+                                               .toPath()
+                                               .resolve("src/main/java");
+
+        Files.copy(buildFileContent, buildFile);
+        Files.createDirectories(testSources);
+    }
+
+    @Test
+    public void fail_build_if_wrong_fqn_name_found() throws IOException {
+        setUpTestProject();
+        final Path testSources = testProjectDir.getRoot()
+                                               .toPath()
+                                               .resolve("src/main/java");
+        FileUtils.copyDirectory(new File(resources), new File(testSources.toString()));
+
+        BuildResult buildResult = GradleRunner.create()
+                                              .withProjectDir(testProjectDir.getRoot())
+                                              .withPluginClasspath()
+                                              .withArguments("checkFqn")
+                                              .buildAndFail();
+
+        assertTrue(buildResult.getOutput().contains("Wrong link found"));
+    }
+
+    @Test
+    public void allow_correct_fqn_name_format() throws IOException {
+        setUpTestProject();
+        final Path testSources = testProjectDir.getRoot()
+                                               .toPath()
+                                               .resolve("src/main/java");
+        final Path wrongFqnFormat = Paths.get(testSources.toString() + "/WrongFQNformat");
+        FileUtils.copyDirectory(new File(resources), new File(testSources.toString()));
+        Files.deleteIfExists(wrongFqnFormat);
+
+        BuildResult buildResult = GradleRunner.create()
+                                              .withProjectDir(testProjectDir.getRoot())
+                                              .withPluginClasspath()
+                                              .withArguments("checkFqn")
+                                              .build();
+
+        final List<String> expected = Arrays.asList(":compileJava", ":checkFqn");
+
+        assertEquals(expected, extractTasks(buildResult));
+    }
+
+    private static List<String> extractTasks(BuildResult buildResult) {
+        return FluentIterable
+                .from(buildResult.getTasks())
+                .transform(new Function<BuildTask, String>() {
+                    @Override
+                    public String apply(BuildTask buildTask) {
+                        return buildTask.getPath();
+                    }
+                })
+                .toList();
+    }
+
     @Test
     public void check_file_with_no_broken_links() {
-        final String content = getFromFile("AggregateSampleFile");
-        final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(content);
+        final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(
+                getFromFile("AllowedFQNformat"));
         assertFalse(result.isPresent());
     }
 
     @Test
     public void check_file_with_long_FQN_name() {
-        final String content = getFromFile("PackageInfoSampleFile");
-        final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(content);
+        final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(
+                getFromFile("EmptyFile"));
         assertFalse(result.isPresent());
     }
 
     @Test
     public void check_file_with_no_javadoc() {
-        final String content = getFromFile("NoJavadoc");
-        final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(content);
+        final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(
+                getFromFile("FileWithoutJavadocs"));
         assertFalse(result.isPresent());
     }
 
     @Test
     public void check_file_with_corrupted_javadoc() {
-        final String content = getFromFile("AggregateCorruptedSampleFile");
-        final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(content);
+        final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(
+                getFromFile("WrongFQNformat"));
         assertTrue(result.isPresent());
     }
 
     private String getFromFile(String fileName) {
-
         String result = "";
-
         ClassLoader classLoader = getClass().getClassLoader();
         try {
             final InputStream resourceAsStream = classLoader.getResourceAsStream(fileName);
