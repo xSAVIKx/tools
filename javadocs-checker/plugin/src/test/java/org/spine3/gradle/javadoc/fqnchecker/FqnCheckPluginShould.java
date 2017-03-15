@@ -34,6 +34,8 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -48,6 +50,8 @@ import static org.junit.Assert.assertTrue;
 public class FqnCheckPluginShould {
 
     private final String resources = "C:/Projects/tools/javadocs-checker/plugin/src/main/resources/";
+    private String resourceFolder = "";
+
 
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
@@ -63,9 +67,23 @@ public class FqnCheckPluginShould {
         final Path testSources = testProjectDir.getRoot()
                                                .toPath()
                                                .resolve("src/main/java");
-
         Files.copy(buildFileContent, buildFile);
         Files.createDirectories(testSources);
+
+        ClassLoader classLoader = getClass().getClassLoader();
+        final String resourceFilePath = classLoader.getResource("AllowedFQNformat").getPath();
+        resourceFolder = resourceFilePath.substring(0, resourceFilePath.length()-16);
+    }
+
+    String[] getResourceListing(Class clazz, String path) throws URISyntaxException, IOException {
+        URL dirURL = clazz.getClassLoader()
+                          .getResource(path);
+        if (dirURL != null && dirURL.getProtocol()
+                                    .equals("file")) {
+        /* A file path: easy enough */
+            return new File(dirURL.toURI()).list();
+        }
+        throw new UnsupportedOperationException("Cannot list files for URL " + dirURL);
     }
 
     @Test
@@ -74,7 +92,7 @@ public class FqnCheckPluginShould {
         final Path testSources = testProjectDir.getRoot()
                                                .toPath()
                                                .resolve("src/main/java");
-        FileUtils.copyDirectory(new File(resources), new File(testSources.toString()));
+        FileUtils.copyDirectory(new File(resourceFolder), new File(testSources.toString()));
 
         BuildResult buildResult = GradleRunner.create()
                                               .withProjectDir(testProjectDir.getRoot())
@@ -82,7 +100,8 @@ public class FqnCheckPluginShould {
                                               .withArguments("checkFqn")
                                               .buildAndFail();
 
-        assertTrue(buildResult.getOutput().contains("Wrong link found"));
+        assertTrue(buildResult.getOutput()
+                              .contains("Wrong link found"));
     }
 
     @Test
