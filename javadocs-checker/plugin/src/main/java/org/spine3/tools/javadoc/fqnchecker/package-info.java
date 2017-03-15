@@ -21,5 +21,5 @@
  * This package provides plugin and utilities to check javadocs in Spine
  */
 
-package org.spine3.gradle.javadoc.fqnchecker;
+package org.spine3.tools.javadoc.fqnchecker;
 
