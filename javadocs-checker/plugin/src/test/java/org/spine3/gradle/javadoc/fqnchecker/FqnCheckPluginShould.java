@@ -49,12 +49,13 @@ import static org.junit.Assert.assertTrue;
 
 public class FqnCheckPluginShould {
 
-    private final String resources = "C:/Projects/tools/javadocs-checker/plugin/src/main/resources/";
     private String resourceFolder = "";
 
-
     @Rule
-    public final TemporaryFolder testProjectDir = new TemporaryFolder();
+    private final TemporaryFolder testProjectDir = new TemporaryFolder();
+    private final Path testSources = testProjectDir.getRoot()
+                                           .toPath()
+                                           .resolve("src/main/java");
 
     public void setUpTestProject() throws IOException {
         final Path buildFile = testProjectDir.getRoot()
@@ -64,34 +65,19 @@ public class FqnCheckPluginShould {
                 getClass().getClassLoader()
                           .getResourceAsStream("projects/JavaDocCheckerPlugin/build.gradle");
 
-        final Path testSources = testProjectDir.getRoot()
-                                               .toPath()
-                                               .resolve("src/main/java");
         Files.copy(buildFileContent, buildFile);
         Files.createDirectories(testSources);
 
         ClassLoader classLoader = getClass().getClassLoader();
-        final String resourceFilePath = classLoader.getResource("AllowedFQNformat").getPath();
-        resourceFolder = resourceFilePath.substring(0, resourceFilePath.length()-16);
-    }
-
-    String[] getResourceListing(Class clazz, String path) throws URISyntaxException, IOException {
-        URL dirURL = clazz.getClassLoader()
-                          .getResource(path);
-        if (dirURL != null && dirURL.getProtocol()
-                                    .equals("file")) {
-        /* A file path: easy enough */
-            return new File(dirURL.toURI()).list();
-        }
-        throw new UnsupportedOperationException("Cannot list files for URL " + dirURL);
+        final String testFile = "AllowedFQNformat";
+        final String resourceFilePath = classLoader.getResource(testFile)
+                                                   .getPath();
+        resourceFolder = resourceFilePath.substring(0, resourceFilePath.length() - testFile.length());
     }
 
     @Test
     public void fail_build_if_wrong_fqn_name_found() throws IOException {
         setUpTestProject();
-        final Path testSources = testProjectDir.getRoot()
-                                               .toPath()
-                                               .resolve("src/main/java");
         FileUtils.copyDirectory(new File(resourceFolder), new File(testSources.toString()));
 
         BuildResult buildResult = GradleRunner.create()
@@ -100,16 +86,12 @@ public class FqnCheckPluginShould {
                                               .withArguments("checkFqn")
                                               .buildAndFail();
 
-        assertTrue(buildResult.getOutput()
-                              .contains("Wrong link found"));
+        assertTrue(buildResult.getOutput().contains("Wrong link found"));
     }
 
     @Test
     public void allow_correct_fqn_name_format() throws IOException {
         setUpTestProject();
-        final Path testSources = testProjectDir.getRoot()
-                                               .toPath()
-                                               .resolve("src/main/java");
         final Path wrongFqnFormat = Paths.get(testSources.toString() + "/WrongFQNformat");
         FileUtils.copyDirectory(new File(resourceFolder), new File(testSources.toString()));
         Files.deleteIfExists(wrongFqnFormat);
@@ -135,45 +117,5 @@ public class FqnCheckPluginShould {
                     }
                 })
                 .toList();
-    }
-
-    @Test
-    public void check_file_with_no_broken_links() {
-        final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(
-                getFromFile("AllowedFQNformat"));
-        assertFalse(result.isPresent());
-    }
-
-    @Test
-    public void check_file_with_long_FQN_name() {
-        final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(
-                getFromFile("EmptyFile"));
-        assertFalse(result.isPresent());
-    }
-
-    @Test
-    public void check_file_with_no_javadoc() {
-        final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(
-                getFromFile("FileWithoutJavadocs"));
-        assertFalse(result.isPresent());
-    }
-
-    @Test
-    public void check_file_with_corrupted_javadoc() {
-        final Optional<InvalidFqnUsage> result = FqnCheckPlugin.check(
-                getFromFile("WrongFQNformat"));
-        assertTrue(result.isPresent());
-    }
-
-    private String getFromFile(String fileName) {
-        String result = "";
-        ClassLoader classLoader = getClass().getClassLoader();
-        try {
-            final InputStream resourceAsStream = classLoader.getResourceAsStream(fileName);
-            result = IOUtils.toString(resourceAsStream);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return result;
     }
 }
