@@ -1,0 +1,57 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+
+        maven { url = 'http://maven.teamdev.com/repository/spine' }
+        maven { url = 'http://maven.teamdev.com/repository/spine-snapshots' }
+    }
+    dependencies {
+        classpath "com.google.protobuf:protobuf-java:3.0.0"
+        classpath "com.google.protobuf:protobuf-gradle-plugin:0.8.0"
+        classpath "org.spine3.tools:protobuf-plugin:0.8.4-SNAPSHOT"
+    }
+    configurations.all({
+        resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
+    })
+}
+
+apply plugin: 'java'
+apply plugin: 'com.google.protobuf'
+apply plugin: 'org.spine3.tools.protobuf-plugin'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+
+    maven { url = 'http://maven.teamdev.com/repository/spine' }
+    maven { url = 'http://maven.teamdev.com/repository/spine-snapshots' }
+}
+
+dependencies {
+    compile "org.spine3:spine-server-core:0.8.17-SNAPSHOT"
+}
+
+protobuf {
+    generatedFilesBaseDir = "$projectDir/generated"
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.0.0"
+    }
+    generateProtoTasks {
+        all().each { final task ->
+            task.generateDescriptorSet = true
+            task.descriptorSetOptions.path = "${projectDir}/build/descriptors/${task.sourceSet.name}.desc"
+            task.descriptorSetOptions.includeImports = true
+        }
+    }
+}
+
+sourceSets {
+    main {
+        proto.srcDirs = ["$projectDir/src/main/proto"]
+        java.srcDirs = ["$projectDir/generated/main/java",
+                        "$projectDir/generated/main/spine",
+                        "$projectDir/src/main/java"]
+        resources.srcDirs = ["$projectDir/generated/main/resources"]
+    }
+}
