@@ -111,7 +111,7 @@ public class FqnCheckPluginShould {
                                                .toPath()
                                                .resolve("src/main/java");
         final Path wrongFqnFormat = Paths.get(testSources.toString() + "/WrongFQNformat");
-        FileUtils.copyDirectory(new File(resources), new File(testSources.toString()));
+        FileUtils.copyDirectory(new File(resourceFolder), new File(testSources.toString()));
         Files.deleteIfExists(wrongFqnFormat);
 
         BuildResult buildResult = GradleRunner.create()
