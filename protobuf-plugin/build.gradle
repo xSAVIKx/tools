@@ -6,6 +6,7 @@ repositories {
 // Tests use the protobuf plugin.
 test {
     dependsOn publishToMavenLocal
+    dependsOn project(':common').publishToMavenLocal
 }
 
 dependencies {
