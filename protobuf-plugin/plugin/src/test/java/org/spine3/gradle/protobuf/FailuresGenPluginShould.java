@@ -25,6 +25,7 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.ResultHandler;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -41,15 +42,23 @@ import static org.spine3.gradle.TaskName.GENERATE_FAILURES;
 /**
  * @author Dmytro Grankin
  */
-public class FailuresGenerationPluginShould {
+public class FailuresGenPluginShould {
 
     @SuppressWarnings("PublicField") // Rules should be public
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
+    @Before
+    public void setUpTestProject() throws IOException {
+        writeFile("build.gradle");
+        writeProto("test_failures.proto");
+        writeProto("outer_class_by_file_name_failures.proto");
+        writeProto("outer_class_set_failures.proto");
+        writeProto("deps/deps.proto");
+    }
+
     @Test
     public void compile_generated_failures() throws Exception {
-        setUpTestProject();
         final GradleConnector connector = GradleConnector.newConnector();
         connector.forProjectDirectory(testProjectDir.getRoot());
         final ProjectConnection connection = connector.connect();
@@ -76,14 +85,6 @@ public class FailuresGenerationPluginShould {
         } finally {
             connection.close();
         }
-    }
-
-    private void setUpTestProject() throws IOException {
-        writeFile("build.gradle");
-        writeProto("test_failures.proto");
-        writeProto("outer_class_by_file_name_failures.proto");
-        writeProto("outer_class_set_failures.proto");
-        writeProto("deps/deps.proto");
     }
 
     private void writeFile(String file) throws IOException {
