@@ -34,7 +34,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.lang.Thread.sleep;
 import static junit.framework.TestCase.fail;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
 
@@ -56,8 +58,11 @@ public class FailuresGenPluginShould {
         writeProto("deps/deps.proto");
     }
 
+    @SuppressWarnings("BusyWait") // Wait until async run is completed.
     @Test
     public void compile_generated_failures() throws Exception {
+        final AtomicBoolean testCompleted = new AtomicBoolean(false);
+
         final GradleConnector connector = GradleConnector.newConnector();
         connector.forProjectDirectory(testProjectDir.getRoot());
         final ProjectConnection connection = connector.connect();
@@ -71,6 +76,7 @@ public class FailuresGenPluginShould {
                 @Override
                 public void onComplete(Void aVoid) {
                     // Test passed.
+                    testCompleted.set(true);
                 }
 
                 @SuppressWarnings("CallToPrintStackTrace") // Used for easier debugging.
@@ -82,6 +88,10 @@ public class FailuresGenPluginShould {
             });
         } finally {
             connection.close();
+        }
+
+        while (!testCompleted.get()) {
+            sleep(100);
         }
     }
 
