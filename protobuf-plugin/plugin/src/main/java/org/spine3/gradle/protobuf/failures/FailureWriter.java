@@ -41,7 +41,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.squareup.javapoet.MethodSpec.constructorBuilder;
@@ -49,7 +48,8 @@ import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
-import static org.spine3.gradle.protobuf.failures.FailureWriter.FailureThrowableCtorParams.*;
+import static org.spine3.gradle.protobuf.failures.FailureWriter.FailureThrowableCtorParams.COMMAND_CONTEXT;
+import static org.spine3.gradle.protobuf.failures.FailureWriter.FailureThrowableCtorParams.COMMAND_MESSAGE;
 
 /**
  * Class, which writes Failure java code, based on it's descriptor.
