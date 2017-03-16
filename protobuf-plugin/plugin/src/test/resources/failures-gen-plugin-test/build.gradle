@@ -9,7 +9,7 @@ buildscript {
     dependencies {
         classpath "com.google.protobuf:protobuf-java:3.0.0"
         classpath "com.google.protobuf:protobuf-gradle-plugin:0.8.0"
-        classpath "org.spine3.tools:protobuf-plugin:0.8.4-SNAPSHOT"
+        classpath "org.spine3.tools:protobuf-plugin:0.8.5-SNAPSHOT"
     }
     configurations.all({
         resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
