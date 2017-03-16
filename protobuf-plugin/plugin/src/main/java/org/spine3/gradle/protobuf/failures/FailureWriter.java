@@ -43,12 +43,13 @@ import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
+import static com.squareup.javapoet.MethodSpec.constructorBuilder;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
+import static org.spine3.gradle.protobuf.failures.FailureWriter.FailureThrowableCtorParams.*;
 
 /**
  * Class, which writes Failure java code, based on it's descriptor.
@@ -120,32 +121,31 @@ public class FailureWriter {
         }
     }
 
-    @SuppressWarnings("MethodWithMultipleLoops")
     private MethodSpec constructConstructor() {
         log().debug("Constructing the constructor");
-
-        final String commandMsgParam = "commandMessage";
-        final String commandContextParam = "ctx";
-        final String failureMsgParam = "failureMessage";
-        final Set<Map.Entry<String, FieldType>> fieldsEntries = readFieldValues().entrySet();
-
-        final MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-                                                     .addModifiers(PUBLIC)
-                                                     .addParameter(GeneratedMessageV3.class, commandMsgParam)
-                                                     .addParameter(CommandContext.class, commandContextParam)
-                                                     .addParameter(GeneratedMessageV3.class, failureMsgParam);
-        for (Map.Entry<String, FieldType> field : fieldsEntries) {
+        final MethodSpec.Builder builder = constructorBuilder()
+                .addModifiers(PUBLIC)
+                .addParameter(GeneratedMessageV3.class, COMMAND_MESSAGE.getName())
+                .addParameter(CommandContext.class, COMMAND_CONTEXT.getName())
+                .addParameter(GeneratedMessageV3.class, FAILURE_MESSAGE.getName());
+        for (Map.Entry<String, FieldType> field : readFieldValues().entrySet()) {
             final TypeName parameterTypeName = field.getValue()
                                                     .getTypeName();
             final String parameterName = getJavaFieldName(field.getKey(), false);
             builder.addParameter(parameterTypeName, parameterName);
         }
 
+        return builder.addStatement(getSuperStatement())
+                      .build();
+    }
+
+    private String getSuperStatement() {
         final StringBuilder superStatement = new StringBuilder(
-                "super(" + commandMsgParam + COMMA_SEPARATOR
-                        + commandContextParam + COMMA_SEPARATOR
+                "super(" + COMMAND_MESSAGE.getName() + COMMA_SEPARATOR
+                        + COMMAND_CONTEXT.getName() + COMMA_SEPARATOR
                         + outerClassName + '.' + className + ".newBuilder()");
-        for (Map.Entry<String, FieldType> field : fieldsEntries) {
+
+        for (Map.Entry<String, FieldType> field : readFieldValues().entrySet()) {
             final String upperCaseName = getJavaFieldName(field.getKey(), true);
             superStatement.append('.')
                           .append(field.getValue()
@@ -157,8 +157,7 @@ public class FailureWriter {
         }
         superStatement.append(".build())");
 
-        return builder.addStatement(superStatement.toString())
-                      .build();
+        return superStatement.toString();
     }
 
     private MethodSpec constructGetFailureMessage() {
@@ -225,6 +224,22 @@ public class FailureWriter {
         log().debug("Read fields: {}", result);
 
         return result;
+    }
+
+    enum FailureThrowableCtorParams {
+        COMMAND_MESSAGE("commandMessage"),
+        COMMAND_CONTEXT("commandContext"),
+        FAILURE_MESSAGE("failureMessage");
+
+        private final String name;
+
+        FailureThrowableCtorParams(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
     }
 
     private static Logger log() {
