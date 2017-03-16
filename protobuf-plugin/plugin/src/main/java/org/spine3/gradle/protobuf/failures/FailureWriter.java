@@ -179,7 +179,7 @@ public class FailureWriter {
     }
 
     private static FieldSpec constructSerialVersionUID() {
-        return FieldSpec.builder(long.class, "constructSerialVersionUID", PRIVATE, STATIC, FINAL)
+        return FieldSpec.builder(long.class, "serialVersionUID", PRIVATE, STATIC, FINAL)
                         .initializer("0L")
                         .build();
     }
