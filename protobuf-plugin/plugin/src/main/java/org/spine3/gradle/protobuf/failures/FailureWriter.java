@@ -122,7 +122,7 @@ public class FailureWriter {
     }
 
     private MethodSpec constructConstructor() {
-        log().debug("Constructing the constructor");
+        log().debug("Constructing the constructor of type '{}'", failureDescriptor.getName());
         final MethodSpec.Builder builder = constructorBuilder()
                 .addModifiers(PUBLIC)
                 .addParameter(GeneratedMessageV3.class, COMMAND_MESSAGE.getName())
