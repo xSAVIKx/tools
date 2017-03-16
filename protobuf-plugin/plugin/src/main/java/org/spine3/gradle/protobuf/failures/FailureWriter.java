@@ -110,10 +110,8 @@ public class FailureWriter {
                                              .addMethod(constructConstructor())
                                              .addMethod(constructGetFailureMessage())
                                              .build();
-
             final JavaFile javaFile = JavaFile.builder(javaPackage, failure)
                                               .build();
-
             log().debug("Writing {}", className);
             javaFile.writeTo(outputDirectory);
             log().debug("Failure {} written successfully", className);
@@ -136,7 +134,6 @@ public class FailureWriter {
                                                      .addParameter(GeneratedMessageV3.class, commandMsgParam)
                                                      .addParameter(CommandContext.class, commandContextParam)
                                                      .addParameter(GeneratedMessageV3.class, failureMsgParam);
-
         for (Map.Entry<String, FieldType> field : fieldsEntries) {
             final TypeName parameterTypeName = field.getValue()
                                                     .getTypeName();
