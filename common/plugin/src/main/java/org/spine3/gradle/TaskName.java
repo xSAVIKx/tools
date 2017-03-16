@@ -58,49 +58,56 @@ public enum TaskName {
     PRE_CLEAN("preClean"),
 
     /**
-     * The name of the failure generation task added to the Gradle lifecycle..
+     * The name of the task that checks for wrong FQN naming in javadocs.
+     *
+     * <p>Relates only to `main` classes.
+     */
+    CHECK_FQN("checkFqn"),
+
+    /**
+     * The name of the failure generation task added to the Gradle lifecycle.
      *
      * <p>Relates to `main` classes and resources scope.
      */
     GENERATE_FAILURES("generateFailures"),
 
     /**
-     * The name of the failure generation task added to the Gradle lifecycle..
+     * The name of the failure generation task added to the Gradle lifecycle.
      *
      * <p>Relates to `test` classes and resources scope.
      */
     GENERATE_TEST_FAILURES("generateTestFailures"),
 
     /**
-     * The name of the enrichment lookup task added to the Gradle lifecycle..
+     * The name of the enrichment lookup task added to the Gradle lifecycle.
      *
      * <p>Relates to `main` classes and resources scope.
      */
     FIND_ENRICHMENTS("findEnrichments"),
 
     /**
-     * The name of the enrichment lookup task added to the Gradle lifecycle..
+     * The name of the enrichment lookup task added to the Gradle lifecycle.
      *
      * <p>Relates to `test` classes and resources scope.
      */
     FIND_TEST_ENRICHMENTS("findTestEnrichments"),
 
     /**
-     * The name of the {@code .proto}-to-Java mapping task added to the Gradle lifecycle..
+     * The name of the {@code .proto}-to-Java mapping task added to the Gradle lifecycle.
      *
      * <p>Relates to `main` classes and resources scope.
      */
     MAP_PROTO_TO_JAVA("mapProtoToJava"),
 
     /**
-     * The name of the {@code .proto}-to-Java mapping task added to the Gradle lifecycle..
+     * The name of the {@code .proto}-to-Java mapping task added to the Gradle lifecycle.
      *
      * <p>Relates to `test` classes and resources scope.
      */
     MAP_TEST_PROTO_TO_JAVA("mapTestProtoToJava"),
 
     /**
-     * The name of the class path scan task added to the Gradle lifecycle..
+     * The name of the class path scan task added to the Gradle lifecycle.
      */
     SCAN_CLASS_PATH("scanClassPath");
 

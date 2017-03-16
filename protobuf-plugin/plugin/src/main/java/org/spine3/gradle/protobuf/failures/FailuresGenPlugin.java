@@ -43,6 +43,7 @@ import static org.spine3.gradle.TaskName.GENERATE_TEST_FAILURES;
 import static org.spine3.gradle.TaskName.GENERATE_TEST_PROTO;
 import static org.spine3.gradle.protobuf.Extension.getMainDescriptorSetPath;
 import static org.spine3.gradle.protobuf.Extension.getTargetGenFailuresRootDir;
+import static org.spine3.gradle.protobuf.Extension.getTargetTestGenFailuresRootDir;
 import static org.spine3.gradle.protobuf.Extension.getTestDescriptorSetPath;
 import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors;
 
@@ -84,7 +85,7 @@ public class FailuresGenPlugin extends SpinePlugin {
                 final String path = getMainDescriptorSetPath(project);
                 log().debug("Generating the failures from {}", path);
                 final List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
-                processDescriptors(filesWithFailures);
+                processDescriptors(filesWithFailures, getTargetGenFailuresRootDir(project));
             }
         };
 
@@ -99,7 +100,7 @@ public class FailuresGenPlugin extends SpinePlugin {
                 final String path = getTestDescriptorSetPath(project);
                 log().debug("Generating the test failures from {}", path);
                 final List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
-                processDescriptors(filesWithFailures);
+                processDescriptors(filesWithFailures, getTargetTestGenFailuresRootDir(project));
             }
         };
 
@@ -127,11 +128,11 @@ public class FailuresGenPlugin extends SpinePlugin {
         return result;
     }
 
-    private void processDescriptors(List<FileDescriptorProto> descriptors) {
+    private void processDescriptors(List<FileDescriptorProto> descriptors, String failuresRootDir) {
         log().debug("Processing the file descriptors for the failures {}", descriptors);
         for (FileDescriptorProto file : descriptors) {
             if (isFileWithFailures(file)) {
-                generateFailures(file, messageTypeCache.getCachedTypes());
+                generateFailures(file, messageTypeCache.getCachedTypes(), failuresRootDir);
             } else {
                 log().error("Invalid failures file: {}", file.getName());
             }
@@ -158,9 +159,10 @@ public class FailuresGenPlugin extends SpinePlugin {
         return result;
     }
 
-    private void generateFailures(FileDescriptorProto descriptor, Map<String, String> messageTypeMap) {
+    private static void generateFailures(FileDescriptorProto descriptor,
+                                         Map<String, String> messageTypeMap,
+                                         String failuresRootDir) {
         log().debug("Generating failures form file {}", descriptor.getName());
-        final String failuresRootDir = getTargetGenFailuresRootDir(project);
         final String javaPackage = descriptor.getOptions()
                                              .getJavaPackage();
         final String javaOuterClassName = JavaCode.getOuterClassName(descriptor);
