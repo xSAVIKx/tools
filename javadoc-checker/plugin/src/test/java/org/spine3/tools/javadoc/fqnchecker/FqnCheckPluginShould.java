@@ -27,6 +27,7 @@ import org.gradle.internal.impldep.org.apache.commons.io.FileUtils;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.GradleRunner;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -54,7 +55,7 @@ public class FqnCheckPluginShould {
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
-
+    @Before
     public void setUpTestProject() throws IOException {
         final Path buildFile = testProjectDir.getRoot()
                                              .toPath()
@@ -78,7 +79,6 @@ public class FqnCheckPluginShould {
 
     @Test
     public void fail_build_if_wrong_fqn_name_found() throws IOException {
-        setUpTestProject();
         final Path testSources = testProjectDir.getRoot()
                                                .toPath()
                                                .resolve("src/main/java");
@@ -95,7 +95,6 @@ public class FqnCheckPluginShould {
 
     @Test
     public void allow_correct_fqn_name_format() throws IOException {
-        setUpTestProject();
         final Path testSources = testProjectDir.getRoot()
                                                .toPath()
                                                .resolve("src/main/java");
