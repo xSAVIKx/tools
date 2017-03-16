@@ -74,7 +74,7 @@ public class FieldTypeFactory {
 
             .build();
 
-    private static final String MAP_EXPECTED = "Map expected.";
+    private static final String MAP_EXPECTED_ERROR_MESSAGE = "Map expected.";
 
     /**
      * Creates new instance.
@@ -129,7 +129,7 @@ public class FieldTypeFactory {
      */
     private Map.Entry<TypeName, TypeName> getEntryTypeNames(FieldDescriptorProto map) {
         if (!isMap(map)) {
-            throw new IllegalStateException(MAP_EXPECTED);
+            throw new IllegalStateException(MAP_EXPECTED_ERROR_MESSAGE);
         }
 
         final int keyFieldIndex = 0;
@@ -162,7 +162,7 @@ public class FieldTypeFactory {
      */
     private DescriptorProto getDescriptorForMapField(FieldDescriptorProto mapField) {
         if (!isMap(mapField)) {
-            throw new IllegalStateException(MAP_EXPECTED);
+            throw new IllegalStateException(MAP_EXPECTED_ERROR_MESSAGE);
         }
 
         final String entryName = getEntryNameFor(mapField);
