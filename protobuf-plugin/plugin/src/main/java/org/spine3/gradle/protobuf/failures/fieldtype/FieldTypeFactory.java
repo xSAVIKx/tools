@@ -44,6 +44,7 @@ public class FieldTypeFactory {
 
     /** A map from Protobuf type name to Java class FQN. */
     private final Map<String, String> messageTypeMap;
+    private final Iterable<DescriptorProto> failureNestedTypes;
 
     // https://developers.google.com/protocol-buffers/docs/proto3#scalar
     @SuppressWarnings({"DuplicateStringLiteralInspection", "ConstantConditions"})
@@ -78,22 +79,23 @@ public class FieldTypeFactory {
     /**
      * Creates new instance.
      *
-     * @param messageTypeMap pre-scanned map with proto types and their appropriate Java classes
+     * @param failureDescriptor the failure descriptor to extract nested types
+     * @param messageTypeMap    pre-scanned map with proto types and their appropriate Java classes
      */
-    public FieldTypeFactory(Map<String, String> messageTypeMap) {
+    public FieldTypeFactory(DescriptorProto failureDescriptor, Map<String, String> messageTypeMap) {
         this.messageTypeMap = messageTypeMap;
+        this.failureNestedTypes = failureDescriptor.getNestedTypeList();
     }
 
     /**
      * Creates a {@link FieldType} instances based on {@link FieldDescriptorProto}.
      *
      * @param field the proto field descriptor
-     * @param nestedTypes the nested types of the message containing the field
      * @return the field type
      */
-    public FieldType create(FieldDescriptorProto field, Iterable<DescriptorProto> nestedTypes) {
+    public FieldType create(FieldDescriptorProto field) {
         if (isMap(field)) {
-            return new MapFieldType(getEntryTypeNames(field, nestedTypes));
+            return new MapFieldType(getEntryTypeNames(field));
         } else {
             final String fieldTypeName = getFieldTypeName(field);
 
@@ -123,11 +125,9 @@ public class FieldTypeFactory {
      * based on the passed nested types.
      *
      * @param map the field representing map
-     * @param nestedTypes the nested types of the message containing the field
      * @return the entry containing the key and the value type names
      */
-    private Map.Entry<TypeName, TypeName> getEntryTypeNames(FieldDescriptorProto map,
-                                                            Iterable<DescriptorProto> nestedTypes) {
+    private Map.Entry<TypeName, TypeName> getEntryTypeNames(FieldDescriptorProto map) {
         if (!isMap(map)) {
             throw new IllegalStateException(MAP_EXPECTED);
         }
@@ -135,9 +135,9 @@ public class FieldTypeFactory {
         final int keyFieldIndex = 0;
         final int valueFieldIndex = 1;
 
-        final DescriptorProto mapEntryDescriptor = getDescriptorForMapField(map, nestedTypes);
-        final TypeName keyTypeName = create(mapEntryDescriptor.getField(keyFieldIndex), nestedTypes).getTypeName();
-        final TypeName valueTypeName = create(mapEntryDescriptor.getField(valueFieldIndex), nestedTypes).getTypeName();
+        final DescriptorProto mapEntryDescriptor = getDescriptorForMapField(map);
+        final TypeName keyTypeName = create(mapEntryDescriptor.getField(keyFieldIndex)).getTypeName();
+        final TypeName valueTypeName = create(mapEntryDescriptor.getField(valueFieldIndex)).getTypeName();
 
         return new AbstractMap.SimpleEntry<>(keyTypeName, valueTypeName);
     }
@@ -158,17 +158,15 @@ public class FieldTypeFactory {
      * every map field. The nested type contains map entry description.
      *
      * @param mapField the field representing map
-     * @param nestedTypes the nested types of the message containing the field
      * @return the nested type descriptor for map field
      */
-    private static DescriptorProto getDescriptorForMapField(FieldDescriptorProto mapField,
-                                                            Iterable<DescriptorProto> nestedTypes) {
+    private DescriptorProto getDescriptorForMapField(FieldDescriptorProto mapField) {
         if (!isMap(mapField)) {
             throw new IllegalStateException(MAP_EXPECTED);
         }
 
         final String entryName = getEntryNameFor(mapField);
-        for (DescriptorProto nestedType : nestedTypes) {
+        for (DescriptorProto nestedType : failureNestedTypes) {
             if (nestedType.getName()
                           .equals(entryName)) {
                 return nestedType;

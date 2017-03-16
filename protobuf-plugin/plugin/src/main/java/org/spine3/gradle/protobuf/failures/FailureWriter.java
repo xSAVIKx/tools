@@ -91,7 +91,7 @@ public class FailureWriter {
         this.javaPackage = javaPackage;
         this.outerClassName = javaOuterClassName;
         this.className = failureDescriptor.getName();
-        this.fieldTypeFactory = new FieldTypeFactory(messageTypeMap);
+        this.fieldTypeFactory = new FieldTypeFactory(failureDescriptor, messageTypeMap);
     }
 
     /**
@@ -217,9 +217,8 @@ public class FailureWriter {
         log().debug("Reading all the field values from the descriptor: {}", failureDescriptor);
 
         final Map<String, FieldType> result = new LinkedHashMap<>();
-        final List<DescriptorProto> nestedTypes = failureDescriptor.getNestedTypeList();
         for (FieldDescriptorProto field : failureDescriptor.getFieldList()) {
-            result.put(field.getName(), fieldTypeFactory.create(field, nestedTypes));
+            result.put(field.getName(), fieldTypeFactory.create(field));
         }
         log().debug("Read fields: {}", result);
 
