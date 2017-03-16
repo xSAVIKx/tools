@@ -126,8 +126,7 @@ public class FailureWriter {
         final MethodSpec.Builder builder = constructorBuilder()
                 .addModifiers(PUBLIC)
                 .addParameter(GeneratedMessageV3.class, COMMAND_MESSAGE.getName())
-                .addParameter(CommandContext.class, COMMAND_CONTEXT.getName())
-                .addParameter(GeneratedMessageV3.class, FAILURE_MESSAGE.getName());
+                .addParameter(CommandContext.class, COMMAND_CONTEXT.getName());
         for (Map.Entry<String, FieldType> field : readFieldValues().entrySet()) {
             final TypeName parameterTypeName = field.getValue()
                                                     .getTypeName();
