@@ -18,5 +18,8 @@ project(':common').projectDir = "$rootDir/common" as File
 include 'enrichment-lookup-sample'
 project(':enrichment-lookup-sample').projectDir = "$rootDir/enrichment-lookup-sample" as File
 
+include 'javadoc-checker'
+project(':javadoc-checker').projectDir = "$rootDir/javadoc-checker" as File
+
 include 'javadoc'
 project(':javadoc').projectDir = "$rootDir/javadoc" as File
