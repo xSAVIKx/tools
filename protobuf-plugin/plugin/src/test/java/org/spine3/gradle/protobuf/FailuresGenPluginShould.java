@@ -37,7 +37,6 @@ import java.nio.file.Path;
 
 import static junit.framework.TestCase.fail;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
-import static org.spine3.gradle.TaskName.GENERATE_FAILURES;
 
 /**
  * @author Dmytro Grankin
@@ -65,7 +64,6 @@ public class FailuresGenPluginShould {
         final BuildLauncher launcher = connection.newBuild();
 
         launcher.forTasks(
-                GENERATE_FAILURES.getValue(),
                 COMPILE_JAVA.getValue()
         );
         try {
