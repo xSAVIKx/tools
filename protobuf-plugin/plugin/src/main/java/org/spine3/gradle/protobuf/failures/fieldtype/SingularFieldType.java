@@ -33,6 +33,8 @@ import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.isPr
  */
 public class SingularFieldType implements FieldType {
 
+    private static final String SETTER_PREFIX = "set";
+
     private final TypeName typeName;
 
     /**
@@ -57,7 +59,7 @@ public class SingularFieldType implements FieldType {
      */
     @Override
     public String getSetterPrefix() {
-        return "set";
+        return SETTER_PREFIX;
     }
 
     private static TypeName constructTypeNameFor(String name) {

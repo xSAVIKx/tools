@@ -36,6 +36,8 @@ import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.isPr
  */
 public class RepeatedFieldType implements FieldType {
 
+    private static final String SETTER_PREFIX = "addAll";
+
     private final TypeName typeName;
 
     /**
@@ -60,7 +62,7 @@ public class RepeatedFieldType implements FieldType {
      */
     @Override
     public String getSetterPrefix() {
-        return "addAll";
+        return SETTER_PREFIX;
     }
 
     private static TypeName constructTypeNameFor(String componentTypeName) {

@@ -31,6 +31,8 @@ import java.util.Map;
  */
 public class MapFieldType implements FieldType {
 
+    private static final String SETTER_PREFIX = "putAll";
+
     private final TypeName typeName;
 
     /**
@@ -60,7 +62,7 @@ public class MapFieldType implements FieldType {
      */
     @Override
     public String getSetterPrefix() {
-        return "putAll";
+        return SETTER_PREFIX;
     }
 
     private static TypeName boxIfPrimitive(TypeName typeName) {
