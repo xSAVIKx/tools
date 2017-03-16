@@ -43,7 +43,7 @@ public class SingularFieldType implements FieldType {
      * @param name the field type name
      */
     SingularFieldType(String name) {
-        typeName = constructTypeNameFor(name);
+        this.typeName = constructTypeNameFor(name);
     }
 
     /**

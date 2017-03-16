@@ -46,7 +46,7 @@ public class RepeatedFieldType implements FieldType {
      * @param componentTypeName the component type name
      */
     RepeatedFieldType(String componentTypeName) {
-        typeName = constructTypeNameFor(componentTypeName);
+        this.typeName = constructTypeNameFor(componentTypeName);
     }
 
     /**

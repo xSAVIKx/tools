@@ -42,7 +42,7 @@ public class MapFieldType implements FieldType {
      * @param entryTypeNames the entry containing the key and the value type names.
      */
     MapFieldType(Map.Entry<TypeName, TypeName> entryTypeNames) {
-        typeName = ParameterizedTypeName.get(
+        this.typeName = ParameterizedTypeName.get(
                 ClassName.get(Map.class),
                 boxIfPrimitive(entryTypeNames.getKey()),
                 boxIfPrimitive(entryTypeNames.getValue())
