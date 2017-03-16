@@ -26,7 +26,6 @@ import com.squareup.javapoet.TypeName;
 
 import java.util.AbstractMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import static com.google.protobuf.DescriptorProtos.DescriptorProto;
 import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.BOOLEAN;
@@ -176,13 +175,20 @@ public class FieldTypeFactory {
         throw new IllegalStateException("Nested type for map field should be present.");
     }
 
+    /**
+     * Constructs the entry name for the map field.
+     *
+     * <p>For example, proto field with name 'word_dictionary' has 'wordDictionary' json name.
+     * Every map field has corresponding entry type.
+     * For 'word_dictionary' it would be 'WordDictionaryEntry'
+     *
+     * @param mapField the field to construct entry name
+     * @return the name of the map field
+     */
     private static String getEntryNameFor(FieldDescriptorProto mapField) {
-        final Pattern replacementPattern = Pattern.compile("_");
-        final char capitalizedFirstSymbol = Character.toUpperCase(mapField.getJsonName()
-                                                                          .charAt(0));
-        final String remainingPart = mapField.getName()
-                                             .substring(1)
-                                             .replaceAll(replacementPattern.pattern(), "");
+        final String jsonName = mapField.getJsonName();
+        final char capitalizedFirstSymbol = Character.toUpperCase(jsonName.charAt(0));
+        final String remainingPart = jsonName.substring(1);
 
         return capitalizedFirstSymbol + remainingPart + "Entry";
     }
