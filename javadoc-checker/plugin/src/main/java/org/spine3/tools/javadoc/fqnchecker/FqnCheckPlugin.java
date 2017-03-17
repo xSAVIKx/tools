@@ -146,13 +146,13 @@ public class FqnCheckPlugin extends SpinePlugin {
         } catch (IOException e) {
             throw new IllegalStateException("Cannot read the contents of the file: " + file, e);
         }
-        final Optional<InvalidFqnUsage> checkResult = check(content);
-        if (checkResult.isPresent()) {
+        final Optional<InvalidFqnUsage> styleViolation = check(content);
+        if (styleViolation.isPresent()) {
             final String message = format(
                     "Links with fully-qualified names should be in format {@link <FQN> <text>}" +
                     "or {@linkplain <FQN> <text>}." +
                     " Wrong link found: %s in %s",
-                    checkResult.get()
+                    styleViolation.get()
                                .getActualUsage(),
                     file);
             log().error(message);
