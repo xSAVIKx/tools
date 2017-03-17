@@ -47,8 +47,8 @@ import static org.junit.Assert.assertTrue;
 public class FqnCheckPluginShould {
 
     private String resourceFolder = "";
-    final String SOURCE_FOLDER = "src/main/java";
-    final String checkFqnTask = TaskName.CHECK_FQN.getValue();
+    private static final String SOURCE_FOLDER = "src/main/java";
+    private final String checkFqnTask = TaskName.CHECK_FQN.getValue();
 
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
@@ -87,7 +87,7 @@ public class FqnCheckPluginShould {
         BuildResult buildResult = GradleRunner.create()
                                               .withProjectDir(testProjectDir.getRoot())
                                               .withPluginClasspath()
-                                              .withArguments(checkFqnTask, "--debug")
+                                              .withArguments(checkFqnTask)
                                               .buildAndFail();
 
         assertTrue(buildResult.getOutput().contains("Wrong link found"));
@@ -105,7 +105,7 @@ public class FqnCheckPluginShould {
         BuildResult buildResult = GradleRunner.create()
                                               .withProjectDir(testProjectDir.getRoot())
                                               .withPluginClasspath()
-                                              .withArguments(checkFqnTask,  "--debug")
+                                              .withArguments(checkFqnTask)
                                               .build();
 
         final List<String> expected = Arrays.asList(":compileJava", ":checkFqn");
@@ -123,15 +123,5 @@ public class FqnCheckPluginShould {
                     }
                 })
                 .toList();
-    }
-    @Test
-    public void test_checker() throws IOException {
-        final Path testSources = testProjectDir.getRoot()
-                                               .toPath()
-                                               .resolve(SOURCE_FOLDER);
-        final Path wrongFqnFormat = Paths.get(testSources.toString() + "/.hiden_file");
-        FileUtils.copyDirectory(new File(resourceFolder), new File(testSources.toString()));
-
-        FqnCheckPlugin.check(wrongFqnFormat);
     }
 }
