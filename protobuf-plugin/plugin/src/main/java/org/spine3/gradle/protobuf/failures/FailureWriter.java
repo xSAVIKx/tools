@@ -130,7 +130,7 @@ public class FailureWriter {
         for (Map.Entry<String, FieldType> field : readFieldValues().entrySet()) {
             final TypeName parameterTypeName = field.getValue()
                                                     .getTypeName();
-            final String parameterName = getJavaFieldName(field.getKey(), false);
+            final String parameterName = getJavaFieldName(field.getKey());
             builder.addParameter(parameterTypeName, parameterName);
         }
 
@@ -145,13 +145,13 @@ public class FailureWriter {
                         + outerClassName + '.' + className + ".newBuilder()");
 
         for (Map.Entry<String, FieldType> field : readFieldValues().entrySet()) {
-            final String upperCaseName = getJavaFieldName(field.getKey(), true);
+            final String upperCaseName = getJavaFieldCapitalizedName(field.getKey());
             superStatement.append('.')
                           .append(field.getValue()
                                        .getSetterPrefix())
                           .append(upperCaseName)
                           .append('(')
-                          .append(getJavaFieldName(field.getKey(), false))
+                          .append(getJavaFieldName(field.getKey()))
                           .append(')');
         }
         superStatement.append(".build())");
@@ -186,13 +186,12 @@ public class FailureWriter {
     /**
      * Transforms Protobuf-style field name into corresponding Java-style field name.
      *
-     * <p>For example, seat_assignment_id -> SeatAssignmentId
+     * <p>For example, seat_assignment_id -> seatAssignmentId
      *
-     * @param protoFieldName  Protobuf field name.
-     * @param capitalizeFirst Indicates if we need first letter of the output to be capitalized.
+     * @param protoFieldName Protobuf field name.
      * @return a field name
      */
-    private static String getJavaFieldName(String protoFieldName, boolean capitalizeFirst) {
+    private static String getJavaFieldName(String protoFieldName) {
         final String[] words = protoFieldName.split("_");
         final StringBuilder builder = new StringBuilder(words[0]);
         for (int i = 1; i < words.length; i++) {
@@ -200,11 +199,19 @@ public class FailureWriter {
             builder.append(Character.toUpperCase(word.charAt(0)))
                    .append(word.substring(1));
         }
-        String resultName = builder.toString();
-        if (capitalizeFirst) {
-            resultName = Character.toUpperCase(resultName.charAt(0)) + resultName.substring(1);
-        }
-        return resultName;
+        return builder.toString();
+    }
+
+    /**
+     * Works like {@link #getJavaFieldName(String)}, but
+     * additionally capitalizes the first letter.
+     *
+     * @param protoFieldName Protobuf field name.
+     * @return a field name
+     */
+    private static String getJavaFieldCapitalizedName(String protoFieldName) {
+        final String javaFieldName = getJavaFieldName(protoFieldName);
+        return Character.toUpperCase(javaFieldName.charAt(0)) + javaFieldName.substring(1);
     }
 
     /**
