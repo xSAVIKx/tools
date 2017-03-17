@@ -21,9 +21,11 @@ package org.spine3.tools.javadoc.fqnchecker;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
+import com.google.common.io.LineReader;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.internal.impldep.org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.gradle.SpinePlugin;
@@ -79,6 +81,7 @@ public class FqnCheckPlugin extends SpinePlugin {
             }
         };
     }
+
     public static List<String> getDirsToCheck(Project project) {
 
         log().debug("Finding the directories to check");
@@ -137,55 +140,49 @@ public class FqnCheckPlugin extends SpinePlugin {
     }
 
     static void check(Path file) throws InvalidFqnUsageException {
-        final String content;
-        if (!file.toString().endsWith(".java")){
+        final List<String> content;
+        if (!file.toString().endsWith(".java")) {
             return;
         }
         try {
-            content = Files.readAllLines(file, StandardCharsets.UTF_8).toString();
+            content = Files.readAllLines(file, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new IllegalStateException("Cannot read the contents of the file: " + file, e);
+            throw new IllegalStateException(" Cannot read the contents of the file: " + file, e);
         }
-        final Optional<InvalidFqnUsage> styleViolation = check(content);
-        if (styleViolation.isPresent()) {
-            final String message = format(
-                    "Links with fully-qualified names should be in format {@link <FQN> <text>}" +
-                    "or {@linkplain <FQN> <text>}." +
-                    " Wrong link found: %s in %s",
-                    styleViolation.get()
-                               .getActualUsage(),
-                    file);
+        final List<Optional<InvalidFqnUsage>> invalidLinks = check(content);
+        if (!invalidLinks.isEmpty()) {
+            final String message =
+                    " Links with fully-qualified names should be in format {@link <FQN> <text>}" +
+                    " or {@linkplain <FQN> <text>}.";
             log().error(message);
+
+            for (Optional<InvalidFqnUsage> link: invalidLinks){
+                final String msg = format(
+                        " Wrong link format found: %s on %s line in %s",
+                        link.get().getActualUsage(),
+                        link.get().getIndex(),
+                        file);
+                log().error(msg);
+            }
+            //TODO:2017-03-17:alexander.aleksandrov: Made a possibility to chose a result of file check
             throw new InvalidFqnUsageException(file.toFile()
                                                    .getAbsolutePath(), message);
         }
     }
 
     @VisibleForTesting
-    static Optional<InvalidFqnUsage> check(String content) {
-        String remainder = content;
-
-        final String commentStart = CommentMarker.START.getValue();
-        final String commentEnd = CommentMarker.END.getValue();
-
-        while (remainder.contains(commentStart)) {
-            final Optional<String> substring = substringBetween(remainder,
-                                                                commentStart,
-                                                                commentEnd);
-            if (substring.isPresent()) {
-                final String comment = substring.get();
-                final Optional<InvalidFqnUsage> result = checkSingleComment(comment);
-                if (result.isPresent()) {
-                    return result;
-                }
-                remainder = remainder.substring(comment.length() +
-                                                        commentStart.length() +
-                                                        commentEnd.length());
+    static List<Optional<InvalidFqnUsage>> check(List<String> content) {
+        int lineNumber = 0;
+        final List<Optional<InvalidFqnUsage>> invalidLinks = newArrayList();
+        for (String line : content) {
+            final Optional<InvalidFqnUsage> result = checkSingleComment(line);
+            lineNumber++;
+            if (result.isPresent()) {
+                result.get().setIndex(lineNumber);
+                invalidLinks.add(result);
             }
-            remainder = substringStartsWith(remainder, commentStart);
-
         }
-        return Optional.absent();
+        return invalidLinks;
     }
 
     private static Optional<InvalidFqnUsage> checkSingleComment(String comment) {

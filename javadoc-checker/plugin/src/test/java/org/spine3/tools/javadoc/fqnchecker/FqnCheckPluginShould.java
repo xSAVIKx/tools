@@ -87,10 +87,10 @@ public class FqnCheckPluginShould {
         BuildResult buildResult = GradleRunner.create()
                                               .withProjectDir(testProjectDir.getRoot())
                                               .withPluginClasspath()
-                                              .withArguments(checkFqnTask)
+                                              .withArguments(checkFqnTask, "--debug")
                                               .buildAndFail();
 
-        assertTrue(buildResult.getOutput().contains("Wrong link found"));
+        assertTrue(buildResult.getOutput().contains("Wrong link format found"));
     }
 
     @Test
@@ -99,8 +99,10 @@ public class FqnCheckPluginShould {
                                                .toPath()
                                                .resolve(SOURCE_FOLDER);
         final Path wrongFqnFormat = Paths.get(testSources.toString() + "/WrongFQNformat.java");
+        final Path wrongMultipleFqnFormat = Paths.get(testSources.toString() + "/MultipleWrongFqnLinks.java");
         FileUtils.copyDirectory(new File(resourceFolder), new File(testSources.toString()));
         Files.deleteIfExists(wrongFqnFormat);
+        Files.deleteIfExists(wrongMultipleFqnFormat);
 
         BuildResult buildResult = GradleRunner.create()
                                               .withProjectDir(testProjectDir.getRoot())
@@ -124,4 +126,14 @@ public class FqnCheckPluginShould {
                 })
                 .toList();
     }
+
+//    @Test
+//    public void allow_name_format() throws IOException {
+//        final Path testSources = testProjectDir.getRoot()
+//                                               .toPath()
+//                                               .resolve(SOURCE_FOLDER);
+//        final Path wrongFqnFormat = Paths.get(testSources.toString() + "/ClassWithoutJavadocs.java");
+//        FileUtils.copyDirectory(new File(resourceFolder), new File(testSources.toString()));
+//        FqnCheckPlugin.check(wrongFqnFormat);
+//    }
 }

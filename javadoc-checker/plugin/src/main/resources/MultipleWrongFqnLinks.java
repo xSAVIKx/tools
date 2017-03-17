@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, TeamDev Ltd. All rights reserved.
+ * Copyright 2017, TeamDev Ltd. All rights reserved.
  *
  * Redistribution and use in source and/or binary forms, with or without
  * modification, must retain the above copyright notice and the following
@@ -18,37 +18,28 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.spine3.tools.javadoc.fqnchecker;
-
-import com.google.common.base.MoreObjects;
-
-/**
- * @author Alexander Aleksandrov
- */
-public class InvalidFqnUsage {
-
-    private final String actualUsage;
-    private int index = 0;
-
-    public InvalidFqnUsage(String actualUsage) {
-        this.actualUsage = actualUsage;
+class MultipleWrongFqnLinks {
+    private MultipleWrongFqnLinks() {
+    }
+    /**{@link org.spine3.server.event.EventBus}*/
+    public static void main(String[] args) {
+        System.out.println("");
     }
 
-    public String getActualUsage() {
-        return actualUsage;
+    /**{@link org.spine3.server.event.EventBus    }*/
+    public void method(){
+        System.out.println("You are reading me");
     }
-
-    public int getIndex() {
-        return index;
+    /**{@link org.spine3.server.event.EventBus    }*/
+    public void method1(){
+        System.out.println("You are reading me");
     }
-
-    public void setIndex(int index) {
-        this.index = index;
+    /**{@link org.spine3.server.event.EventBus Event   }*/
+    public void method2(){
+        System.out.println("You are reading me");
     }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                          .add("actualUsage", actualUsage)
-                          .toString();
+    /**{@link org.spine3.server.event.EventBus   }*/
+    public void method3(){
+        System.out.println("You are reading me");
     }
 }
