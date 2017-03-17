@@ -55,7 +55,12 @@ public class SingularFieldType implements FieldType {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns "set" setter prefix,
+     * used to initialize a singular field using a protobuf message builder.
+     *
+     * Call should be like `builder.setFieldName(FieldType)`.
+     *
+     * @return {@inheritDoc}
      */
     @Override
     public String getSetterPrefix() {

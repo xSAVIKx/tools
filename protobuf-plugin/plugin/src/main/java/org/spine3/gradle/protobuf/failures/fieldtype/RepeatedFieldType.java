@@ -58,7 +58,12 @@ public class RepeatedFieldType implements FieldType {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns "addAll" setter prefix,
+     * used to initialize a repeated field using a protobuf message builder.
+     *
+     * <p>Call should be like `builder.addAllFieldName({@link java.util.List})`.
+     *
+     * @return {@inheritDoc}
      */
     @Override
     public String getSetterPrefix() {

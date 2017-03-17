@@ -58,7 +58,12 @@ public class MapFieldType implements FieldType {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns "putAll" setter prefix,
+     * used to initialize a map field using a protobuf message builder.
+     *
+     * <p>Call should be like `builder.putAllFieldName({@link java.util.Map})`.
+     *
+     * @return {@inheritDoc}
      */
     @Override
     public String getSetterPrefix() {
