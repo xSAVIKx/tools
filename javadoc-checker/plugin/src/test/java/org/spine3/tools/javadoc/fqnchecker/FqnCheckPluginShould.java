@@ -70,7 +70,7 @@ public class FqnCheckPluginShould {
         Files.createDirectories(testSources);
 
         ClassLoader classLoader = getClass().getClassLoader();
-        final String testFile = "AllowedFQNformat.java";
+        final String testFile = "AllowedFqnFormats.java";
         final String resourceFilePath = classLoader.getResource(testFile)
                                                    .getPath();
         resourceFolder = resourceFilePath.substring(0, resourceFilePath.length() - testFile.length());
