@@ -137,7 +137,6 @@ public class FqnCheckPlugin extends SpinePlugin {
 
     static void check(Path file) throws InvalidFqnUsageException {
         final String content;
-        final byte[] rawContent;
         try {
             content = Files.readAllLines(file, StandardCharsets.UTF_8).toString();
         } catch (IOException e) {
