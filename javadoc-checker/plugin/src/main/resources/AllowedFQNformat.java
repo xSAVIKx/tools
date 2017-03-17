@@ -5,3 +5,6 @@
 {@linkplain org.spine3.this.is.a.very.long.package.name.to.test.YourPlugin YourPlugin}
 {@link this.is.few.excessive.Spaces             Spaces}
 */
+class AllowedFqnFormatForTest {
+
+}

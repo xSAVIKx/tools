@@ -27,7 +27,9 @@ import org.gradle.api.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.gradle.SpinePlugin;
+import sun.plugin.dom.core.Attr;
 
+import javax.management.Attribute;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -36,13 +38,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.DosFileAttributeView;
+import java.nio.file.attribute.DosFileAttributes;
 import java.util.List;
+import java.util.jar.Attributes;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
+import static java.lang.String.format;
 import static java.util.regex.Pattern.compile;
 import static org.spine3.gradle.TaskName.CHECK_FQN;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
@@ -137,7 +143,9 @@ public class FqnCheckPlugin extends SpinePlugin {
 
     static void check(Path file) throws InvalidFqnUsageException {
         final String content;
-        final byte[] rawContent;
+        if (!file.toString().endsWith(".java")){
+            return;
+        }
         try {
             content = Files.readAllLines(file, StandardCharsets.UTF_8).toString();
         } catch (IOException e) {
@@ -145,8 +153,13 @@ public class FqnCheckPlugin extends SpinePlugin {
         }
         final Optional<InvalidFqnUsage> checkResult = check(content);
         if (checkResult.isPresent()) {
-            final String message = "Links with FQN should be in format {@link <FQN> <text>}." +
-                    " Wrong link found: " + checkResult.get().getActualUsage() + " in :" + file;
+            final String message = format(
+                    "Links with fully-qualified names should be in format {@link <FQN> <text>}" +
+                    "or {@linkplain <FQN> <text>}." +
+                    " Wrong link found: %s in %s",
+                    checkResult.get()
+                               .getActualUsage(),
+                    file);
             log().error(message);
             throw new InvalidFqnUsageException(file.toFile()
                                                    .getAbsolutePath(), message);
