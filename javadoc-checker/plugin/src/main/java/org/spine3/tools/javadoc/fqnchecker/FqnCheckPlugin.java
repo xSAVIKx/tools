@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
+import static java.lang.String.format;
 import static java.util.regex.Pattern.compile;
 import static org.spine3.gradle.TaskName.CHECK_FQN;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
@@ -137,15 +138,23 @@ public class FqnCheckPlugin extends SpinePlugin {
 
     static void check(Path file) throws InvalidFqnUsageException {
         final String content;
+        if (!file.toString().endsWith(".java")){
+            return;
+        }
         try {
             content = Files.readAllLines(file, StandardCharsets.UTF_8).toString();
         } catch (IOException e) {
             throw new IllegalStateException("Cannot read the contents of the file: " + file, e);
         }
-        final Optional<InvalidFqnUsage> checkResult = check(content);
-        if (checkResult.isPresent()) {
-            final String message = "Links with FQN should be in format {@link <FQN> <text>}." +
-                    " Wrong link found: " + checkResult.get().getActualUsage() + " in :" + file;
+        final Optional<InvalidFqnUsage> styleViolation = check(content);
+        if (styleViolation.isPresent()) {
+            final String message = format(
+                    "Links with fully-qualified names should be in format {@link <FQN> <text>}" +
+                    "or {@linkplain <FQN> <text>}." +
+                    " Wrong link found: %s in %s",
+                    styleViolation.get()
+                               .getActualUsage(),
+                    file);
             log().error(message);
             throw new InvalidFqnUsageException(file.toFile()
                                                    .getAbsolutePath(), message);

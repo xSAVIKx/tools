@@ -20,9 +20,7 @@
 package org.spine3.tools.javadoc.fqnchecker;
 
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
-import org.gradle.internal.impldep.com.amazonaws.util.IOUtils;
 import org.gradle.internal.impldep.org.apache.commons.io.FileUtils;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
@@ -31,19 +29,17 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.spine3.gradle.TaskName;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -51,6 +47,8 @@ import static org.junit.Assert.assertTrue;
 public class FqnCheckPluginShould {
 
     private String resourceFolder = "";
+    private static final String SOURCE_FOLDER = "src/main/java";
+    private final String checkFqnTask = TaskName.CHECK_FQN.getValue();
 
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
@@ -64,14 +62,15 @@ public class FqnCheckPluginShould {
                 getClass().getClassLoader()
                           .getResourceAsStream("projects/JavaDocCheckerPlugin/build.gradle");
 
+
         final Path testSources = testProjectDir.getRoot()
                                                .toPath()
-                                               .resolve("src/main/java");
+                                               .resolve(SOURCE_FOLDER);
         Files.copy(buildFileContent, buildFile);
         Files.createDirectories(testSources);
 
         ClassLoader classLoader = getClass().getClassLoader();
-        final String testFile = "AllowedFQNformat";
+        final String testFile = "AllowedFqnFormats.java";
         final String resourceFilePath = classLoader.getResource(testFile)
                                                    .getPath();
         resourceFolder = resourceFilePath.substring(0, resourceFilePath.length() - testFile.length());
@@ -81,13 +80,14 @@ public class FqnCheckPluginShould {
     public void fail_build_if_wrong_fqn_name_found() throws IOException {
         final Path testSources = testProjectDir.getRoot()
                                                .toPath()
-                                               .resolve("src/main/java");
+                                               .resolve(SOURCE_FOLDER);
         FileUtils.copyDirectory(new File(resourceFolder), new File(testSources.toString()));
+
 
         BuildResult buildResult = GradleRunner.create()
                                               .withProjectDir(testProjectDir.getRoot())
                                               .withPluginClasspath()
-                                              .withArguments("checkFqn")
+                                              .withArguments(checkFqnTask)
                                               .buildAndFail();
 
         assertTrue(buildResult.getOutput().contains("Wrong link found"));
@@ -97,15 +97,15 @@ public class FqnCheckPluginShould {
     public void allow_correct_fqn_name_format() throws IOException {
         final Path testSources = testProjectDir.getRoot()
                                                .toPath()
-                                               .resolve("src/main/java");
-        final Path wrongFqnFormat = Paths.get(testSources.toString() + "/WrongFQNformat");
+                                               .resolve(SOURCE_FOLDER);
+        final Path wrongFqnFormat = Paths.get(testSources.toString() + "/WrongFQNformat.java");
         FileUtils.copyDirectory(new File(resourceFolder), new File(testSources.toString()));
         Files.deleteIfExists(wrongFqnFormat);
 
         BuildResult buildResult = GradleRunner.create()
                                               .withProjectDir(testProjectDir.getRoot())
                                               .withPluginClasspath()
-                                              .withArguments("checkFqn")
+                                              .withArguments(checkFqnTask)
                                               .build();
 
         final List<String> expected = Arrays.asList(":compileJava", ":checkFqn");
