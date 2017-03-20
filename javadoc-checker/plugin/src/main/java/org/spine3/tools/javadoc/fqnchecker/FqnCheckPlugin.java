@@ -42,8 +42,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
 import static java.util.regex.Pattern.compile;
@@ -167,24 +165,6 @@ public class FqnCheckPlugin extends SpinePlugin {
         }
     }
 
-    private static void logErrors(Map storage) {
-        Iterator it = storage.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<Path, List<Optional<InvalidFqnUsage>>> pair = (Map.Entry) it.next();
-            for (Optional<InvalidFqnUsage> link : pair.getValue()) {
-                if (link.isPresent()) {
-                    final String msg = format(
-                            " Wrong link format found: %s on %s line in %s",
-                            link.get().getActualUsage(),
-                            link.get().getIndex(),
-                            pair.getKey());
-                    log().error(msg);
-                }
-            }
-            it.remove(); // avoids a ConcurrentModificationException
-        }
-    }
-
     @VisibleForTesting
     static List<Optional<InvalidFqnUsage>> check(List<String> content) {
         int lineNumber = 0;
@@ -212,30 +192,22 @@ public class FqnCheckPlugin extends SpinePlugin {
         return Optional.absent();
     }
 
-    private static String substringStartsWith(String str, String separator) {
-        if (str.isEmpty()) {
-            return str;
-        } else if (separator == null) {
-            return "";
-        } else {
-            int pos = str.indexOf(separator);
-            return pos == -1 ? "" : str.substring(pos);
+    private static void logErrors(Map storage) {
+        Iterator it = storage.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<Path, List<Optional<InvalidFqnUsage>>> pair = (Map.Entry) it.next();
+            for (Optional<InvalidFqnUsage> link : pair.getValue()) {
+                if (link.isPresent()) {
+                    final String msg = format(
+                            " Wrong link format found: %s on %s line in %s",
+                            link.get().getActualUsage(),
+                            link.get().getIndex(),
+                            pair.getKey());
+                    log().error(msg);
+                }
+            }
+            it.remove();
         }
-    }
-
-    private static Optional<String> substringBetween(String str, String open, String close) {
-        checkNotNull(str);
-        checkNotNull(open);
-        checkNotNull(close);
-
-        final int start = str.indexOf(open);
-        if (start != -1) {
-            final int end = str.indexOf(close, start + open.length());
-            checkState(end != -1);
-            final String result = str.substring(start + open.length(), end);
-            return Optional.of(result);
-        }
-        return Optional.absent();
     }
 
     private enum JavadocPattern {
@@ -250,22 +222,6 @@ public class FqnCheckPlugin extends SpinePlugin {
 
         public Pattern getPattern() {
             return pattern;
-        }
-    }
-
-    private enum CommentMarker {
-
-        START("/**"),
-        END("*/");
-
-        private final String value;
-
-        CommentMarker(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return value;
         }
     }
 
