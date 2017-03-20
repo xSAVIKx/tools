@@ -21,11 +21,9 @@ package org.spine3.tools.javadoc.fqnchecker;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
-import com.google.common.io.LineReader;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.internal.impldep.org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.gradle.SpinePlugin;
@@ -38,7 +36,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,6 +60,8 @@ import static org.spine3.gradle.TaskName.PROCESS_RESOURCES;
 public class FqnCheckPlugin extends SpinePlugin {
 
     private static final String DIRECTORY_TO_CHECK = "/src/main/java";
+    private static CheckResultStorage storage = new CheckResultStorage();
+    private static int threshold = 10;
 
     @Override
     public void apply(final Project project) {
@@ -150,23 +152,36 @@ public class FqnCheckPlugin extends SpinePlugin {
             throw new IllegalStateException(" Cannot read the contents of the file: " + file, e);
         }
         final List<Optional<InvalidFqnUsage>> invalidLinks = check(content);
+
         if (!invalidLinks.isEmpty()) {
+            storage.save(file, invalidLinks);
             final String message =
                     " Links with fully-qualified names should be in format {@link <FQN> <text>}" +
-                    " or {@linkplain <FQN> <text>}.";
-            log().error(message);
+                            " or {@linkplain <FQN> <text>}.";
 
-            for (Optional<InvalidFqnUsage> link: invalidLinks){
-                final String msg = format(
-                        " Wrong link format found: %s on %s line in %s",
-                        link.get().getActualUsage(),
-                        link.get().getIndex(),
-                        file);
-                log().error(msg);
+            if (storage.getResults().keySet().size()>threshold) {
+                log().error(message);
+                logErrors(storage.getResults());
+                throw new InvalidFqnUsageException(file.toFile().getAbsolutePath(), message);
             }
-            //TODO:2017-03-17:alexander.aleksandrov: Made a possibility to chose a result of file check
-            throw new InvalidFqnUsageException(file.toFile()
-                                                   .getAbsolutePath(), message);
+        }
+    }
+
+    private static void logErrors(Map storage) {
+        Iterator it = storage.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<Path, List<Optional<InvalidFqnUsage>>> pair = (Map.Entry) it.next();
+            for (Optional<InvalidFqnUsage> link : pair.getValue()) {
+                if (link.isPresent()) {
+                    final String msg = format(
+                            " Wrong link format found: %s on %s line in %s",
+                            link.get().getActualUsage(),
+                            link.get().getIndex(),
+                            pair.getKey());
+                    log().error(msg);
+                }
+            }
+            it.remove(); // avoids a ConcurrentModificationException
         }
     }
 

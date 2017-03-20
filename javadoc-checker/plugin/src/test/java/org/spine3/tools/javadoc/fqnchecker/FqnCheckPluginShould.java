@@ -99,10 +99,10 @@ public class FqnCheckPluginShould {
                                                .toPath()
                                                .resolve(SOURCE_FOLDER);
         final Path wrongFqnFormat = Paths.get(testSources.toString() + "/WrongFQNformat.java");
-        final Path wrongMultipleFqnFormat = Paths.get(testSources.toString() + "/MultipleWrongFqnLinks.java");
+//        final Path wrongMultipleFqnFormat = Paths.get(testSources.toString() + "/MultipleWrongFqnLinks.java");
         FileUtils.copyDirectory(new File(resourceFolder), new File(testSources.toString()));
         Files.deleteIfExists(wrongFqnFormat);
-        Files.deleteIfExists(wrongMultipleFqnFormat);
+//        Files.deleteIfExists(wrongMultipleFqnFormat);
 
         BuildResult buildResult = GradleRunner.create()
                                               .withProjectDir(testProjectDir.getRoot())
