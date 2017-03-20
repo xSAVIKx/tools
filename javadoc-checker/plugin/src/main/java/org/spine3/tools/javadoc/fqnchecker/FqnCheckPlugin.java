@@ -59,7 +59,7 @@ public class FqnCheckPlugin extends SpinePlugin {
 
     private static final String DIRECTORY_TO_CHECK = "/src/main/java";
     private static CheckResultStorage storage = new CheckResultStorage();
-    private static int threshold = 10;
+    private static final int exceptionThreshold = 0;
 
     @Override
     public void apply(final Project project) {
@@ -157,9 +157,9 @@ public class FqnCheckPlugin extends SpinePlugin {
                     " Links with fully-qualified names should be in format {@link <FQN> <text>}" +
                             " or {@linkplain <FQN> <text>}.";
 
-            if (storage.getResults().keySet().size()>threshold) {
+            if (storage.getResults().keySet().size()> exceptionThreshold) {
                 log().error(message);
-                logErrors(storage.getResults());
+                logErrorsFrom(storage.getResults());
                 throw new InvalidFqnUsageException(file.toFile().getAbsolutePath(), message);
             }
         }
@@ -192,7 +192,7 @@ public class FqnCheckPlugin extends SpinePlugin {
         return Optional.absent();
     }
 
-    private static void logErrors(Map storage) {
+    private static void logErrorsFrom(Map storage) {
         Iterator it = storage.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<Path, List<Optional<InvalidFqnUsage>>> pair = (Map.Entry) it.next();

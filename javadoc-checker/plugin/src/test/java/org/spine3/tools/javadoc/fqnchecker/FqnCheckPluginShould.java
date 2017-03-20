@@ -48,7 +48,7 @@ public class FqnCheckPluginShould {
 
     private String resourceFolder = "";
     private static final String SOURCE_FOLDER = "src/main/java";
-    private final String checkFqnTask = TaskName.CHECK_FQN.getValue();
+    private final String checkJavadocLink = TaskName.CHECK_FQN.getValue();
 
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
@@ -87,7 +87,7 @@ public class FqnCheckPluginShould {
         BuildResult buildResult = GradleRunner.create()
                                               .withProjectDir(testProjectDir.getRoot())
                                               .withPluginClasspath()
-                                              .withArguments(checkFqnTask, "--debug")
+                                              .withArguments(checkJavadocLink, "--debug")
                                               .buildAndFail();
 
         assertTrue(buildResult.getOutput().contains("Wrong link format found"));
@@ -99,18 +99,18 @@ public class FqnCheckPluginShould {
                                                .toPath()
                                                .resolve(SOURCE_FOLDER);
         final Path wrongFqnFormat = Paths.get(testSources.toString() + "/WrongFQNformat.java");
-//        final Path wrongMultipleFqnFormat = Paths.get(testSources.toString() + "/MultipleWrongFqnLinks.java");
+        final Path wrongMultipleFqnFormat = Paths.get(testSources.toString() + "/MultipleWrongFqnLinks.java");
         FileUtils.copyDirectory(new File(resourceFolder), new File(testSources.toString()));
         Files.deleteIfExists(wrongFqnFormat);
-//        Files.deleteIfExists(wrongMultipleFqnFormat);
+        Files.deleteIfExists(wrongMultipleFqnFormat);
 
         BuildResult buildResult = GradleRunner.create()
                                               .withProjectDir(testProjectDir.getRoot())
                                               .withPluginClasspath()
-                                              .withArguments(checkFqnTask)
+                                              .withArguments(checkJavadocLink)
                                               .build();
 
-        final List<String> expected = Arrays.asList(":compileJava", ":checkFqn");
+        final List<String> expected = Arrays.asList(":compileJava", ":checkJavadocLink");
 
         assertEquals(expected, extractTasks(buildResult));
     }
