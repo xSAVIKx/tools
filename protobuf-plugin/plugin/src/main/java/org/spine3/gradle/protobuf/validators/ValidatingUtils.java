@@ -36,17 +36,18 @@ public class ValidatingUtils {
         // To prevent initialization.
     }
 
-    public static Class<?> getParameterClass(FieldDescriptorProto fieldDescriptor, MessageTypeCache messageTypeCache) {
-        String typeName = fieldDescriptor.getTypeName();
-        if (typeName.isEmpty()) {
-            return GenerationUtils.getType(fieldDescriptor.getType()
-                                                          .name());
-        }
-        typeName = typeName.substring(1);
-        final String parameterType = messageTypeCache.getCachedTypes()
-                                                     .get(typeName);
+    public static ClassName getParameterClass(FieldDescriptorProto fieldDescriptor,
+                                              MessageTypeCache messageTypeCache) {
         try {
-            return Class.forName(parameterType);
+            String typeName = fieldDescriptor.getTypeName();
+            if (typeName.isEmpty()) {
+                return ClassName.get(Class.forName(GenerationUtils.getType(fieldDescriptor.getType()
+                                                                                          .name())));
+            }
+            typeName = typeName.substring(1);
+            final String parameterType = messageTypeCache.getCachedTypes()
+                                                         .get(typeName);
+            return ClassName.get("", parameterType);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -57,22 +58,17 @@ public class ValidatingUtils {
         return builderClassName;
     }
 
-    public static Class<?> getValidatingBuilderGenericClass(String javaPackage,
-                                                            MessageTypeCache messageTypeCache,
-                                                            String descriptorName) {
+    public static ClassName getValidatingBuilderGenericClassName(String javaPackage,
+                                                                 MessageTypeCache messageTypeCache,
+                                                                 String descriptorName) {
         final Collection<String> values = messageTypeCache.getCachedTypes()
                                                           .values();
         final String expectedClassName = javaPackage + '.' + descriptorName;
         for (String value : values) {
             if (value.equals(expectedClassName)) {
-                try {
-                    return Class.forName(value);
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
+                return ClassName.get(javaPackage, descriptorName);
             }
         }
         throw new RuntimeException();
     }
-
 }

@@ -21,24 +21,15 @@
 package org.spine3.gradle.protobuf;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.protobuf.BoolValue;
-import com.google.protobuf.ByteString;
-import com.google.protobuf.DescriptorProtos;
-import com.google.protobuf.DoubleValue;
-import com.google.protobuf.FloatValue;
-import com.google.protobuf.Int32Value;
-import com.google.protobuf.Int64Value;
-import com.google.protobuf.StringValue;
-import com.google.protobuf.UInt32Value;
-import com.google.protobuf.UInt64Value;
-import org.spine3.change.Fixed32Change;
-import org.spine3.change.Fixed64Change;
-import org.spine3.change.SInt32Change;
-import org.spine3.change.SInt64Change;
-import org.spine3.change.Sfixed32Change;
-import org.spine3.change.Sfixed64Change;
+import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
 
 import java.util.Map;
+
+import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.BOOLEAN;
+import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.DOUBLE;
+import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.FLOAT;
+import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.INT;
+import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.LONG;
 
 public class GenerationUtils {
 
@@ -48,22 +39,22 @@ public class GenerationUtils {
 
     // https://developers.google.com/protocol-buffers/docs/proto3#scalar
     @SuppressWarnings({"DuplicateStringLiteralInspection", "ConstantConditions"})
-    private static final Map<String, Class<?>> PROTO_FIELD_TYPES = ImmutableMap.<String, Class<?>>builder()
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_DOUBLE.name(), double.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_FLOAT.name(), float.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT64.name(), long.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_UINT64.name(), long.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT32.name(), int.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_FIXED64.name(), long.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_FIXED32.name(), int.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_BOOL.name(), boolean.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING.name(), String.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_BYTES.name(), ByteString.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_UINT32.name(), int.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_SFIXED32.name(), int.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_SFIXED64.name(), long.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_SINT32.name(), int.class)
-            .put(DescriptorProtos.FieldDescriptorProto.Type.TYPE_SINT64.name(), int.class)
+    private static final Map<String, String> PROTO_FIELD_TYPES = ImmutableMap.<String, String>builder()
+            .put(Type.TYPE_DOUBLE.name(), DOUBLE.getName())
+            .put(Type.TYPE_FLOAT.name(), FLOAT.getName())
+            .put(Type.TYPE_INT64.name(), LONG.getName())
+            .put(Type.TYPE_UINT64.name(), LONG.getName())
+            .put(Type.TYPE_INT32.name(), INT.getName())
+            .put(Type.TYPE_FIXED64.name(), LONG.getName())
+            .put(Type.TYPE_FIXED32.name(), INT.getName())
+            .put(Type.TYPE_BOOL.name(), BOOLEAN.getName())
+            .put(Type.TYPE_STRING.name(), "java.lang.String")
+            .put(Type.TYPE_BYTES.name(), "com.google.protobuf.ByteString")
+            .put(Type.TYPE_UINT32.name(), INT.getName())
+            .put(Type.TYPE_SFIXED32.name(), INT.getName())
+            .put(Type.TYPE_SFIXED64.name(), LONG.getName())
+            .put(Type.TYPE_SINT32.name(), INT.getName())
+            .put(Type.TYPE_SINT64.name(), INT.getName())
 
             /*
              * Groups are NOT supported, so do not create an associated Java type for it.
@@ -74,7 +65,7 @@ public class GenerationUtils {
 
             .build();
 
-    public static Class<?> getType(String type) {
+    public static String getType(String type) {
         return PROTO_FIELD_TYPES.get(type);
     }
 
