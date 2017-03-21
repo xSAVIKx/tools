@@ -19,21 +19,37 @@
  */
 package org.spine3.gradle.protobuf.failures;
 
-import com.google.common.io.Files;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
+import com.google.protobuf.GeneratedMessageV3;
+import com.squareup.javapoet.AnnotationSpec;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spine3.gradle.protobuf.GenerationUtils;
+import org.spine3.base.CommandContext;
+import org.spine3.base.FailureThrowable;
+import org.spine3.gradle.protobuf.failures.fieldtype.FieldType;
+import org.spine3.gradle.protobuf.failures.fieldtype.FieldTypeFactory;
 
+import javax.annotation.Generated;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.Iterator;
+import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
+
+import static com.squareup.javapoet.MethodSpec.constructorBuilder;
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PUBLIC;
+import static javax.lang.model.element.Modifier.STATIC;
+import static org.spine3.gradle.protobuf.failures.FailureWriter.FailureThrowableCtorParams.COMMAND_CONTEXT;
+import static org.spine3.gradle.protobuf.failures.FailureWriter.FailureThrowableCtorParams.COMMAND_MESSAGE;
 
 /**
  * Class, which writes Failure java code, based on it's descriptor.
@@ -47,37 +63,35 @@ import java.util.Set;
 public class FailureWriter {
 
     private static final String COMMA_SEPARATOR = ", ";
-    private static final String PUBLIC_MEMBER = "\tpublic";
 
     private final DescriptorProto failureDescriptor;
-    private final File outputFile;
+    private final File outputDirectory;
     private final String javaPackage;
 
     private final String outerClassName;
     private final String className;
 
-    /** A map from Protobuf type name to Java class FQN. */
-    private final Map<String, String> messageTypeMap;
+    private final FieldTypeFactory fieldTypeFactory;
 
     /**
      * Creates a new instance.
      *
      * @param failureDescriptor {@link DescriptorProto} of failure's proto message
-     * @param outputFile        a {@link File} to write Failure code
+     * @param outputDirectory   a {@linkplain File directory} to write a Failure
      * @param javaPackage       Failure's java package
      * @param messageTypeMap    pre-scanned map with proto types and their appropriate Java classes
      */
     public FailureWriter(DescriptorProto failureDescriptor,
-                         File outputFile,
+                         File outputDirectory,
                          String javaPackage,
                          String javaOuterClassName,
                          Map<String, String> messageTypeMap) {
         this.failureDescriptor = failureDescriptor;
-        this.outputFile = outputFile;
+        this.outputDirectory = outputDirectory;
         this.javaPackage = javaPackage;
         this.outerClassName = javaOuterClassName;
         this.className = failureDescriptor.getName();
-        this.messageTypeMap = messageTypeMap;
+        this.fieldTypeFactory = new FieldTypeFactory(failureDescriptor, messageTypeMap);
     }
 
     /**
@@ -85,129 +99,152 @@ public class FailureWriter {
      */
     void write() {
         try {
-            log().debug("Writing the java class under {}", outputFile.getPath());
-            Files.createParentDirs(outputFile);
-            Files.touch(outputFile);
+            log().debug("Creating the output directory {}", outputDirectory.getPath());
+            Files.createDirectories(outputDirectory.toPath());
 
-            final FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-            final OutputStreamWriter writer = new OutputStreamWriter(fileOutputStream);
-            writePackage(writer);
-            readFieldValues();
-            writeImports(writer);
-            writeClassName(writer);
-            writeConstructor(writer);
-            writeGetFailure(writer);
-            writeEnding(writer);
-            writer.flush();
-            log().debug("File {} written successfully", outputFile.getPath());
-        } catch (@SuppressWarnings("OverlyBroadCatchBlock") IOException e) {
+            log().debug("Constructing {}", className);
+            final TypeSpec failure = TypeSpec.classBuilder(className)
+                                             .addAnnotation(constructGeneratedAnnotation())
+                                             .addModifiers(PUBLIC)
+                                             .superclass(FailureThrowable.class)
+                                             .addField(constructSerialVersionUID())
+                                             .addMethod(constructConstructor())
+                                             .addMethod(constructGetFailureMessage())
+                                             .build();
+            final JavaFile javaFile = JavaFile.builder(javaPackage, failure)
+                                              .build();
+            log().debug("Writing {}", className);
+            javaFile.writeTo(outputDirectory);
+            log().debug("Failure {} written successfully", className);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void writePackage(OutputStreamWriter writer) throws IOException {
-        log().debug("Writing the package");
-
-        writer.write("package " + javaPackage + ";\n\n");
-    }
-
-    private static void writeImports(OutputStreamWriter writer) throws IOException {
-        log().debug("Writing the imports");
-
-        writer.write("import org.spine3.base.FailureThrowable;\n");
-        writer.write("import com.google.protobuf.GeneratedMessageV3;\n");
-        writer.write("import org.spine3.base.CommandContext;\n");
-        writer.write("\n");
-    }
-
-    private void writeClassName(OutputStreamWriter writer) throws IOException {
-        log().debug("Writing {} class signature", className);
-
-        writer.write("@javax.annotation.Generated(\"by Spine compiler\")\n");
-        writer.write("public class " + className + " extends FailureThrowable {\n\n");
-
-        writer.write("\tprivate static final long serialVersionUID = 0L;\n\n");
-    }
-
-    private void writeGetFailure(OutputStreamWriter writer) throws IOException {
-        log().debug("Writing getFailure()");
-
-        writer.write("\n\t@Override\n");
-        writer.write(PUBLIC_MEMBER + ' ' + outerClassName + '.' + className + " getFailureMessage() {\n");
-        writer.write("\t\treturn (" + outerClassName + '.' + className + ") super.getFailureMessage();\n\t}\n");
-    }
-
-    @SuppressWarnings("MethodWithMultipleLoops")
-    private void writeConstructor(OutputStreamWriter writer) throws IOException {
-        log().debug("Writing the constructor");
-
-        writer.write(PUBLIC_MEMBER + ' ' + className + '(');
-
-        final String commandMsgCtorParam = "commandMessage";
-        final String commandContextCtorParam = "ctx";
-        writer.write("GeneratedMessageV3 " + commandMsgCtorParam + ", CommandContext " + commandContextCtorParam);
-
-        final Set<Map.Entry<String, String>> fieldsEntries = readFieldValues().entrySet();
-        if (!fieldsEntries.isEmpty()) {
-            writer.write(COMMA_SEPARATOR);
+    private MethodSpec constructConstructor() {
+        log().debug("Constructing the constructor of type '{}'", failureDescriptor.getName());
+        final MethodSpec.Builder builder = constructorBuilder()
+                .addModifiers(PUBLIC)
+                .addParameter(GeneratedMessageV3.class, COMMAND_MESSAGE.getName())
+                .addParameter(CommandContext.class, COMMAND_CONTEXT.getName());
+        for (Map.Entry<String, FieldType> field : readFieldValues().entrySet()) {
+            final TypeName parameterTypeName = field.getValue()
+                                                    .getTypeName();
+            final String parameterName = getJavaFieldName(field.getKey());
+            builder.addParameter(parameterTypeName, parameterName);
         }
 
-        final Iterator<Map.Entry<String, String>> iterator = fieldsEntries.iterator();
-        for (int i = 0; i < fieldsEntries.size(); i++) {
-            final Map.Entry<String, String> field = iterator.next();
-            writer.write(field.getValue() + ' ' + GenerationUtils.getJavaFieldName(field.getKey(), false));
-            final boolean isNotLast = i != (fieldsEntries.size() - 1);
-            if (isNotLast) {
-                writer.write(COMMA_SEPARATOR);
-            }
-        }
-        writer.write(") {\n");
-        writer.write("\t\tsuper(" + commandMsgCtorParam + COMMA_SEPARATOR +
-                             commandContextCtorParam + COMMA_SEPARATOR +
-                             outerClassName + '.' + className + ".newBuilder()");
-        for (Map.Entry<String, String> field : fieldsEntries) {
-            final String upperCaseName = GenerationUtils.getJavaFieldName(field.getKey(), true);
-            writer.write(".set" + upperCaseName + '(' + GenerationUtils.getJavaFieldName(field.getKey(), false) + ')');
-        }
-        writer.write(".build());\n");
-        writer.write("\t}\n");
+        return builder.addStatement(getSuperStatement())
+                      .build();
     }
 
-    @SuppressWarnings("MethodMayBeStatic")
-    private void writeEnding(OutputStreamWriter writer) throws IOException {
-        log().debug("Writing the file ending");
+    private String getSuperStatement() {
+        final StringBuilder superStatement = new StringBuilder(
+                "super(" + COMMAND_MESSAGE.getName() + COMMA_SEPARATOR
+                        + COMMAND_CONTEXT.getName() + COMMA_SEPARATOR
+                        + outerClassName + '.' + className + ".newBuilder()");
 
-        writer.write("}\n");
+        for (Map.Entry<String, FieldType> field : readFieldValues().entrySet()) {
+            final String upperCaseName = getJavaFieldCapitalizedName(field.getKey());
+            superStatement.append('.')
+                          .append(field.getValue()
+                                       .getSetterPrefix())
+                          .append(upperCaseName)
+                          .append('(')
+                          .append(getJavaFieldName(field.getKey()))
+                          .append(')');
+        }
+        superStatement.append(".build())");
+
+        return superStatement.toString();
+    }
+
+    private MethodSpec constructGetFailureMessage() {
+        log().debug("Constructing getFailureMessage()");
+
+        final TypeName returnTypeName = ClassName.get(outerClassName, className);
+        return MethodSpec.methodBuilder("getFailureMessage")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PUBLIC)
+                         .returns(returnTypeName)
+                         .addStatement("return (" + returnTypeName + ") super.getFailureMessage()")
+                         .build();
+    }
+
+    private static AnnotationSpec constructGeneratedAnnotation() {
+        return AnnotationSpec.builder(Generated.class)
+                             .addMember("value", "$S", "by Spine compiler")
+                             .build();
+    }
+
+    private static FieldSpec constructSerialVersionUID() {
+        return FieldSpec.builder(long.class, "serialVersionUID", PRIVATE, STATIC, FINAL)
+                        .initializer("0L")
+                        .build();
+    }
+
+    /**
+     * Transforms Protobuf-style field name into corresponding Java-style field name.
+     *
+     * <p>For example, seat_assignment_id -> seatAssignmentId
+     *
+     * @param protoFieldName Protobuf field name.
+     * @return a field name
+     */
+    private static String getJavaFieldName(String protoFieldName) {
+        final String[] words = protoFieldName.split("_");
+        final StringBuilder builder = new StringBuilder(words[0]);
+        for (int i = 1; i < words.length; i++) {
+            final String word = words[i];
+            builder.append(Character.toUpperCase(word.charAt(0)))
+                   .append(word.substring(1));
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Works like {@link #getJavaFieldName(String)}, but
+     * additionally capitalizes the first letter.
+     *
+     * @param protoFieldName Protobuf field name.
+     * @return a field name
+     */
+    private static String getJavaFieldCapitalizedName(String protoFieldName) {
+        final String javaFieldName = getJavaFieldName(protoFieldName);
+        return Character.toUpperCase(javaFieldName.charAt(0)) + javaFieldName.substring(1);
     }
 
     /**
      * Reads all descriptor fields.
      *
-     * @return name-to-value String map
+     * @return name-to-{@link FieldType} map
      */
-    private Map<String, String> readFieldValues() {
+    private Map<String, FieldType> readFieldValues() {
         log().debug("Reading all the field values from the descriptor: {}", failureDescriptor);
 
-        final Map<String, String> result = new LinkedHashMap<>();
+        final Map<String, FieldType> result = new LinkedHashMap<>();
         for (FieldDescriptorProto field : failureDescriptor.getFieldList()) {
-            final String value;
-            if (field.getType() == FieldDescriptorProto.Type.TYPE_MESSAGE ||
-                    field.getType() == FieldDescriptorProto.Type.TYPE_ENUM) {
-                String typeName = field.getTypeName();
-                // it has a redundant dot in the beginning
-                if (typeName.startsWith(".")) {
-                    typeName = typeName.substring(1);
-                }
-                value = messageTypeMap.get(typeName);
-            } else {
-                value = GenerationUtils.getType(field.getType()
-                                                     .name()).getName();
-            }
-            result.put(field.getName(), value);
+            result.put(field.getName(), fieldTypeFactory.create(field));
         }
         log().debug("Read fields: {}", result);
 
         return result;
+    }
+
+    enum FailureThrowableCtorParams {
+        COMMAND_MESSAGE("commandMessage"),
+        COMMAND_CONTEXT("commandContext"),
+        FAILURE_MESSAGE("failureMessage");
+
+        private final String name;
+
+        FailureThrowableCtorParams(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
     }
 
     private static Logger log() {

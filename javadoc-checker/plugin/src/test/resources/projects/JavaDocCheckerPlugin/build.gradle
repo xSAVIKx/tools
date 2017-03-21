@@ -1,0 +1,4 @@
+plugins {
+    id 'java'
+    id 'org.spine3.tools.javadoc-checker'
+}

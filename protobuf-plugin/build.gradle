@@ -1,12 +1,26 @@
+repositories {
+    maven { url = spineRepository }
+    maven { url = spineSnapshotRepository }
+}
+
+// Tests use the protobuf plugin.
+test {
+    dependsOn publishToMavenLocal
+    dependsOn project(':common').publishToMavenLocal
+}
+
 dependencies {
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
+    compile group: 'com.squareup', name: 'javapoet', version: '1.8.0'
+    compile group: 'com.google.guava', name: 'guava', version: guavaVersion
+    compile group: 'org.spine3', name: 'spine-client-core', version: spineVersion
+
     compile gradleApi()
 
     spineVersion = '0.8.222-SNAPSHOT'
 
     compile group: 'com.squareup', name: 'javapoet', version: '1.8.0'
-    compile group: 'com.google.guava', name: 'guava', version: guavaVersion
     compile "org.spine3:spine-server-core:$spineVersion"
-    compile "org.spine3:spine-client-core:$spineVersion"
 
     //todo: delete.
     compile group: 'com.google.protobuf', name: 'protobuf-java', version: '3.2.0'

@@ -1,5 +1,6 @@
 final SPINE_VERSION = '0.8.0'
 final PLUGIN_VERSION = '0.8.6-SNAPSHOT'
+
 final PLUGIN_PUBLISH_VERSION = '0.8.6-SNAPSHOT'
 
 buildscript {
@@ -28,7 +29,7 @@ ext {
     publishPlugin = "$rootDir/scripts/publish.gradle"
 
     credentialsPropertyFile = 'credentials.properties'
-    projectsToPublish = ['common', 'protobuf-plugin', 'reflections-plugin']
+    projectsToPublish = ['common', 'protobuf-plugin', 'reflections-plugin', 'javadoc-checker', 'javadoc']
 }
 
 subprojects {
@@ -62,6 +63,7 @@ subprojects {
         //Use jdk14 bindings for test purposes only.
         testCompile group: 'org.slf4j', name: 'slf4j-jdk14', version: slf4JVersion
         testCompile(group: 'junit', name: 'junit', version: jUnitVersion)
+        testCompile gradleTestKit()
     }
 
     final String SRC_DIR = "$projectDir/plugin/src"
