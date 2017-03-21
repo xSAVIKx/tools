@@ -21,9 +21,11 @@
 package org.spine3.gradle.protobuf.failures;
 
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
+import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.SourceCodeInfo.Location;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -35,7 +37,7 @@ import java.util.List;
  *
  * @author Dmytro Grankin
  * @see <a href="https://github.com/google/protobuf-gradle-plugin/blob/master/README.md#generate-descriptor-set-files">
- *     Protobuf plugin configuration</a>
+ * Protobuf plugin configuration</a>
  */
 public class FailureJavadocGenerator {
 
@@ -56,10 +58,10 @@ public class FailureJavadocGenerator {
     @SuppressWarnings("StringBufferWithoutInitialCapacity") // Cannot make valuable initialization
     public String generateClassJavadoc() {
         final String leadingComments = getFailureLeadingComments();
-        final StringBuilder javadoc = new StringBuilder();
+        final StringBuilder builder = new StringBuilder();
 
         if (leadingComments != null) {
-            javadoc.append("<pre>")
+            builder.append("<pre>")
                    .append(LINE_SEPARATOR)
                    .append(escapeJavadoc(leadingComments))
                    .append("</pre>")
@@ -67,32 +69,58 @@ public class FailureJavadocGenerator {
                    .append(LINE_SEPARATOR);
         }
 
-        javadoc.append("Failure based on protobuf type {@code ")
+        builder.append("Failure based on protobuf type {@code ")
                .append(failureInfo.getJavaPackage())
                .append('.')
                .append(failureInfo.getClassName())
                .append('}');
-        return javadoc.toString();
+        return builder.toString();
+    }
+
+    /**
+     * Generates a Javadoc content for the failure constructor.
+     *
+     * @return the constructor Javadoc content
+     */
+    public String generateConstructorJavadoc() {
+        final StringBuilder builder = new StringBuilder("Creates a new instance.");
+
+        builder.append(LINE_SEPARATOR)
+               .append(LINE_SEPARATOR);
+        for (FieldDescriptorProto field : failureInfo.getDescriptor()
+                                                     .getFieldList()) {
+            final String leadingComments = getFieldLeadingComments(field);
+            if (leadingComments != null) {
+                builder.append("@param ")
+                       .append(field.getName())
+                       .append(' ')
+                       .append(escapeJavadoc(leadingComments));
+            }
+        }
+
+        return builder.toString();
+    }
+
+    private String getFieldLeadingComments(FieldDescriptorProto field) {
+        final Collection<Integer> fieldPath = getFieldLocationPath(field);
+        return getLeadingComments(fieldPath);
     }
 
     private String getFailureLeadingComments() {
+        final Collection<Integer> path = getMessageLocationPath();
+        return getLeadingComments(path);
+    }
+
+    private String getLeadingComments(Collection<Integer> path) {
         if (!failureInfo.getFile()
                         .hasSourceCodeInfo()) {
             throw new IllegalStateException("Source code info should be enabled");
         }
 
-        final Collection<Integer> path = getMessageLocationPath();
-        for (Location location : failureInfo.getFile()
-                                            .getSourceCodeInfo()
-                                            .getLocationList()) {
-            if (location.getPathList()
-                        .equals(path)) {
-                return location.hasLeadingComments()
-                       ? location.getLeadingComments()
-                       : null;
-            }
-        }
-        return null;
+        final Location location = getLocation(path);
+        return location != null && location.hasLeadingComments()
+               ? location.getLeadingComments()
+               : null;
     }
 
     /**
@@ -109,6 +137,23 @@ public class FailureJavadocGenerator {
         );
     }
 
+    /**
+     * Returns the field location path.
+     *
+     * <p>Extensions are not supported.
+     *
+     * @param field the field to get location path
+     * @return the field location path
+     */
+    private Collection<Integer> getFieldLocationPath(FieldDescriptorProto field) {
+        final Collection<Integer> path = new ArrayList<>();
+
+        path.addAll(getMessageLocationPath());
+        path.add(DescriptorProto.FIELD_FIELD_NUMBER);
+        path.add(getFieldIndex(field));
+        return path;
+    }
+
     private int getTopLevelMessageIndex() {
         final List<DescriptorProto> messages = failureInfo.getFile()
                                                           .getMessageTypeList();
@@ -119,6 +164,25 @@ public class FailureJavadocGenerator {
         }
 
         throw new IllegalStateException("The failure file must contains the failure.");
+    }
+
+    private int getFieldIndex(FieldDescriptorProto field) {
+        return failureInfo.getDescriptor()
+                          .getFieldList()
+                          .indexOf(field);
+    }
+
+    private Location getLocation(Collection<Integer> path) {
+        for (Location location : failureInfo.getFile()
+                                            .getSourceCodeInfo()
+                                            .getLocationList()) {
+            if (location.getPathList()
+                        .equals(path)) {
+                return location;
+            }
+        }
+
+        return null;
     }
 
     private static String escapeJavadoc(CharSequence javadoc) {

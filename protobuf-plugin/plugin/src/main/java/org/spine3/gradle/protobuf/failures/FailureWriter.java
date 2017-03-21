@@ -95,13 +95,13 @@ public class FailureWriter {
 
             log().debug("Constructing {}", failureInfo.getClassName());
             final TypeSpec failure = TypeSpec.classBuilder(failureInfo.getClassName())
+                                             .addJavadoc(javadocGenerator.generateClassJavadoc())
                                              .addAnnotation(constructGeneratedAnnotation())
                                              .addModifiers(PUBLIC)
                                              .superclass(FailureThrowable.class)
                                              .addField(constructSerialVersionUID())
                                              .addMethod(constructConstructor())
                                              .addMethod(constructGetFailureMessage())
-                                             .addJavadoc(javadocGenerator.generateClassJavadoc())
                                              .build();
             final JavaFile javaFile = JavaFile.builder(failureInfo.getJavaPackage(), failure)
                                               .build();
@@ -117,6 +117,7 @@ public class FailureWriter {
         log().debug("Constructing the constructor of type '{}'", failureInfo.getDescriptor()
                                                                             .getName());
         final MethodSpec.Builder builder = constructorBuilder()
+                .addJavadoc(javadocGenerator.generateConstructorJavadoc())
                 .addModifiers(PUBLIC)
                 .addParameter(GeneratedMessageV3.class, COMMAND_MESSAGE.getName())
                 .addParameter(CommandContext.class, COMMAND_CONTEXT.getName());
