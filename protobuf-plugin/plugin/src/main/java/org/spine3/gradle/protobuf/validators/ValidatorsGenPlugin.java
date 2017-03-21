@@ -40,9 +40,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
-import static org.gradle.internal.impldep.com.beust.jcommander.internal.Lists.newArrayList;
-import static org.gradle.internal.impldep.com.beust.jcommander.internal.Maps.newHashMap;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
 import static org.spine3.gradle.TaskName.COMPILE_TEST_JAVA;
 import static org.spine3.gradle.TaskName.GENERATE_PROTO;
@@ -92,11 +92,11 @@ public class ValidatorsGenPlugin extends SpinePlugin {
 
         //TODO:2017-02-28:illiashepilov: Remove when implementation will be finished.
         //test
-        final String hardCodedPath = "/Users/illiashepilov/Projects/spine/tools/protobuf-plugin/build/descriptors/main.desc";
-        final Set<WriterDto> dtos = process(hardCodedPath);
-        for (WriterDto dto : dtos) {
-            new ValidatorWriter(dto, messageTypeCache).write();
-        }
+//        final String hardCodedPath = "/Users/illiashepilov/Projects/spine/tools/protobuf-plugin/build/descriptors/main.desc";
+//        final Set<WriterDto> dtos = process(hardCodedPath);
+//        for (WriterDto dto : dtos) {
+//            new ValidatorWriter(dto, messageTypeCache).write();
+//        }
         /////////////////
     }
 
@@ -176,8 +176,8 @@ public class ValidatorsGenPlugin extends SpinePlugin {
 
     private List<FileDescriptorProto> getCommandProtoFileDescriptors(String descFilePath) {
         final List<FileDescriptorProto> result = new LinkedList<>();
-        final DescriptorSetUtil.IsNotGoogleProto protoFilter = new DescriptorSetUtil.IsNotGoogleProto();
-        final Collection<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath, protoFilter);
+        log().debug(String.format("Obtaining file descriptors by %s path", descFilePath));
+        final Collection<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath);
         for (FileDescriptorProto file : allDescriptors) {
             final boolean isCommandFile = file.getName()
                                               .endsWith("commands.proto");
