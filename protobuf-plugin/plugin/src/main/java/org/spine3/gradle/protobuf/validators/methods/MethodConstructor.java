@@ -20,6 +20,8 @@
 
 package org.spine3.gradle.protobuf.validators.methods;
 
+import com.squareup.javapoet.ClassName;
+
 /**
  * @author Illia Shepilov
  */
@@ -41,8 +43,8 @@ abstract class MethodConstructor {
         return result;
     }
 
-    String createDescriptorCodeLine(int index, Class<?> builderGenericClass) {
-        final String result = "final $T fieldDescriptor = " + builderGenericClass.getName() +
+    String createDescriptorCodeLine(int index, ClassName builderGenericClassName) {
+        final String result = "final $T fieldDescriptor = " + builderGenericClassName +
                 ".getDescriptor().getFields().get(" + index + ')';
         return result;
     }
