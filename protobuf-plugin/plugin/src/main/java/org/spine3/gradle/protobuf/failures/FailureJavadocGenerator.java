@@ -44,8 +44,6 @@ public class FailureJavadocGenerator {
         this.failureInfo = failureInfo;
     }
 
-    //TODO:2017-03-17:dmytro.grankin: escape HTML in Javadoc
-
     /**
      * Generates a Javadoc content for the failure in the proto compiler style.
      *
@@ -59,7 +57,7 @@ public class FailureJavadocGenerator {
         if (leadingComments != null) {
             javadoc.append("<pre>")
                    .append(LINE_SEPARATOR)
-                   .append(leadingComments)
+                   .append(escapeJavadoc(leadingComments))
                    .append("</pre>")
                    .append(LINE_SEPARATOR)
                    .append(LINE_SEPARATOR);
@@ -118,5 +116,69 @@ public class FailureJavadocGenerator {
         }
 
         throw new IllegalStateException("The failure file must contains the failure.");
+    }
+
+    private static String escapeJavadoc(CharSequence javadoc) {
+        final StringBuilder builder = new StringBuilder(javadoc.length() * 2);
+
+        char prevSymbol = '*';
+        char current;
+        for (int i = 0; i < javadoc.length(); i++) {
+            current = javadoc.charAt(i);
+            builder.append(EscapedSymbols.escape(current, prevSymbol));
+            prevSymbol = current;
+        }
+
+        return builder.toString();
+    }
+
+    // Used in implicit form.
+    @SuppressWarnings("unused")
+    enum EscapedSymbols {
+        ASTERISK('*', "&#42;"),     // Only "*/" should be avoided.
+        SLASH('/', "&#47;"),        // Only "/*" should be avoided.
+        BACK_SLASH('\\', "&#92;"),
+        AT_MARK('@', "&#64;"),
+        AMPERSAND('&', "&amp;"),
+        LESS_THAN('<', "&lt;"),
+        GREATER_THAN('>', "&gt;");
+
+        private final char ch;
+        private final String escapedVersion;
+
+        EscapedSymbols(char ch, String escapedVersion) {
+            this.ch = ch;
+            this.escapedVersion = escapedVersion;
+        }
+
+        public char getCharacter() {
+            return ch;
+        }
+
+        public String getEscapedVersion() {
+            return escapedVersion;
+        }
+
+        public static String escape(char current, char previous) {
+            for (EscapedSymbols escapedSymbol : EscapedSymbols.values()) {
+                if (escapedSymbol.getCharacter() == current) {
+                    if (isAsteriskNotCommentBeginningPart(escapedSymbol, previous)
+                            || isSlashNotCommentEndingPart(escapedSymbol, previous)) {
+                        return String.valueOf(current);
+                    }
+                    return escapedSymbol.getEscapedVersion();
+                }
+            }
+            return String.valueOf(current);
+        }
+
+        private static boolean isAsteriskNotCommentBeginningPart(EscapedSymbols current,
+                                                                 char previous) {
+            return current == ASTERISK && previous != SLASH.getCharacter();
+        }
+
+        private static boolean isSlashNotCommentEndingPart(EscapedSymbols current, char previous) {
+            return current == SLASH && previous != ASTERISK.getCharacter();
+        }
     }
 }
