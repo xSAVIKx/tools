@@ -208,9 +208,8 @@ public class FailureJavadocGenerator {
         final StringBuilder builder = new StringBuilder(javadoc.length() * 2);
 
         char prevSymbol = '*';
-        char current;
         for (int i = 0; i < javadoc.length(); i++) {
-            current = javadoc.charAt(i);
+            final char current = javadoc.charAt(i);
             builder.append(EscapedSymbols.escape(current, prevSymbol));
             prevSymbol = current;
         }
