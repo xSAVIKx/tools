@@ -20,6 +20,7 @@
 
 package org.spine3.gradle.protobuf.failures;
 
+import com.google.common.base.Strings;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
@@ -73,7 +74,8 @@ public class FailureJavadocGenerator {
                .append(failureInfo.getJavaPackage())
                .append('.')
                .append(failureInfo.getClassName())
-               .append('}');
+               .append('}')
+               .append(LINE_SEPARATOR);
         return builder.toString();
     }
 
@@ -84,16 +86,19 @@ public class FailureJavadocGenerator {
      */
     public String generateConstructorJavadoc() {
         final StringBuilder builder = new StringBuilder("Creates a new instance.");
+        final int maxFieldLength = getMaxFieldNameLength();
 
         builder.append(LINE_SEPARATOR)
                .append(LINE_SEPARATOR);
         for (FieldDescriptorProto field : failureInfo.getDescriptor()
                                                      .getFieldList()) {
             final String leadingComments = getFieldLeadingComments(field);
+            final String fieldName = field.getName();
+            final int commentOffset = maxFieldLength - fieldName.length();
             if (leadingComments != null) {
                 builder.append("@param ")
-                       .append(field.getName())
-                       .append(' ')
+                       .append(fieldName)
+                       .append(Strings.repeat(" ", commentOffset))
                        .append(escapeJavadoc(leadingComments));
             }
         }
@@ -183,6 +188,20 @@ public class FailureJavadocGenerator {
         }
 
         return null;
+    }
+
+    private int getMaxFieldNameLength() {
+        int maxLength = Integer.MIN_VALUE;
+        for (FieldDescriptorProto field : failureInfo.getDescriptor()
+                                                     .getFieldList()) {
+            final int nameLength = field.getName()
+                                        .length();
+            if (nameLength > maxLength) {
+                maxLength = nameLength;
+            }
+        }
+
+        return maxLength;
     }
 
     private static String escapeJavadoc(CharSequence javadoc) {
