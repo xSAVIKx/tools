@@ -57,9 +57,9 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
     private final int fieldIndex;
     private final String methodPartName;
     private final ClassName builderClass;
-    private final Class<?> parameterClass;
+    private final ClassName parameterClassName;
     private final String javaFieldName;
-    private final Class<?> builderGenericClass;
+    private final ClassName builderGenericClass;
 
     public RepeatedFieldMethodsConstructor(RepeatedFieldMethodsConstructorBuilder builder) {
         this.fieldDescriptor = builder.fieldDescriptor;
@@ -68,7 +68,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
         methodPartName = getJavaFieldName(fieldDescriptor.getName(), true);
         javaFieldName = getJavaFieldName(fieldDescriptor.getName(), false);
         builderClass = getBuilderClassName(builder.javaPackage, builder.javaClass);
-        parameterClass = getParameterClass(fieldDescriptor, builder.messageTypeCache);
+        parameterClassName = getParameterClass(fieldDescriptor, builder.messageTypeCache);
     }
 
     public Collection<MethodSpec> construct() {
@@ -115,8 +115,8 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
                                             .addException(ConversionException.class)
                                             .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(createGetConvertedSingularValue(),
-                                                          parameterClass,
-                                                          parameterClass)
+                                                          parameterClassName,
+                                                          parameterClassName)
                                             .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
                                             .addStatement(createValidateConvertedValueStatement(),
                                                           fieldDescriptor.getName())
@@ -139,8 +139,8 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
                                             .addException(ConversionException.class)
                                             .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(createGetConvertedSingularValue(),
-                                                          parameterClass,
-                                                          parameterClass)
+                                                          parameterClassName,
+                                                          parameterClassName)
                                             .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
                                             .addStatement(createValidateConvertedValueStatement(),
                                                           fieldDescriptor.getName())
@@ -163,10 +163,10 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
                                             .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(createGetConvertedPluralValue(),
                                                           List.class,
-                                                          parameterClass,
+                                                          parameterClassName,
                                                           TypeToken.class,
                                                           List.class,
-                                                          parameterClass)
+                                                          parameterClassName)
                                             .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
                                             .addStatement(createValidateConvertedValueStatement(),
                                                           fieldDescriptor.getName())
@@ -179,7 +179,8 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
     private MethodSpec createAddAllMethod() {
         final String methodName = getJavaFieldName(ADD_ALL_PREFIX + methodPartName, false);
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClass);
-        final ParameterizedTypeName parameter = ParameterizedTypeName.get(List.class, parameterClass);
+        final ClassName rawType = ClassName.get(List.class);
+        final ParameterizedTypeName parameter = ParameterizedTypeName.get(rawType, parameterClassName);
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClass)
                                             .addModifiers(Modifier.PUBLIC)
@@ -203,7 +204,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClass)
                                             .addModifiers(Modifier.PUBLIC)
-                                            .addParameter(parameterClass, VALUE)
+                                            .addParameter(parameterClassName, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
                                             .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
@@ -222,7 +223,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
                                             .returns(builderClass)
                                             .addModifiers(Modifier.PUBLIC)
                                             .addParameter(int.class, INDEX)
-                                            .addParameter(parameterClass, VALUE)
+                                            .addParameter(parameterClassName, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
                                             .addStatement(javaFieldName + ".add(index, value)")
                                             .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
@@ -238,7 +239,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
         final MethodSpec result = MethodSpec.methodBuilder(removeMethodName)
                                             .addModifiers(Modifier.PUBLIC)
                                             .returns(builderClass)
-                                            .addParameter(parameterClass, VALUE)
+                                            .addParameter(parameterClassName, VALUE)
                                             .addStatement(javaFieldName + ".remove(value)")
                                             .addStatement(RETURN_THIS)
                                             .build();
@@ -290,7 +291,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
         private String javaClass;
         private MessageTypeCache messageTypeCache;
         private FieldDescriptorProto fieldDescriptor;
-        private Class<?> builderGenericClass;
+        private ClassName builderGenericClass;
         private int fieldIndex;
 
         public RepeatedFieldMethodsConstructorBuilder setFieldIndex(int fieldIndex) {
@@ -323,8 +324,8 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
             return this;
         }
 
-        public RepeatedFieldMethodsConstructorBuilder setBuilderGenericClass(Class<?> builderGenericClass) {
-            this.builderGenericClass = builderGenericClass;
+        public RepeatedFieldMethodsConstructorBuilder setBuilderGenericClass(ClassName builderGenericClassName) {
+            this.builderGenericClass = builderGenericClassName;
             return this;
         }
 

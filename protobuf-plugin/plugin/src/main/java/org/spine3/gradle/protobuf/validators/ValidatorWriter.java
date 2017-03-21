@@ -48,7 +48,7 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_ALL_PREF
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.SETTER_PREFIX;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatingBuilderGenericClass;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatingBuilderGenericClassName;
 
 /**
  * Class, which writes Validator java code, based on it's descriptor.
@@ -57,21 +57,21 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatin
  */
 class ValidatorWriter {
 
-    private static final String ROOT_FOLDER = "tools/validators-gen-plugin/generated/main/java/";
+    private static final String ROOT_FOLDER = "validators-gen-sample/generated/main/java/";
     private static final String REPEATED_FIELD_LABEL = "LABEL_REPEATED";
 
     private final String javaClass;
     private final String javaPackage;
     private final DescriptorProto descriptor;
     private final MessageTypeCache messageTypeCache;
-    private final Class<?> builderGenericClass;
+    private final ClassName builderGenericClassName;
 
     ValidatorWriter(WriterDto writerDto, MessageTypeCache messageTypeCache) {
         this.javaClass = writerDto.getJavaClass();
         this.javaPackage = writerDto.getJavaPackage();
         this.descriptor = writerDto.getMsgDescriptor();
         this.messageTypeCache = messageTypeCache;
-        builderGenericClass = getValidatingBuilderGenericClass(javaPackage, messageTypeCache, descriptor.getName());
+        builderGenericClassName = getValidatingBuilderGenericClassName(javaPackage, messageTypeCache, descriptor.getName());
     }
 
     void write() {
@@ -122,7 +122,7 @@ class ValidatorWriter {
                                                                      .setFieldIndex(index)
                                                                      .setJavaClass(javaClass)
                                                                      .setJavaPackage(javaPackage)
-                                                                     .setBuilderGenericClass(builderGenericClass)
+                                                                     .setBuilderGenericClassName(builderGenericClassName)
                                                                      .setMessageTypeCache(messageTypeCache)
                                                                      .build();
             final Collection<MethodSpec> methods = constructor.construct();
@@ -151,8 +151,9 @@ class ValidatorWriter {
         }
 
         private FieldSpec constructRepeatedField() {
+            final ClassName rawType = ClassName.get(List.class);
             final ParameterizedTypeName param =
-                    ParameterizedTypeName.get(List.class, getParameterClass(fieldDescriptor, messageTypeCache));
+                    ParameterizedTypeName.get(rawType, getParameterClass(fieldDescriptor, messageTypeCache));
             final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
             return FieldSpec.builder(param, fieldName, Modifier.PRIVATE)
                             .build();
@@ -160,7 +161,7 @@ class ValidatorWriter {
 
         private FieldSpec constructField() {
             final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
-            final Class<?> fieldClass = getParameterClass(fieldDescriptor, messageTypeCache);
+            final ClassName fieldClass = getParameterClass(fieldDescriptor, messageTypeCache);
             final FieldSpec result = FieldSpec.builder(fieldClass, fieldName, Modifier.PRIVATE)
                                               .build();
             return result;
@@ -180,7 +181,7 @@ class ValidatorWriter {
                                                        .setFieldIndex(fieldIndex)
                                                        .setJavaClass(javaClass)
                                                        .setJavaPackage(javaPackage)
-                                                       .setBuilderGenericClass(builderGenericClass)
+                                                       .setBuilderGenericClass(builderGenericClassName)
                                                        .setMessageTypeCache(messageTypeCache)
                                                        .build();
                 final Collection<MethodSpec> repeatedFieldMethods = constructor.construct();
@@ -211,10 +212,10 @@ class ValidatorWriter {
 
         final MethodSpec buildMethod = MethodSpec.methodBuilder("build")
                                                  .addModifiers(Modifier.PUBLIC)
-                                                 .returns(builderGenericClass)
+                                                 .returns(builderGenericClassName)
                                                  .addStatement(builder.toString(),
-                                                               builderGenericClass,
-                                                               builderGenericClass)
+                                                               builderGenericClassName,
+                                                               builderGenericClassName)
                                                  .addStatement("return result")
                                                  .build();
         return buildMethod;
@@ -256,8 +257,9 @@ class ValidatorWriter {
     }
 
     private TypeSpec.Builder addMethods(TypeSpec.Builder builder, Iterable<MethodSpec> methodSpecs) {
+        final ClassName abstractBuilderTypeName = ClassName.get(AbstractValidatingBuilder.class);
         final ParameterizedTypeName superClass =
-                ParameterizedTypeName.get(AbstractValidatingBuilder.class, builderGenericClass);
+                ParameterizedTypeName.get(abstractBuilderTypeName, builderGenericClassName);
         builder.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                .superclass(superClass)
                .addMethods(methodSpecs);
