@@ -3,9 +3,9 @@ package org.spine3.sample.map.types;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import org.junit.Test;
-import org.spine3.protobuf.KnownTypes;
-import org.spine3.protobuf.TypeUrl;
 import org.spine3.type.ClassName;
+import org.spine3.type.KnownTypes;
+import org.spine3.type.TypeUrl;
 
 import static org.junit.Assert.assertEquals;
 
@@ -99,7 +99,7 @@ public class ProtoToJavaMapperPluginShould {
     }
 
     private static void assertIsKnownType(String protoTypeName, String javaClassName) {
-        final TypeUrl url = TypeUrl.of(PROTO_TYPE_PREFIX + protoTypeName);
+        final TypeUrl url = TypeUrl.parse(PROTO_TYPE_PREFIX + protoTypeName);
         final ClassName className = KnownTypes.getClassName(url);
 
         assertEquals(JAVA_PACKAGE_PREFIX + javaClassName, className.value());
@@ -112,7 +112,7 @@ public class ProtoToJavaMapperPluginShould {
     private static void assertIsKnownType(Iterable<String> parentsAndTypeName) {
         final String protoName = Joiner.on(".").join(parentsAndTypeName);
         final String javaName = Joiner.on("$").join(parentsAndTypeName);
-        final TypeUrl url = TypeUrl.of(PROTO_TYPE_PREFIX + protoName);
+        final TypeUrl url = TypeUrl.parse(PROTO_TYPE_PREFIX + protoName);
 
         final ClassName className = KnownTypes.getClassName(url);
 
