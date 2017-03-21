@@ -23,7 +23,7 @@ package org.spine3.gradle.protobuf.failures.fieldtype;
  * Enumeration of the java primitives, which
  * can be received from proto message.
  */
-enum ProtoPrimitives {
+public enum ProtoPrimitives {
     INT("int"),
     LONG("long"),
     FLOAT("float"),
