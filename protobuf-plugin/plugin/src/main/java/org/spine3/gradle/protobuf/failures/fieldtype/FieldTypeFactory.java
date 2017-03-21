@@ -56,7 +56,7 @@ public class FieldTypeFactory {
             .put(Type.TYPE_FIXED64.name(), LONG.getName())
             .put(Type.TYPE_FIXED32.name(), INT.getName())
             .put(Type.TYPE_BOOL.name(), BOOLEAN.getName())
-            .put(Type.TYPE_STRING.name(), "String")
+            .put(Type.TYPE_STRING.name(), "java.lang.String")
             .put(Type.TYPE_BYTES.name(), "com.google.protobuf.ByteString")
             .put(Type.TYPE_UINT32.name(), INT.getName())
             .put(Type.TYPE_SFIXED32.name(), INT.getName())
