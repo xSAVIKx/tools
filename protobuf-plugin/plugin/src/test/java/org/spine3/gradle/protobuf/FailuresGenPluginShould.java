@@ -20,12 +20,14 @@
 
 package org.spine3.gradle.protobuf;
 
+import com.sun.javadoc.ClassDoc;
+import com.sun.javadoc.ConstructorDoc;
+import com.sun.javadoc.RootDoc;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.ResultHandler;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -34,10 +36,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-import static java.lang.Thread.sleep;
 import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertEquals;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
 
 /**
@@ -49,23 +52,12 @@ public class FailuresGenPluginShould {
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
-    @Before
-    public void setUpTestProject() throws IOException {
-        writeFile("build.gradle");
-        writeProto("test_failures.proto");
-        writeProto("outer_class_by_file_name_failures.proto");
-        writeProto("outer_class_set_failures.proto");
-        writeProto("deps/deps.proto");
-    }
-
-    @SuppressWarnings("BusyWait") // Wait until async run is completed.
     @Test
     public void compile_generated_failures() throws Exception {
-        final AtomicBoolean testCompleted = new AtomicBoolean(false);
+        final CountDownLatch countDownLatch = new CountDownLatch(1);
 
-        final GradleConnector connector = GradleConnector.newConnector();
-        connector.forProjectDirectory(testProjectDir.getRoot());
-        final ProjectConnection connection = connector.connect();
+        setUpFailuresGenPluginTestProject();
+        final ProjectConnection connection = createProjectConnection();
         final BuildLauncher launcher = connection.newBuild();
 
         launcher.forTasks(
@@ -76,7 +68,7 @@ public class FailuresGenPluginShould {
                 @Override
                 public void onComplete(Void aVoid) {
                     // Test passed.
-                    testCompleted.set(true);
+                    countDownLatch.countDown();
                 }
 
                 @SuppressWarnings("CallToPrintStackTrace") // Used for easier debugging.
@@ -90,25 +82,103 @@ public class FailuresGenPluginShould {
             connection.close();
         }
 
-        while (!testCompleted.get()) {
-            sleep(100);
-        }
+        countDownLatch.await(100, TimeUnit.MILLISECONDS);
     }
 
-    private void writeFile(String file) throws IOException {
+    @Test
+    public void generate_failure_javadoc() throws Exception {
+        final CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        setUpFailuresJavadocTestProject();
+        final ProjectConnection connection = createProjectConnection();
+        final BuildLauncher launcher = connection.newBuild();
+
+        launcher.forTasks(
+                COMPILE_JAVA.getValue()
+        );
+        try {
+            launcher.run(new ResultHandler<Void>() {
+                @Override
+                public void onComplete(Void aVoid) {
+                    final String sourceToTest = "/generated/main/spine/org/spine3/sample/failures/Failure.java";
+                    final RootDoc root = RootDocReceiver.getRootDoc(testProjectDir, sourceToTest);
+                    final ClassDoc failureDoc = root.classes()[0];
+                    final ConstructorDoc failureCtorDoc = failureDoc.constructors()[0];
+
+                    final String lineSeparator = "\n";
+
+                    final String expectedClassComment = "<pre>" + lineSeparator
+                            + "  The failure definition to test Javadoc generation." + lineSeparator
+                            + " </pre>" + lineSeparator + lineSeparator
+                            + " Failure based on protobuf type {@code org.spine3.sample.failures.Failure}";
+                    final String expectedCtorComment = " Creates a new instance." + lineSeparator + lineSeparator
+                            + " @param id      the failure id" + lineSeparator
+                            + " @param message the failure message" + lineSeparator;
+
+                    assertEquals(expectedClassComment, failureDoc.commentText());
+                    assertEquals(expectedCtorComment, failureCtorDoc.getRawCommentText());
+
+                    countDownLatch.countDown();
+                }
+
+                @SuppressWarnings("CallToPrintStackTrace") // Used for easier debugging.
+                @Override
+                public void onFailure(GradleConnectionException e) {
+                    e.printStackTrace();
+                    fail("Sources compilation failed");
+                }
+            });
+        } finally {
+            connection.close();
+        }
+
+        countDownLatch.await(100, TimeUnit.MILLISECONDS);
+    }
+
+    private ProjectConnection createProjectConnection() {
+        final GradleConnector connector = GradleConnector.newConnector();
+        connector.forProjectDirectory(testProjectDir.getRoot());
+        return connector.connect();
+    }
+
+    private void setUpFailuresGenPluginTestProject() throws IOException {
         final String projectName = "failures-gen-plugin-test/";
+        writeCommonBuildGradle();
+        writeProto(projectName, "test_failures.proto");
+        writeProto(projectName, "outer_class_by_file_name_failures.proto");
+        writeProto(projectName, "outer_class_set_failures.proto");
+        writeProto(projectName, "deps/deps.proto");
+    }
+
+    private void setUpFailuresJavadocTestProject() throws IOException {
+        final String projectName = "failures-javadoc-test/";
+        writeCommonBuildGradle();
+        writeProto(projectName, "javadoc_failures.proto");
+    }
+
+    private void writeCommonBuildGradle() throws IOException {
+        final String commonBuildGradleName = "build.gradle";
         final Path resultingPath = testProjectDir.getRoot()
                                                  .toPath()
-                                                 .resolve(file);
+                                                 .resolve(commonBuildGradleName);
         final InputStream fileContent = getClass().getClassLoader()
-                                                  .getResourceAsStream(projectName + file);
+                                                  .getResourceAsStream(commonBuildGradleName);
 
         Files.createDirectories(resultingPath.getParent());
         Files.copy(fileContent, resultingPath);
     }
 
-    private void writeProto(String protoFile) throws IOException {
+    private void writeProto(String projectName, String protoFile) throws IOException {
         final String baseProtoLocation = "src/main/proto/spine/sample/failures/";
-        writeFile(baseProtoLocation + protoFile);
+        final String protoFilePath = baseProtoLocation + protoFile;
+
+        final Path resultingPath = testProjectDir.getRoot()
+                                                 .toPath()
+                                                 .resolve(protoFilePath);
+        final InputStream fileContent = getClass().getClassLoader()
+                                                  .getResourceAsStream(projectName + protoFilePath);
+
+        Files.createDirectories(resultingPath.getParent());
+        Files.copy(fileContent, resultingPath);
     }
 }

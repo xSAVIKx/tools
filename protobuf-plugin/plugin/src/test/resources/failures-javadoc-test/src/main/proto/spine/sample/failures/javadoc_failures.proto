@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package spine.sample.failures;
+
+option java_package = "org.spine3.sample.failures";
+option java_multiple_files = false;
+
+// The failure definition to test Javadoc generation.
+message Failure {
+
+    // the failure id
+    int32 id = 1;
+
+    // the failure message
+    string message = 2;
+}

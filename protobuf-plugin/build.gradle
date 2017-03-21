@@ -16,4 +16,6 @@ dependencies {
     compile group: 'org.spine3', name: 'spine-client-core', version: spineVersion
 
     compile project(path: ":common")
+
+    testCompile files("${System.properties['java.home']}/../lib/tools.jar")
 }
