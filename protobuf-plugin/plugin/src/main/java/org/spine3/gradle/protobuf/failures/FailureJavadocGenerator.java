@@ -31,7 +31,11 @@ import java.util.List;
 /**
  * A Generator for the failure Javadocs content.
  *
+ * <p>Could be used only if "descriptorSetOptions.includeSourceInfo = true"
+ *
  * @author Dmytro Grankin
+ * @see <a href="https://github.com/google/protobuf-gradle-plugin/blob/master/README.md#generate-descriptor-set-files">
+ *     Protobuf plugin configuration</a>
  */
 public class FailureJavadocGenerator {
 
@@ -45,13 +49,13 @@ public class FailureJavadocGenerator {
     }
 
     /**
-     * Generates a Javadoc content for the failure in the proto compiler style.
+     * Generates a Javadoc content for the failure.
      *
      * @return the class-level Javadoc content
      */
     @SuppressWarnings("StringBufferWithoutInitialCapacity") // Cannot make valuable initialization
     public String generateClassJavadoc() {
-        final String leadingComments = getLeadingComment();
+        final String leadingComments = getFailureLeadingComments();
         final StringBuilder javadoc = new StringBuilder();
 
         if (leadingComments != null) {
@@ -63,16 +67,15 @@ public class FailureJavadocGenerator {
                    .append(LINE_SEPARATOR);
         }
 
-        javadoc.append("Protobuf type {@code ")
+        javadoc.append("Failure based on protobuf type {@code ")
                .append(failureInfo.getJavaPackage())
-               .append(failureInfo.getOuterClassName())
                .append('.')
                .append(failureInfo.getClassName())
                .append('}');
         return javadoc.toString();
     }
 
-    private String getLeadingComment() {
+    private String getFailureLeadingComments() {
         if (!failureInfo.getFile()
                         .hasSourceCodeInfo()) {
             throw new IllegalStateException("Source code info should be enabled");
