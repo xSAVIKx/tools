@@ -20,6 +20,7 @@
 
 package org.spine3.gradle.protobuf.validators;
 
+import com.google.common.io.Files;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.squareup.javapoet.ClassName;
@@ -56,7 +57,7 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatin
  */
 class ValidatorWriter {
 
-    private static final String ROOT_FOLDER = "generated/main/java/";
+    private static final String ROOT_FOLDER = "tools/validators-gen-plugin/generated/main/java/";
     private static final String REPEATED_FIELD_LABEL = "LABEL_REPEATED";
 
     private final String javaClass;
@@ -74,8 +75,9 @@ class ValidatorWriter {
     }
 
     void write() {
-        log().debug("Writing the %s under %s", javaClass, javaPackage);
+        log().debug(String.format("Writing the %s under %s", javaClass, javaPackage));
         final File rootDirectory = new File(ROOT_FOLDER);
+
         final List<MethodSpec> methods = newArrayList();
 
         final MethodSpec constructor = createConstructor();
@@ -91,6 +93,8 @@ class ValidatorWriter {
         addMethods(classBuilder, methods);
 
         final TypeSpec javaClass = classBuilder.build();
+
+        log().debug(String.format("Writing %s class to the %s directory", javaClass, rootDirectory));
         writeClass(rootDirectory, javaClass);
     }
 
@@ -235,11 +239,11 @@ class ValidatorWriter {
 
     private void writeClass(File rootFolder, TypeSpec validator) {
         try {
+            Files.touch(rootFolder);
             JavaFile.builder(javaPackage, validator)
                     .build()
                     .writeTo(rootFolder);
-        } catch (
-                IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
