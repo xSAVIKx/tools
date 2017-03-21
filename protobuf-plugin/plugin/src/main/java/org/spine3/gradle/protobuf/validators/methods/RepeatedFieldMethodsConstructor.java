@@ -20,16 +20,15 @@
 
 package org.spine3.gradle.protobuf.validators.methods;
 
+import com.google.common.reflect.TypeToken;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.Descriptors;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
-import org.spine3.base.PluralKey;
-import org.spine3.base.SingularKey;
+import org.spine3.base.ConversionException;
 import org.spine3.gradle.protobuf.MessageTypeCache;
 import org.spine3.validate.ConstraintViolationThrowable;
-import org.spine3.validate.ConversionError;
 
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
@@ -113,11 +112,10 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
                                             .addModifiers(Modifier.PUBLIC)
                                             .addParameter(String.class, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
-                                            .addException(ConversionError.class)
+                                            .addException(ConversionException.class)
                                             .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(createGetConvertedSingularValue(),
                                                           parameterClass,
-                                                          SingularKey.class,
                                                           parameterClass)
                                             .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
                                             .addStatement(createValidateConvertedValueStatement(),
@@ -138,11 +136,10 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
                                             .addParameter(int.class, INDEX)
                                             .addParameter(String.class, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
-                                            .addException(ConversionError.class)
+                                            .addException(ConversionException.class)
                                             .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(createGetConvertedSingularValue(),
                                                           parameterClass,
-                                                          SingularKey.class,
                                                           parameterClass)
                                             .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
                                             .addStatement(createValidateConvertedValueStatement(),
@@ -162,12 +159,12 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
                                             .addModifiers(Modifier.PUBLIC)
                                             .addParameter(String.class, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
-                                            .addException(ConversionError.class)
+                                            .addException(ConversionException.class)
                                             .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(createGetConvertedPluralValue(),
                                                           List.class,
                                                           parameterClass,
-                                                          PluralKey.class,
+                                                          TypeToken.class,
                                                           List.class,
                                                           parameterClass)
                                             .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
@@ -188,7 +185,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
                                             .addModifiers(Modifier.PUBLIC)
                                             .addParameter(parameter, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
-                                            .addException(ConversionError.class)
+                                            .addException(ConversionException.class)
                                             .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
                                             .addStatement(createValidateStatement(fieldDescriptor.getName()),

@@ -25,11 +25,10 @@ import com.google.protobuf.Descriptors;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
-import org.spine3.base.SingularKey;
+import org.spine3.base.ConversionException;
 import org.spine3.gradle.protobuf.GenerationUtils;
 import org.spine3.gradle.protobuf.MessageTypeCache;
 import org.spine3.validate.ConstraintViolationThrowable;
-import org.spine3.validate.ConversionError;
 
 import javax.lang.model.element.Modifier;
 import java.util.Collection;
@@ -104,11 +103,10 @@ public class SettersConstructor extends MethodConstructor {
                                                 .returns(builderClassName)
                                                 .addParameter(parameter)
                                                 .addException(ConstraintViolationThrowable.class)
-                                                .addException(ConversionError.class)
+                                                .addException(ConversionException.class)
                                                 .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
-                                                .addStatement("final $T convertedValue = getConvertedValue(new $T<>($T.class), " + paramName + ')',
+                                                .addStatement("final $T convertedValue = getConvertedValue($T.class, " + paramName + ')',
                                                               parameterClass,
-                                                              SingularKey.class,
                                                               parameterClass)
                                                 .addStatement(createValidateConvertedValueStatement(),
                                                               fieldDescriptor.getName())
