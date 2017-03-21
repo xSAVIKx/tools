@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.protobuf;
+package org.spine3.gradle.protobuf.failures;
 
 import com.sun.javadoc.RootDoc;
 import com.sun.tools.doclets.standard.Standard;

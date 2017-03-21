@@ -20,6 +20,7 @@
 
 package org.spine3.gradle.protobuf.failures;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
@@ -204,7 +205,8 @@ public class FailureJavadocGenerator {
         return maxLength;
     }
 
-    private static String escapeJavadoc(CharSequence javadoc) {
+    @VisibleForTesting
+    protected static String escapeJavadoc(CharSequence javadoc) {
         final StringBuilder builder = new StringBuilder(javadoc.length() * 2);
 
         char prevSymbol = '*';

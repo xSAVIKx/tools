@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.protobuf;
+package org.spine3.gradle.protobuf.failures;
 
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.ConstructorDoc;
@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
+import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.escapeJavadoc;
 
 /**
  * @author Dmytro Grankin
@@ -133,6 +134,31 @@ public class FailuresGenPluginShould {
         }
 
         countDownLatch.await(100, TimeUnit.MILLISECONDS);
+    }
+
+    @Test
+    public void escape_comment_beginning_and_ending() {
+        assertEquals(" /&#42;", escapeJavadoc(" /*"));
+        assertEquals("*&#47;", escapeJavadoc("*/"));
+    }
+
+    @Test
+    public void not_escape_just_asterisk_and_slash() {
+        assertEquals("*", escapeJavadoc("*"));
+        assertEquals(" /", escapeJavadoc(" /"));
+    }
+
+    @Test
+    public void escape_html() {
+        assertEquals("&lt;", escapeJavadoc("<"));
+        assertEquals("&gt;", escapeJavadoc(">"));
+        assertEquals("&amp;", escapeJavadoc("&"));
+    }
+
+    @Test
+    public void escape_at_and_back_slash() {
+        assertEquals("&#64;", escapeJavadoc("@"));
+        assertEquals("&#92;", escapeJavadoc("\\"));
     }
 
     private ProjectConnection createProjectConnection() {
