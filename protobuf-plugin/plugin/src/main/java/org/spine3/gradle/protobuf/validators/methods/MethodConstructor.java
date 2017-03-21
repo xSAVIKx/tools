@@ -48,12 +48,12 @@ abstract class MethodConstructor {
     }
 
     static String createGetConvertedPluralValue() {
-        final String result = "final $T<$T> convertedValue = getConvertedValue(new $T<>($T.class, $T.class), value)";
+        final String result = "final $T<$T> convertedValue = getConvertedValue(new $T<$T<$T>>(){}.getType(), value)";
         return result;
     }
 
     static String createGetConvertedSingularValue() {
-        final String result = "final $T convertedValue = getConvertedValue(new $T<>($T.class), value)";
+        final String result = "final $T convertedValue = getConvertedValue($T.class, value)";
         return result;
     }
 }
