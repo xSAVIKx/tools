@@ -99,29 +99,29 @@ public class ValidatorsGenPlugin extends SpinePlugin {
             @Override
             public void execute(Task task) {
                 log().debug("Generating the validators from {}", path);
-                final Set<WriterDto> dtos = process(path);
-                for (WriterDto dto : dtos) {
+                final Set<ValidatorMetadata> dtos = process(path);
+                for (ValidatorMetadata dto : dtos) {
                     new ValidatorWriter(dto, targetDir, messageTypeCache).write();
                 }
             }
         };
     }
 
-    private Set<WriterDto> process(String path) {
+    private Set<ValidatorMetadata> process(String path) {
         final List<FileDescriptorProto> files = getCommandProtoFileDescriptors(path);
-        final Set<WriterDto> dtos = getMessageDescriptors(files);
-        final Set<WriterDto> result = getFieldDescriptors(dtos);
+        final Set<ValidatorMetadata> dtos = getMessageDescriptors(files);
+        final Set<ValidatorMetadata> result = getFieldDescriptors(dtos);
         return result;
     }
 
-    private Set<WriterDto> getFieldDescriptors(Set<WriterDto> dtos) {
-        final Set<WriterDto> fieldDtos = newHashSet();
-        for (WriterDto dto : dtos) {
+    private Set<ValidatorMetadata> getFieldDescriptors(Set<ValidatorMetadata> dtos) {
+        final Set<ValidatorMetadata> fieldDtos = newHashSet();
+        for (ValidatorMetadata dto : dtos) {
             final DescriptorProto msgDescriptor = dto.getMsgDescriptor();
             final List<FieldDescriptorProto> fieldDescriptors = msgDescriptor.getFieldList();
             final List<DescriptorProto> descriptors = processFields(fieldDescriptors);
             fieldDtos.add(dto);
-            final Set<WriterDto> fieldMessages = constructMessageFieldDto(descriptors);
+            final Set<ValidatorMetadata> fieldMessages = constructMessageFieldDto(descriptors);
             fieldDtos.addAll(fieldMessages);
         }
         return fieldDtos;
@@ -149,20 +149,20 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return msgName;
     }
 
-    private Set<WriterDto> getMessageDescriptors(Iterable<FileDescriptorProto> files) {
-        final Set<WriterDto> result = newHashSet();
+    private Set<ValidatorMetadata> getMessageDescriptors(Iterable<FileDescriptorProto> files) {
+        final Set<ValidatorMetadata> result = newHashSet();
         for (FileDescriptorProto file : files) {
             final List<DescriptorProto> messages = file.getMessageTypeList();
-            final Set<WriterDto> dtoList = constructMessageFieldDto(messages);
+            final Set<ValidatorMetadata> dtoList = constructMessageFieldDto(messages);
             result.addAll(dtoList);
         }
         return result;
     }
 
-    private Set<WriterDto> constructMessageFieldDto(Iterable<DescriptorProto> messages) {
-        final Set<WriterDto> result = newHashSet();
+    private Set<ValidatorMetadata> constructMessageFieldDto(Iterable<DescriptorProto> messages) {
+        final Set<ValidatorMetadata> result = newHashSet();
         for (DescriptorProto message : messages) {
-            final WriterDto dto = createWriterDto(message);
+            final ValidatorMetadata dto = createWriterDto(message);
             result.add(dto);
         }
         return result;
@@ -202,12 +202,12 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         }
     }
 
-    private WriterDto createWriterDto(DescriptorProto message) {
+    private ValidatorMetadata createWriterDto(DescriptorProto message) {
         final String className = message.getName() + JAVA_CLASS_NAME_SUFFIX;
         final String javaPackage = typeFiles.get(message.getName())
                                             .getOptions()
                                             .getJavaPackage();
-        final WriterDto result = new WriterDto(javaPackage, className, message);
+        final ValidatorMetadata result = new ValidatorMetadata(javaPackage, className, message);
         return result;
     }
 

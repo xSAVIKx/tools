@@ -55,13 +55,13 @@ class ValidatorWriter {
     private final MethodConstructor constructorFactory;
     private final String targetDir;
 
-    ValidatorWriter(WriterDto writerDto, String targetDir, MessageTypeCache messageTypeCache) {
-        this.javaClass = writerDto.getJavaClass();
-        this.javaPackage = writerDto.getJavaPackage();
+    ValidatorWriter(ValidatorMetadata validatorMetadata, String targetDir, MessageTypeCache messageTypeCache) {
+        this.javaClass = validatorMetadata.getJavaClass();
+        this.javaPackage = validatorMetadata.getJavaPackage();
         this.targetDir = targetDir;
-        this.constructorFactory = new MethodConstructor(writerDto, messageTypeCache);
+        this.constructorFactory = new MethodConstructor(validatorMetadata, messageTypeCache);
 
-        final DescriptorProto descriptor = writerDto.getMsgDescriptor();
+        final DescriptorProto descriptor = validatorMetadata.getMsgDescriptor();
         this.builderGenericClassName = getValidatorGenericClassName(javaPackage,
                                                                     messageTypeCache,
                                                                     descriptor.getName());
