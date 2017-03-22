@@ -20,47 +20,166 @@
 
 package org.spine3.gradle.protobuf.validators.construction;
 
+import com.google.protobuf.DescriptorProtos.DescriptorProto;
+import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
+import org.spine3.gradle.protobuf.MessageTypeCache;
+import org.spine3.gradle.protobuf.validators.WriterDto;
 
+import javax.lang.model.element.Modifier;
 import java.util.Collection;
+import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
+import static org.spine3.gradle.protobuf.GenerationUtils.isMap;
+import static org.spine3.gradle.protobuf.GenerationUtils.isRepeated;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_ALL_PREFIX;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.SETTER_PREFIX;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatorGenericClassName;
 
 /**
  * @author Illia Shepilov
  */
-abstract class MethodConstructor {
+public class MethodConstructor {
 
-    static final String RETURN_THIS = "return this";
-    static final String INDEX = "index";
-    static final String VALUE = "value";
-    static final String THIS_POINTER = "this.";
-    static final String ADD_ALL_CONVERTED_VALUE = ".addAll(convertedValue)";
+    private final String javaClass;
+    private final String javaPackage;
+    private final ClassName builderGenericClassName;
+    private final MessageTypeCache messageTypeCache;
+    private final DescriptorProto descriptor;
 
-    abstract Collection<MethodSpec> construct();
+    public MethodConstructor(WriterDto writerDto, MessageTypeCache messageTypeCache) {
+        this.javaClass = writerDto.getJavaClass();
+        this.javaPackage = writerDto.getJavaPackage();
+        this.descriptor = writerDto.getMsgDescriptor();
+        this.messageTypeCache = messageTypeCache;
+        builderGenericClassName = getValidatorGenericClassName(javaPackage,
+                                                               messageTypeCache,
+                                                               descriptor.getName());
+    }
 
-    static String createValidateConvertedValueStatement() {
-        final String result = "validate(fieldDescriptor, convertedValue, $S)";
+    public Collection<MethodSpec> createMethods() {
+        final List<MethodSpec> methods = newArrayList();
+
+        methods.add(createPrivateConstructor());
+        methods.add(createNewBuilderMethod());
+        methods.add(createBuildMethod());
+        methods.addAll(createSetters());
+
+        return methods;
+    }
+
+    private static MethodSpec createPrivateConstructor() {
+        final MethodSpec result = MethodSpec.constructorBuilder()
+                                            .addModifiers(Modifier.PRIVATE)
+                                            .build();
         return result;
     }
 
-    static String createValidateStatement(String fileValue) {
-        final String result = "validate(fieldDescriptor, " + fileValue + ", $S)";
-        return result;
+    private MethodSpec createNewBuilderMethod() {
+        final ClassName builderClass = getBuilderClassName(javaPackage, javaClass);
+        final MethodSpec buildMethod = MethodSpec.methodBuilder("newBuilder")
+                                                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                                                 .returns(builderClass)
+                                                 .addStatement("return new $T()", builderClass)
+                                                 .build();
+        return buildMethod;
     }
 
-    String createDescriptorCodeLine(int index, ClassName builderGenericClassName) {
-        final String result = "final $T fieldDescriptor = " + builderGenericClassName +
-                ".getDescriptor().getFields().get(" + index + ')';
-        return result;
+    private MethodSpec createBuildMethod() {
+        final StringBuilder builder = new StringBuilder("final $T result = $T.newBuilder()");
+        for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
+            builder.append('.');
+
+            if (isRepeated(fieldDescriptor)) {
+                builder.append(ADD_ALL_PREFIX);
+            } else {
+                builder.append(SETTER_PREFIX);
+            }
+
+            builder.append(getJavaFieldName(fieldDescriptor.getName(), true))
+                   .append('(')
+                   .append(getJavaFieldName(fieldDescriptor.getName(), false))
+                   .append(')');
+        }
+        builder.append(".build()");
+
+        final MethodSpec buildMethod = MethodSpec.methodBuilder("build")
+                                                 .addModifiers(Modifier.PUBLIC)
+                                                 .returns(builderGenericClassName)
+                                                 .addStatement(builder.toString(),
+                                                               builderGenericClassName,
+                                                               builderGenericClassName)
+                                                 .addStatement("return result")
+                                                 .build();
+        return buildMethod;
     }
 
-    static String createGetConvertedPluralValue() {
-        final String result = "final $T<$T> convertedValue = getConvertedValue(new $T<$T<$T>>(){}.getType(), value)";
-        return result;
+    private Collection<MethodSpec> createSetters() {
+        final MethodConstructorFactory methodConstructorFactory = new MethodConstructorFactory();
+        final List<MethodSpec> setters = newArrayList();
+        int index = 0;
+        for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
+            final AbstractMethodConstructor methodConstructor =
+                    methodConstructorFactory.getMethodConstructor(fieldDescriptor, index);
+            final Collection<MethodSpec> methods = methodConstructor.construct();
+            setters.addAll(methods);
+
+            ++index;
+        }
+
+        return setters;
     }
 
-    static String createGetConvertedSingularValue() {
-        final String result = "final $T convertedValue = getConvertedValue($T.class, value)";
-        return result;
+    private class MethodConstructorFactory {
+
+        private AbstractMethodConstructor getMethodConstructor(FieldDescriptorProto fieldDescriptor,
+                                                               int index) {
+            if (isMap(fieldDescriptor)) {
+                return createMapFieldMethods(fieldDescriptor, index);
+            }
+
+            if (isRepeated(fieldDescriptor)) {
+                return createRepeatedFieldMethods(fieldDescriptor, index);
+            }
+
+            return createSingularFieldMethods(fieldDescriptor, index);
+        }
+
+        private AbstractMethodConstructor createMapFieldMethods(FieldDescriptorProto dscr,
+                                                                int fieldIndex) {
+            return new MapMethodConstructor();
+        }
+
+        private AbstractMethodConstructor createRepeatedFieldMethods(FieldDescriptorProto dscr,
+                                                                     int fieldIndex) {
+            final RepeatedFieldMethodsConstructor constructor =
+                    RepeatedFieldMethodsConstructor.newBuilder()
+                                                   .setFieldDescriptor(dscr)
+                                                   .setFieldIndex(fieldIndex)
+                                                   .setJavaClass(javaClass)
+                                                   .setJavaPackage(javaPackage)
+                                                   .setBuilderGenericClass(builderGenericClassName)
+                                                   .setMessageTypeCache(messageTypeCache)
+                                                   .build();
+            return constructor;
+        }
+
+        private AbstractMethodConstructor createSingularFieldMethods(FieldDescriptorProto dscr,
+                                                                     int fieldIndex) {
+            final SettersConstructor constructor =
+                    SettersConstructor.newBuilder()
+                                      .setFieldDescriptor(dscr)
+                                      .setFieldIndex(fieldIndex)
+                                      .setJavaClass(javaClass)
+                                      .setJavaPackage(javaPackage)
+                                      .setGenericClassName(builderGenericClassName)
+                                      .setMessageTypeCache(messageTypeCache)
+                                      .build();
+            return constructor;
+        }
     }
 }
