@@ -43,6 +43,13 @@ import static java.lang.System.lineSeparator;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
+import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.EscapedCharacters.AMPERSAND;
+import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.EscapedCharacters.ASTERISK;
+import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.EscapedCharacters.AT_MARK;
+import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.EscapedCharacters.BACK_SLASH;
+import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.EscapedCharacters.GREATER_THAN;
+import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.EscapedCharacters.LESS_THAN;
+import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.EscapedCharacters.SLASH;
 import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.escapeJavadoc;
 
 /**
@@ -137,8 +144,8 @@ public class FailuresGenPluginShould {
 
     @Test
     public void escape_comment_beginning_and_ending() {
-        assertEquals(" /&#42;", escapeJavadoc(" /*"));
-        assertEquals("*&#47;", escapeJavadoc("*/"));
+        assertEquals(" /" + ASTERISK.getEscapedString(), escapeJavadoc(" /*"));
+        assertEquals('*' + SLASH.getEscapedString(), escapeJavadoc("*/"));
     }
 
     @Test
@@ -149,15 +156,15 @@ public class FailuresGenPluginShould {
 
     @Test
     public void escape_html() {
-        assertEquals("&lt;", escapeJavadoc("<"));
-        assertEquals("&gt;", escapeJavadoc(">"));
-        assertEquals("&amp;", escapeJavadoc("&"));
+        assertEquals(LESS_THAN.getEscapedString(), escapeJavadoc("<"));
+        assertEquals(GREATER_THAN.getEscapedString(), escapeJavadoc(">"));
+        assertEquals(AMPERSAND.getEscapedString(), escapeJavadoc("&"));
     }
 
     @Test
     public void escape_at_and_back_slash() {
-        assertEquals("&#64;", escapeJavadoc("@"));
-        assertEquals("&#92;", escapeJavadoc("\\"));
+        assertEquals(AT_MARK.getEscapedString(), escapeJavadoc("@"));
+        assertEquals(BACK_SLASH.getEscapedString(), escapeJavadoc("\\"));
     }
 
     private ProjectConnection createProjectConnection() {
