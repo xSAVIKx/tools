@@ -17,13 +17,8 @@ dependencies {
 
     compile gradleApi()
 
-    spineVersion = '0.8.222-SNAPSHOT'
-
     compile group: 'com.squareup', name: 'javapoet', version: '1.8.0'
     compile "org.spine3:spine-server-core:$spineVersion"
-
-    //todo: delete.
-    compile group: 'com.google.protobuf', name: 'protobuf-java', version: '3.2.0'
 
     compile project(path: ":common")
 }
