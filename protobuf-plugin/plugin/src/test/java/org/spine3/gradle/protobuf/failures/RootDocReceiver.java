@@ -25,13 +25,37 @@ import com.sun.tools.doclets.standard.Standard;
 import com.sun.tools.javadoc.Main;
 import org.junit.rules.TemporaryFolder;
 
-@SuppressWarnings("ExtendsUtilityClass") // Should extend doclet to receive RootDoc
-public class RootDocReceiver extends Standard {
+/**
+ * {@link RootDoc} receiver for the tests purposes.
+ *
+ * <p>This could be achieved by extending {@link Standard} doclet
+ * and defining static method with the following signature:
+ * <pre>{@code public static boolean start(RootDoc}</pre>
+ *
+ * @author Dmytro Grankin
+ */
+@SuppressWarnings("ExtendsUtilityClass")
+class RootDocReceiver extends Standard {
 
-    @SuppressWarnings("StaticVariableMayNotBeInitialized") // Initialized in start method.
+    /**
+     * Should be received only by {@link #getRootDoc(TemporaryFolder, String)} call,
+     * that guarantee proper initialization.
+     */
+    @SuppressWarnings("StaticVariableMayNotBeInitialized")
     private static RootDoc rootDoc;
 
-    @SuppressWarnings("StaticVariableUsedBeforeInitialization") // Initialized in start method.
+    /**
+     * Returns {@link RootDoc} for the specified source.
+     *
+     * <p>Executes {@link #main(String[])}, which in turn
+     * call {@link Main#execute(String, String, String...)}.
+     * Such call chain guarantee proper {@link #rootDoc} initialization.
+     *
+     * @param projectDir the project directory, that contains the source
+     * @param source     the source relative location
+     * @return the root document
+     */
+    @SuppressWarnings("StaticVariableUsedBeforeInitialization")
     static RootDoc getRootDoc(TemporaryFolder projectDir, String source) {
         main(new String[]{
                 projectDir.getRoot()
@@ -45,7 +69,15 @@ public class RootDocReceiver extends Standard {
         Main.execute(name, name, args);
     }
 
-    @SuppressWarnings("unused") // called by com.sun.tools.javadoc.Main
+    /**
+     * Return {@code true} anyway, because used just to receive {@link RootDoc}.
+     *
+     * <p>Called by {@link Main#execute(String, String, String...)}
+     *
+     * @param root the {@link RootDoc} formed by {@link Main#execute(String, String, String...)}
+     * @return {@code true} anyway
+     */
+    @SuppressWarnings("unused")
     public static boolean start(RootDoc root) {
         rootDoc = root;
         return true;
