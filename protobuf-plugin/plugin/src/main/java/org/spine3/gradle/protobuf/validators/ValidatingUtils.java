@@ -58,9 +58,9 @@ public class ValidatingUtils {
         return builderClassName;
     }
 
-    public static ClassName getValidatingBuilderGenericClassName(String javaPackage,
-                                                                 MessageTypeCache messageTypeCache,
-                                                                 String descriptorName) {
+    public static ClassName getValidatorGenericClassName(String javaPackage,
+                                                         MessageTypeCache messageTypeCache,
+                                                         String descriptorName) {
         final Collection<String> values = messageTypeCache.getCachedTypes()
                                                           .values();
         final String expectedClassName = javaPackage + '.' + descriptorName;
@@ -70,5 +70,9 @@ public class ValidatingUtils {
             }
         }
         throw new RuntimeException();
+    }
+
+    public static ClassName getStringClassName() {
+        return ClassName.get("java.lang", "String");
     }
 }
