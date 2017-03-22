@@ -48,12 +48,12 @@ public class FieldTypeFactory {
     /**
      * Creates new instance.
      *
-     * @param failureDescriptor the failure descriptor to extract nested types
+     * @param descriptorProto the failure descriptor to extract nested types
      * @param messageTypeMap    pre-scanned map with proto types and their appropriate Java classes
      */
-    public FieldTypeFactory(DescriptorProto failureDescriptor, Map<String, String> messageTypeMap) {
+    public FieldTypeFactory(DescriptorProto descriptorProto, Map<String, String> messageTypeMap) {
         this.messageTypeMap = messageTypeMap;
-        this.failureNestedTypes = failureDescriptor.getNestedTypeList();
+        this.failureNestedTypes = descriptorProto.getNestedTypeList();
     }
 
     /**
