@@ -32,6 +32,7 @@ import com.squareup.javapoet.TypeSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.gradle.protobuf.MessageTypeCache;
+import org.spine3.gradle.protobuf.validators.methods.MethodConstructorFactory;
 import org.spine3.gradle.protobuf.validators.methods.RepeatedFieldMethodsConstructor;
 import org.spine3.gradle.protobuf.validators.methods.SettersConstructor;
 import org.spine3.server.validate.AbstractValidatingBuilder;
@@ -44,11 +45,10 @@ import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_ALL_PREFIX;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.SETTER_PREFIX;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
+import static org.spine3.gradle.protobuf.GenerationUtils.isRepeated;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatingBuilderGenericClassName;
+import static org.spine3.gradle.protobuf.validators.methods.MethodConstructorFactory.createPrivateConstructor;
 
 /**
  * Class, which writes Validator java code, based on it's descriptor.
@@ -65,6 +65,7 @@ class ValidatorWriter {
     private final MessageTypeCache messageTypeCache;
     private final ClassName builderGenericClassName;
     private final String targetDir;
+    private final MethodConstructorFactory constructorFactory;
 
     ValidatorWriter(WriterDto writerDto, String targetDir, MessageTypeCache messageTypeCache) {
         this.javaClass = writerDto.getJavaClass();
@@ -73,6 +74,7 @@ class ValidatorWriter {
         this.messageTypeCache = messageTypeCache;
         this.targetDir = targetDir;
         builderGenericClassName = getValidatingBuilderGenericClassName(javaPackage, messageTypeCache, descriptor.getName());
+        constructorFactory = new MethodConstructorFactory(writerDto, messageTypeCache);
     }
 
     void write() {
@@ -81,11 +83,11 @@ class ValidatorWriter {
 
         final List<MethodSpec> methods = newArrayList();
 
-        final MethodSpec constructor = createConstructor();
-        methods.add(constructor);
-        methods.add(createNewBuilderMethod());
+        methods.add(createPrivateConstructor());
+        methods.add(constructorFactory.createNewBuilderMethod());
+        methods.add(constructorFactory.createBuildMethod());
+
         methods.addAll(createSetters());
-        methods.add(createBuildMethod());
         methods.addAll(createRepeatedFieldMethods());
 
         final TypeSpec.Builder classBuilder = TypeSpec.classBuilder(javaClass);
@@ -115,58 +117,23 @@ class ValidatorWriter {
         final List<MethodSpec> setters = newArrayList();
         int index = 0;
         for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
-            if (isRepeatedField(fieldDescriptor)) {
+            if (isRepeated(fieldDescriptor)) {
                 continue;
             }
-            final SettersConstructor constructor = SettersConstructor.newBuilder()
-                                                                     .setFieldDescriptor(fieldDescriptor)
-                                                                     .setFieldIndex(index)
-                                                                     .setJavaClass(javaClass)
-                                                                     .setJavaPackage(javaPackage)
-                                                                     .setBuilderGenericClassName(builderGenericClassName)
-                                                                     .setMessageTypeCache(messageTypeCache)
-                                                                     .build();
+            final SettersConstructor constructor =
+                    SettersConstructor.newBuilder()
+                                      .setFieldDescriptor(fieldDescriptor)
+                                      .setFieldIndex(index)
+                                      .setJavaClass(javaClass)
+                                      .setJavaPackage(javaPackage)
+                                      .setBuilderGenericClassName(builderGenericClassName)
+                                      .setMessageTypeCache(messageTypeCache)
+                                      .build();
             final Collection<MethodSpec> methods = constructor.construct();
             setters.addAll(methods);
             ++index;
         }
         return setters;
-    }
-
-    private class FieldConstructor {
-
-        private final FieldDescriptorProto fieldDescriptor;
-
-        private FieldConstructor(FieldDescriptorProto fieldDescriptor) {
-            this.fieldDescriptor = fieldDescriptor;
-        }
-
-        public FieldSpec construct() {
-            if (isRepeatedField(fieldDescriptor)) {
-                final FieldSpec result = constructRepeatedField();
-                return result;
-            }
-
-            final FieldSpec result = constructField();
-            return result;
-        }
-
-        private FieldSpec constructRepeatedField() {
-            final ClassName rawType = ClassName.get(List.class);
-            final ParameterizedTypeName param =
-                    ParameterizedTypeName.get(rawType, getParameterClass(fieldDescriptor, messageTypeCache));
-            final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
-            return FieldSpec.builder(param, fieldName, Modifier.PRIVATE)
-                            .build();
-        }
-
-        private FieldSpec constructField() {
-            final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
-            final ClassName fieldClass = getParameterClass(fieldDescriptor, messageTypeCache);
-            final FieldSpec result = FieldSpec.builder(fieldClass, fieldName, Modifier.PRIVATE)
-                                              .build();
-            return result;
-        }
     }
 
     private Collection<MethodSpec> createRepeatedFieldMethods() {
@@ -193,52 +160,6 @@ class ValidatorWriter {
         return methods;
     }
 
-    private MethodSpec createBuildMethod() {
-        final StringBuilder builder = new StringBuilder("final $T result = $T.newBuilder()");
-        for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
-            builder.append('.');
-
-            if (isRepeatedField(fieldDescriptor)) {
-                builder.append(ADD_ALL_PREFIX);
-            } else {
-                builder.append(SETTER_PREFIX);
-            }
-
-            builder.append(getJavaFieldName(fieldDescriptor.getName(), true))
-                   .append('(')
-                   .append(getJavaFieldName(fieldDescriptor.getName(), false))
-                   .append(')');
-        }
-        builder.append(".build()");
-
-        final MethodSpec buildMethod = MethodSpec.methodBuilder("build")
-                                                 .addModifiers(Modifier.PUBLIC)
-                                                 .returns(builderGenericClassName)
-                                                 .addStatement(builder.toString(),
-                                                               builderGenericClassName,
-                                                               builderGenericClassName)
-                                                 .addStatement("return result")
-                                                 .build();
-        return buildMethod;
-    }
-
-    private static boolean isRepeatedField(FieldDescriptorProto fieldDescriptor) {
-        final String labelName = fieldDescriptor.getLabel()
-                                                .name();
-        final boolean result = labelName.equals(REPEATED_FIELD_LABEL);
-        return result;
-    }
-
-    private MethodSpec createNewBuilderMethod() {
-        final ClassName builderClass = getBuilderClassName(javaPackage, javaClass);
-        final MethodSpec buildMethod = MethodSpec.methodBuilder("newBuilder")
-                                                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                                                 .returns(builderClass)
-                                                 .addStatement("return new $T()", builderClass)
-                                                 .build();
-        return buildMethod;
-    }
-
     private void writeClass(File rootFolder, TypeSpec validator) {
         try {
             Files.touch(rootFolder);
@@ -250,13 +171,6 @@ class ValidatorWriter {
         }
     }
 
-    private static MethodSpec createConstructor() {
-        final MethodSpec result = MethodSpec.constructorBuilder()
-                                            .addModifiers(Modifier.PRIVATE)
-                                            .build();
-        return result;
-    }
-
     private TypeSpec.Builder addMethods(TypeSpec.Builder builder, Iterable<MethodSpec> methodSpecs) {
         final ClassName abstractBuilderTypeName = ClassName.get(AbstractValidatingBuilder.class);
         final ParameterizedTypeName superClass =
@@ -265,6 +179,42 @@ class ValidatorWriter {
                .superclass(superClass)
                .addMethods(methodSpecs);
         return builder;
+    }
+
+    private class FieldConstructor {
+
+        private final FieldDescriptorProto fieldDescriptor;
+
+        private FieldConstructor(FieldDescriptorProto fieldDescriptor) {
+            this.fieldDescriptor = fieldDescriptor;
+        }
+
+        public FieldSpec construct() {
+            if (isRepeated(fieldDescriptor)) {
+                final FieldSpec result = constructRepeatedField();
+                return result;
+            }
+
+            final FieldSpec result = constructField();
+            return result;
+        }
+
+        private FieldSpec constructRepeatedField() {
+            final ClassName rawType = ClassName.get(List.class);
+            final ParameterizedTypeName param =
+                    ParameterizedTypeName.get(rawType, getParameterClass(fieldDescriptor, messageTypeCache));
+            final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
+            return FieldSpec.builder(param, fieldName, Modifier.PRIVATE)
+                            .build();
+        }
+
+        private FieldSpec constructField() {
+            final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
+            final ClassName fieldClass = getParameterClass(fieldDescriptor, messageTypeCache);
+            final FieldSpec result = FieldSpec.builder(fieldClass, fieldName, Modifier.PRIVATE)
+                                              .build();
+            return result;
+        }
     }
 
     private enum LogSingleton {
