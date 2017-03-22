@@ -76,6 +76,7 @@ public class FieldConstructor {
         return result;
     }
 
+    //TODO:2017-03-22:illiashepilov: Fix implementation.
     private FieldSpec constructMapField(FieldDescriptorProto fieldDescriptor) {
         final ClassName rawType = ClassName.get(Map.class);
         final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);

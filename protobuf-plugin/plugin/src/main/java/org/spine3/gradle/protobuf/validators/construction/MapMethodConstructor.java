@@ -28,6 +28,7 @@ import java.util.Collections;
 /**
  * @author Illia Shepilov
  */
+//TODO:2017-03-22:illiashepilov: finish implementation.
 public class MapMethodConstructor extends AbstractMethodConstructor {
 
     @Override

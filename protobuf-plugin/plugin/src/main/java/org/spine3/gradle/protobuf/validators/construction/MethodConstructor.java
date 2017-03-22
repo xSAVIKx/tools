@@ -25,7 +25,7 @@ import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import org.spine3.gradle.protobuf.MessageTypeCache;
-import org.spine3.gradle.protobuf.validators.WriterDto;
+import org.spine3.gradle.protobuf.validators.ValidatorMetadata;
 
 import javax.lang.model.element.Modifier;
 import java.util.Collection;
@@ -52,10 +52,10 @@ public class MethodConstructor {
     private final MessageTypeCache messageTypeCache;
     private final DescriptorProto descriptor;
 
-    public MethodConstructor(WriterDto writerDto, MessageTypeCache messageTypeCache) {
-        this.javaClass = writerDto.getJavaClass();
-        this.javaPackage = writerDto.getJavaPackage();
-        this.descriptor = writerDto.getMsgDescriptor();
+    public MethodConstructor(ValidatorMetadata validatorMetadata, MessageTypeCache messageTypeCache) {
+        this.javaClass = validatorMetadata.getJavaClass();
+        this.javaPackage = validatorMetadata.getJavaPackage();
+        this.descriptor = validatorMetadata.getMsgDescriptor();
         this.messageTypeCache = messageTypeCache;
         builderGenericClassName = getValidatorGenericClassName(javaPackage,
                                                                messageTypeCache,
@@ -152,6 +152,7 @@ public class MethodConstructor {
             return createSingularFieldMethods(fieldDescriptor, index);
         }
 
+        //TODO:2017-03-22:illiashepilov: finish implementation.
         private AbstractMethodConstructor createMapFieldMethods(FieldDescriptorProto dscr,
                                                                 int fieldIndex) {
             return new MapMethodConstructor();
