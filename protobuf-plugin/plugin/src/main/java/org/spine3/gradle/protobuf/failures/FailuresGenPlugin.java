@@ -172,8 +172,7 @@ public class FailuresGenPlugin extends SpinePlugin {
             // The name of the generated ThrowableFailure will be the same as for the Protobuf message.
             log().debug("Processing failure '{}'", failure.getName());
 
-            final FailureMetadata metadata = new FailureMetadata(failure, javaPackage,
-                                                                 javaOuterClassName, descriptor);
+            final FailureMetadata metadata = new FailureMetadata(failure, descriptor);
             final File outputDir = new File(failuresRootDir);
             final FailureWriter writer = new FailureWriter(metadata, outputDir, messageTypeMap);
             writer.write();

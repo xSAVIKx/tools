@@ -20,6 +20,8 @@
 
 package org.spine3.gradle.protobuf.failures;
 
+import org.spine3.gradle.protobuf.util.JavaCode;
+
 import static com.google.protobuf.DescriptorProtos.DescriptorProto;
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 
@@ -31,7 +33,6 @@ import static com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 public class FailureMetadata {
 
     private final DescriptorProto descriptor;
-    private final String javaPackage;
     private final String outerClassName;
     private final FileDescriptorProto fileDescriptor;
 
@@ -39,15 +40,11 @@ public class FailureMetadata {
      * Creates a new instance.
      *
      * @param failureDescriptor {@link DescriptorProto} of failure's proto message
-     * @param javaPackage       Failure's java package
-     * @param outerClassName    the java outer class name
-     * @param fileDescriptor    the file descriptor, that contains the failure
+     * @param fileDescriptor    {@link FileDescriptorProto}, that contains the failure
      */
-    public FailureMetadata(DescriptorProto failureDescriptor, String javaPackage,
-                           String outerClassName, FileDescriptorProto fileDescriptor) {
+    public FailureMetadata(DescriptorProto failureDescriptor, FileDescriptorProto fileDescriptor) {
         this.descriptor = failureDescriptor;
-        this.javaPackage = javaPackage;
-        this.outerClassName = outerClassName;
+        this.outerClassName = JavaCode.getOuterClassName(fileDescriptor);
         this.fileDescriptor = fileDescriptor;
     }
 
@@ -56,7 +53,8 @@ public class FailureMetadata {
     }
 
     public String getJavaPackage() {
-        return javaPackage;
+        return fileDescriptor.getOptions()
+                             .getJavaPackage();
     }
 
     public String getOuterClassName() {
