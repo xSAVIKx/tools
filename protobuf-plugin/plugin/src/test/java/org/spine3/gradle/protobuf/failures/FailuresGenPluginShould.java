@@ -108,17 +108,8 @@ public class FailuresGenPluginShould {
                     final ClassDoc failureDoc = root.classes()[0];
                     final ConstructorDoc failureCtorDoc = failureDoc.constructors()[0];
 
-                    final String expectedClassComment = "<pre>" + lineSeparator()
-                            + "  The failure definition to test Javadoc generation." + lineSeparator()
-                            + " </pre>" + lineSeparator() + lineSeparator()
-                            + " Failure based on protobuf type {@code org.spine3.sample.failures.Failure}";
-                    final String expectedCtorComment = " Creates a new instance." + lineSeparator() + lineSeparator()
-                            + " @param id      the failure ID" + lineSeparator()
-                            + " @param message the failure message" + lineSeparator();
-
-                    assertEquals(expectedClassComment, failureDoc.commentText());
-                    assertEquals(expectedCtorComment, failureCtorDoc.getRawCommentText());
-
+                    assertEquals(getExpectedClassComment(), failureDoc.commentText());
+                    assertEquals(getExpectedCtorComment(), failureCtorDoc.getRawCommentText());
                     countDownLatch.countDown();
                 }
 
@@ -132,8 +123,20 @@ public class FailuresGenPluginShould {
         } finally {
             connection.close();
         }
-
         countDownLatch.await(100, TimeUnit.MILLISECONDS);
+    }
+
+    private static String getExpectedClassComment() {
+        return "<pre>" + lineSeparator()
+                + "  The failure definition to test Javadoc generation." + lineSeparator()
+                + " </pre>" + lineSeparator() + lineSeparator()
+                + " Failure based on protobuf type {@code org.spine3.sample.failures.Failure}";
+    }
+
+    private static String getExpectedCtorComment() {
+        return " Creates a new instance." + lineSeparator() + lineSeparator()
+                + " @param id      the failure ID" + lineSeparator()
+                + " @param message the failure message" + lineSeparator();
     }
 
     @Test
