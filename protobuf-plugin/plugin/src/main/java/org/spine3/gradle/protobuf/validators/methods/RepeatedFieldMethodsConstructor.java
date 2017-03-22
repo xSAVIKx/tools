@@ -71,6 +71,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
         parameterClassName = getParameterClass(fieldDescriptor, builder.messageTypeCache);
     }
 
+    @Override
     public Collection<MethodSpec> construct() {
         final List<MethodSpec> methods = newArrayList();
         methods.addAll(createRepeatedMethods());

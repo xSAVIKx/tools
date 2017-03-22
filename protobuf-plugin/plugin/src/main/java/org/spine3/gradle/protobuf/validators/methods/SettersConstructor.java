@@ -63,6 +63,7 @@ public class SettersConstructor extends MethodConstructor {
         this.fieldName = GenerationUtils.getJavaFieldName(paramName, false);
     }
 
+    @Override
     public Collection<MethodSpec> construct() {
         final List<MethodSpec> methods = newArrayList();
         methods.add(constructSetter());
