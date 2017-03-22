@@ -21,6 +21,9 @@
 package org.spine3.gradle.protobuf.validators.methods;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.MethodSpec;
+
+import java.util.Collection;
 
 /**
  * @author Illia Shepilov
@@ -32,6 +35,8 @@ abstract class MethodConstructor {
     static final String VALUE = "value";
     static final String THIS_POINTER = "this.";
     static final String ADD_ALL_CONVERTED_VALUE = ".addAll(convertedValue)";
+
+    abstract Collection<MethodSpec> construct();
 
     static String createValidateConvertedValueStatement() {
         final String result = "validate(fieldDescriptor, convertedValue, $S)";
