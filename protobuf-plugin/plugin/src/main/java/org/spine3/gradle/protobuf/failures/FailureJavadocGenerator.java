@@ -46,10 +46,10 @@ public class FailureJavadocGenerator {
     @SuppressWarnings("HardcodedLineSeparator")
     private static final String LINE_SEPARATOR = "\n";
 
-    private final FailureInfo failureInfo;
+    private final FailureMetadata failureMetadata;
 
-    public FailureJavadocGenerator(FailureInfo failureInfo) {
-        this.failureInfo = failureInfo;
+    public FailureJavadocGenerator(FailureMetadata failureMetadata) {
+        this.failureMetadata = failureMetadata;
     }
 
     /**
@@ -72,9 +72,9 @@ public class FailureJavadocGenerator {
         }
 
         builder.append("Failure based on protobuf type {@code ")
-               .append(failureInfo.getJavaPackage())
+               .append(failureMetadata.getJavaPackage())
                .append('.')
-               .append(failureInfo.getClassName())
+               .append(failureMetadata.getClassName())
                .append('}')
                .append(LINE_SEPARATOR);
         return builder.toString();
@@ -91,8 +91,8 @@ public class FailureJavadocGenerator {
 
         builder.append(LINE_SEPARATOR)
                .append(LINE_SEPARATOR);
-        for (FieldDescriptorProto field : failureInfo.getDescriptor()
-                                                     .getFieldList()) {
+        for (FieldDescriptorProto field : failureMetadata.getDescriptor()
+                                                         .getFieldList()) {
             final String leadingComments = getFieldLeadingComments(field);
             final String fieldName = field.getName();
             final int commentOffset = maxFieldLength - fieldName.length();
@@ -118,8 +118,8 @@ public class FailureJavadocGenerator {
     }
 
     private String getLeadingComments(Collection<Integer> path) {
-        if (!failureInfo.getFile()
-                        .hasSourceCodeInfo()) {
+        if (!failureMetadata.getFileDescriptor()
+                            .hasSourceCodeInfo()) {
             throw new IllegalStateException("Source code info should be enabled");
         }
 
@@ -161,11 +161,11 @@ public class FailureJavadocGenerator {
     }
 
     private int getTopLevelMessageIndex() {
-        final List<DescriptorProto> messages = failureInfo.getFile()
-                                                          .getMessageTypeList();
+        final List<DescriptorProto> messages = failureMetadata.getFileDescriptor()
+                                                              .getMessageTypeList();
         for (DescriptorProto currentMessage : messages) {
-            if (currentMessage.equals(failureInfo.getDescriptor())) {
-                return messages.indexOf(failureInfo.getDescriptor());
+            if (currentMessage.equals(failureMetadata.getDescriptor())) {
+                return messages.indexOf(failureMetadata.getDescriptor());
             }
         }
 
@@ -173,15 +173,15 @@ public class FailureJavadocGenerator {
     }
 
     private int getFieldIndex(FieldDescriptorProto field) {
-        return failureInfo.getDescriptor()
-                          .getFieldList()
-                          .indexOf(field);
+        return failureMetadata.getDescriptor()
+                              .getFieldList()
+                              .indexOf(field);
     }
 
     private Location getLocation(Collection<Integer> path) {
-        for (Location location : failureInfo.getFile()
-                                            .getSourceCodeInfo()
-                                            .getLocationList()) {
+        for (Location location : failureMetadata.getFileDescriptor()
+                                                .getSourceCodeInfo()
+                                                .getLocationList()) {
             if (location.getPathList()
                         .equals(path)) {
                 return location;
@@ -193,8 +193,8 @@ public class FailureJavadocGenerator {
 
     private int getMaxFieldNameLength() {
         int maxLength = Integer.MIN_VALUE;
-        for (FieldDescriptorProto field : failureInfo.getDescriptor()
-                                                     .getFieldList()) {
+        for (FieldDescriptorProto field : failureMetadata.getDescriptor()
+                                                         .getFieldList()) {
             final int nameLength = field.getName()
                                         .length();
             if (nameLength > maxLength) {

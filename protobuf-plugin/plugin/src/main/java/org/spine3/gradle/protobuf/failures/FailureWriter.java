@@ -63,7 +63,7 @@ public class FailureWriter {
 
     private static final String COMMA_SEPARATOR = ", ";
 
-    private final FailureInfo failureInfo;
+    private final FailureMetadata failureMetadata;
     private final File outputDirectory;
 
     private final FieldTypeFactory fieldTypeFactory;
@@ -72,17 +72,17 @@ public class FailureWriter {
     /**
      * Creates a new instance.
      *
-     * @param failureInfo     a failure info
+     * @param failureMetadata a failure metadata
      * @param outputDirectory a {@linkplain File directory} to write a Failure
      * @param messageTypeMap  pre-scanned map with proto types and their appropriate Java classes
      */
-    public FailureWriter(FailureInfo failureInfo,
+    public FailureWriter(FailureMetadata failureMetadata,
                          File outputDirectory,
                          Map<String, String> messageTypeMap) {
-        this.failureInfo = failureInfo;
+        this.failureMetadata = failureMetadata;
         this.outputDirectory = outputDirectory;
-        this.fieldTypeFactory = new FieldTypeFactory(failureInfo.getDescriptor(), messageTypeMap);
-        this.javadocGenerator = new FailureJavadocGenerator(failureInfo);
+        this.fieldTypeFactory = new FieldTypeFactory(failureMetadata.getDescriptor(), messageTypeMap);
+        this.javadocGenerator = new FailureJavadocGenerator(failureMetadata);
     }
 
     /**
@@ -93,8 +93,8 @@ public class FailureWriter {
             log().debug("Creating the output directory {}", outputDirectory.getPath());
             Files.createDirectories(outputDirectory.toPath());
 
-            log().debug("Constructing {}", failureInfo.getClassName());
-            final TypeSpec failure = TypeSpec.classBuilder(failureInfo.getClassName())
+            log().debug("Constructing {}", failureMetadata.getClassName());
+            final TypeSpec failure = TypeSpec.classBuilder(failureMetadata.getClassName())
                                              .addJavadoc(javadocGenerator.generateClassJavadoc())
                                              .addAnnotation(constructGeneratedAnnotation())
                                              .addModifiers(PUBLIC)
@@ -103,19 +103,19 @@ public class FailureWriter {
                                              .addMethod(constructConstructor())
                                              .addMethod(constructGetFailureMessage())
                                              .build();
-            final JavaFile javaFile = JavaFile.builder(failureInfo.getJavaPackage(), failure)
+            final JavaFile javaFile = JavaFile.builder(failureMetadata.getJavaPackage(), failure)
                                               .build();
-            log().debug("Writing {}", failureInfo.getClassName());
+            log().debug("Writing {}", failureMetadata.getClassName());
             javaFile.writeTo(outputDirectory);
-            log().debug("Failure {} written successfully", failureInfo.getClassName());
+            log().debug("Failure {} written successfully", failureMetadata.getClassName());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     private MethodSpec constructConstructor() {
-        log().debug("Constructing the constructor of type '{}'", failureInfo.getDescriptor()
-                                                                            .getName());
+        log().debug("Constructing the constructor of type '{}'", failureMetadata.getDescriptor()
+                                                                                .getName());
         final MethodSpec.Builder builder = constructorBuilder()
                 .addJavadoc(javadocGenerator.generateConstructorJavadoc())
                 .addModifiers(PUBLIC)
@@ -136,7 +136,7 @@ public class FailureWriter {
         final StringBuilder superStatement = new StringBuilder(
                 "super(" + COMMAND_MESSAGE.getName() + COMMA_SEPARATOR
                         + COMMAND_CONTEXT.getName() + COMMA_SEPARATOR
-                        + failureInfo.getOuterClassName() + '.' + failureInfo.getClassName()
+                        + failureMetadata.getOuterClassName() + '.' + failureMetadata.getClassName()
                         + ".newBuilder()");
 
         for (Map.Entry<String, FieldType> field : readFieldValues().entrySet()) {
@@ -157,8 +157,8 @@ public class FailureWriter {
     private MethodSpec constructGetFailureMessage() {
         log().debug("Constructing getFailureMessage()");
 
-        final TypeName returnTypeName = ClassName.get(failureInfo.getOuterClassName(),
-                                                      failureInfo.getClassName());
+        final TypeName returnTypeName = ClassName.get(failureMetadata.getOuterClassName(),
+                                                      failureMetadata.getClassName());
         return MethodSpec.methodBuilder("getFailureMessage")
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC)
@@ -217,11 +217,11 @@ public class FailureWriter {
      */
     private Map<String, FieldType> readFieldValues() {
         log().debug("Reading all the field values from the descriptor: {}",
-                    failureInfo.getDescriptor());
+                    failureMetadata.getDescriptor());
 
         final Map<String, FieldType> result = new LinkedHashMap<>();
-        for (FieldDescriptorProto field : failureInfo.getDescriptor()
-                                                     .getFieldList()) {
+        for (FieldDescriptorProto field : failureMetadata.getDescriptor()
+                                                         .getFieldList()) {
             result.put(field.getName(), fieldTypeFactory.create(field));
         }
         log().debug("Read fields: {}", result);

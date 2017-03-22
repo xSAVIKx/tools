@@ -24,16 +24,16 @@ import static com.google.protobuf.DescriptorProtos.DescriptorProto;
 import static com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 
 /**
- * Encapsulates a failure information sufficient for failure writing.
+ * Encapsulates a failure metadata sufficient for failure writing.
  *
  * @author Dmytro Grankin
  */
-public class FailureInfo {
+public class FailureMetadata {
 
     private final DescriptorProto descriptor;
     private final String javaPackage;
     private final String outerClassName;
-    private final FileDescriptorProto failureFile;
+    private final FileDescriptorProto fileDescriptor;
 
     /**
      * Creates a new instance.
@@ -41,14 +41,14 @@ public class FailureInfo {
      * @param failureDescriptor {@link DescriptorProto} of failure's proto message
      * @param javaPackage       Failure's java package
      * @param outerClassName    the java outer class name
-     * @param failureFile       the file descriptor, that contains the failure
+     * @param fileDescriptor    the file descriptor, that contains the failure
      */
-    public FailureInfo(DescriptorProto failureDescriptor, String javaPackage,
-                       String outerClassName, FileDescriptorProto failureFile) {
+    public FailureMetadata(DescriptorProto failureDescriptor, String javaPackage,
+                           String outerClassName, FileDescriptorProto fileDescriptor) {
         this.descriptor = failureDescriptor;
         this.javaPackage = javaPackage;
         this.outerClassName = outerClassName;
-        this.failureFile = failureFile;
+        this.fileDescriptor = fileDescriptor;
     }
 
     public DescriptorProto getDescriptor() {
@@ -67,7 +67,7 @@ public class FailureInfo {
         return descriptor.getName();
     }
 
-    public FileDescriptorProto getFile() {
-        return failureFile;
+    public FileDescriptorProto getFileDescriptor() {
+        return fileDescriptor;
     }
 }
