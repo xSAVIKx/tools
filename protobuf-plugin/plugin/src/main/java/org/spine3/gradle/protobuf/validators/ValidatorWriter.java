@@ -57,7 +57,6 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatin
  */
 class ValidatorWriter {
 
-    private static final String ROOT_FOLDER = "validators-gen-sample/generated/main/java/";
     private static final String REPEATED_FIELD_LABEL = "LABEL_REPEATED";
 
     private final String javaClass;
@@ -65,18 +64,20 @@ class ValidatorWriter {
     private final DescriptorProto descriptor;
     private final MessageTypeCache messageTypeCache;
     private final ClassName builderGenericClassName;
+    private final String targetDir;
 
-    ValidatorWriter(WriterDto writerDto, MessageTypeCache messageTypeCache) {
+    ValidatorWriter(WriterDto writerDto, String targetDir, MessageTypeCache messageTypeCache) {
         this.javaClass = writerDto.getJavaClass();
         this.javaPackage = writerDto.getJavaPackage();
         this.descriptor = writerDto.getMsgDescriptor();
         this.messageTypeCache = messageTypeCache;
+        this.targetDir = targetDir;
         builderGenericClassName = getValidatingBuilderGenericClassName(javaPackage, messageTypeCache, descriptor.getName());
     }
 
     void write() {
         log().debug(String.format("Writing the %s under %s", javaClass, javaPackage));
-        final File rootDirectory = new File(ROOT_FOLDER);
+        final File rootDirectory = new File(targetDir);
 
         final List<MethodSpec> methods = newArrayList();
 
