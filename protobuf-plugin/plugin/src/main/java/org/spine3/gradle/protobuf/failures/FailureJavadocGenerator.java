@@ -58,6 +58,9 @@ import static java.lang.System.lineSeparator;
  */
 public class FailureJavadocGenerator {
 
+    @VisibleForTesting
+    protected static final String OPENING_PRE = "<pre>";
+
     private final FailureMetadata failureMetadata;
 
     public FailureJavadocGenerator(FailureMetadata failureMetadata) {
@@ -75,7 +78,7 @@ public class FailureJavadocGenerator {
         final StringBuilder builder = new StringBuilder();
 
         if (leadingComments != null) {
-            builder.append("<pre>")
+            builder.append(OPENING_PRE)
                    .append(lineSeparator())
                    .append(escapeJavadoc(leadingComments))
                    .append("</pre>")

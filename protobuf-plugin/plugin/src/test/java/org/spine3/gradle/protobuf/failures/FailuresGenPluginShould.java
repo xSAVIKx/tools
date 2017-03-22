@@ -130,7 +130,7 @@ public class FailuresGenPluginShould {
     }
 
     private static String getExpectedClassComment() {
-        return "<pre>" + JAVADOC_LINE_SEPARATOR
+        return FailureJavadocGenerator.OPENING_PRE + JAVADOC_LINE_SEPARATOR
                 + "  The failure definition to test Javadoc generation." + JAVADOC_LINE_SEPARATOR
                 + " </pre>" + JAVADOC_LINE_SEPARATOR + JAVADOC_LINE_SEPARATOR
                 + " Failure based on protobuf type {@code org.spine3.sample.failures.Failure}";
