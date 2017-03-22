@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.protobuf.validators.methods;
+package org.spine3.gradle.protobuf.validators.construction;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
