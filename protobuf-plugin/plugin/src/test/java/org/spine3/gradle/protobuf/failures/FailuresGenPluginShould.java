@@ -119,7 +119,7 @@ public class FailuresGenPluginShould {
                             + " </pre>" + lineSeparator() + lineSeparator()
                             + " Failure based on protobuf type {@code org.spine3.sample.failures.Failure}";
                     final String expectedCtorComment = " Creates a new instance." + lineSeparator() + lineSeparator()
-                            + " @param id      the failure id" + lineSeparator()
+                            + " @param id      the failure ID" + lineSeparator()
                             + " @param message the failure message" + lineSeparator();
 
                     assertEquals(expectedClassComment, failureDoc.commentText());

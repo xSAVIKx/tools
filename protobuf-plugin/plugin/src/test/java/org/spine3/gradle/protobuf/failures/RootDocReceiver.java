@@ -35,7 +35,7 @@ import org.junit.rules.TemporaryFolder;
  * @author Dmytro Grankin
  */
 @SuppressWarnings("ExtendsUtilityClass")
-class RootDocReceiver extends Standard {
+public class RootDocReceiver extends Standard {
 
     /**
      * Should be received only by {@link #getRootDoc(TemporaryFolder, String)} call,
