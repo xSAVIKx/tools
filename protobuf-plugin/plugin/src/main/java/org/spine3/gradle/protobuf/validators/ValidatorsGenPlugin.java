@@ -89,15 +89,6 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         log().debug("Validating builders generation phase initialized with tasks: {}, {}",
                     generateValidator,
                     generateTestValidator);
-
-        //TODO:2017-02-28:illiashepilov: Remove when implementation will be finished.
-        //test
-//        final String hardCodedPath = "/Users/illiashepilov/Projects/spine/tools/protobuf-plugin/build/descriptors/main.desc";
-//        final Set<WriterDto> dtos = process(hardCodedPath);
-//        for (WriterDto dto : dtos) {
-//            new ValidatorWriter(dto, messageTypeCache).write();
-//        }
-        /////////////////
     }
 
     private Action<Task> createAction(final String path) {
