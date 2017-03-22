@@ -21,6 +21,7 @@
 package org.spine3.gradle.protobuf;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
 
 import java.util.Map;
@@ -91,5 +92,32 @@ public class GenerationUtils {
             resultName = Character.toUpperCase(resultName.charAt(0)) + resultName.substring(1);
         }
         return resultName;
+    }
+
+    public static boolean isRepeated(DescriptorProtos.FieldDescriptorProto field) {
+        return field.getLabel() == DescriptorProtos.FieldDescriptorProto.Label.LABEL_REPEATED;
+    }
+
+    public static boolean isMap(DescriptorProtos.FieldDescriptorProto field) {
+        return field.getTypeName()
+                    .endsWith('.' + getEntryNameFor(field));
+    }
+
+    /**
+     * Constructs the entry name for the map field.
+     *
+     * <p>For example, proto field with name 'word_dictionary' has 'wordDictionary' json name.
+     * Every map field has corresponding entry type.
+     * For 'word_dictionary' it would be 'WordDictionaryEntry'
+     *
+     * @param mapField the field to construct entry name
+     * @return the name of the map field
+     */
+    public static String getEntryNameFor(DescriptorProtos.FieldDescriptorProto mapField) {
+        final String jsonName = mapField.getJsonName();
+        final char capitalizedFirstSymbol = Character.toUpperCase(jsonName.charAt(0));
+        final String remainingPart = jsonName.substring(1);
+
+        return capitalizedFirstSymbol + remainingPart + "Entry";
     }
 }
