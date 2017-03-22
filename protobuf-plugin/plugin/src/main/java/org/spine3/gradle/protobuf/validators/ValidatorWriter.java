@@ -22,7 +22,6 @@ package org.spine3.gradle.protobuf.validators;
 
 import com.google.common.io.Files;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
-import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -32,23 +31,15 @@ import com.squareup.javapoet.TypeSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.gradle.protobuf.MessageTypeCache;
-import org.spine3.gradle.protobuf.validators.methods.MethodConstructorFactory;
-import org.spine3.gradle.protobuf.validators.methods.RepeatedFieldMethodsConstructor;
-import org.spine3.gradle.protobuf.validators.methods.SettersConstructor;
+import org.spine3.gradle.protobuf.validators.construction.FieldConstructor;
+import org.spine3.gradle.protobuf.validators.construction.MethodConstructorFactory;
 import org.spine3.server.validate.AbstractValidatingBuilder;
 
 import javax.lang.model.element.Modifier;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
-import static org.spine3.gradle.protobuf.GenerationUtils.isRepeated;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatingBuilderGenericClassName;
-import static org.spine3.gradle.protobuf.validators.methods.MethodConstructorFactory.createPrivateConstructor;
 
 /**
  * Class, which writes Validator java code, based on it's descriptor.
@@ -57,43 +48,32 @@ import static org.spine3.gradle.protobuf.validators.methods.MethodConstructorFac
  */
 class ValidatorWriter {
 
-    private static final String REPEATED_FIELD_LABEL = "LABEL_REPEATED";
-
     private final String javaClass;
     private final String javaPackage;
-    private final DescriptorProto descriptor;
-    private final MessageTypeCache messageTypeCache;
     private final ClassName builderGenericClassName;
-    private final String targetDir;
+    private final FieldConstructor fieldConstructor;
     private final MethodConstructorFactory constructorFactory;
+    private final String targetDir;
 
     ValidatorWriter(WriterDto writerDto, String targetDir, MessageTypeCache messageTypeCache) {
         this.javaClass = writerDto.getJavaClass();
         this.javaPackage = writerDto.getJavaPackage();
-        this.descriptor = writerDto.getMsgDescriptor();
-        this.messageTypeCache = messageTypeCache;
         this.targetDir = targetDir;
-        builderGenericClassName = getValidatingBuilderGenericClassName(javaPackage, messageTypeCache, descriptor.getName());
-        constructorFactory = new MethodConstructorFactory(writerDto, messageTypeCache);
+        this.constructorFactory = new MethodConstructorFactory(writerDto, messageTypeCache);
+
+        final DescriptorProto descriptor = writerDto.getMsgDescriptor();
+        this.builderGenericClassName = getValidatingBuilderGenericClassName(javaPackage, messageTypeCache, descriptor.getName());
+        this.fieldConstructor = new FieldConstructor(messageTypeCache, descriptor);
     }
 
     void write() {
         log().debug(String.format("Writing the %s under %s", javaClass, javaPackage));
         final File rootDirectory = new File(targetDir);
 
-        final List<MethodSpec> methods = newArrayList();
-
-        methods.add(createPrivateConstructor());
-        methods.add(constructorFactory.createNewBuilderMethod());
-        methods.add(constructorFactory.createBuildMethod());
-
-        methods.addAll(createSetters());
-        methods.addAll(createRepeatedFieldMethods());
-
         final TypeSpec.Builder classBuilder = TypeSpec.classBuilder(javaClass);
-        final Collection<FieldSpec> fields = getFields();
-        addFields(classBuilder, fields);
-        addMethods(classBuilder, methods);
+
+        addFields(classBuilder, fieldConstructor.getAllFields());
+        addMethods(classBuilder, constructorFactory.createMethods());
 
         final TypeSpec javaClass = classBuilder.build();
 
@@ -101,74 +81,10 @@ class ValidatorWriter {
         writeClass(rootDirectory, javaClass);
     }
 
-    private Collection<FieldSpec> getFields() {
-        final List<FieldSpec> fields = newArrayList();
-        for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
-            fields.add(new FieldConstructor(fieldDescriptor).construct());
-        }
-        return fields;
-    }
-
-    private static TypeSpec.Builder addFields(TypeSpec.Builder classBuilder, Iterable<FieldSpec> fields) {
-        return classBuilder.addFields(fields);
-    }
-
-    private Collection<MethodSpec> createSetters() {
-        final List<MethodSpec> setters = newArrayList();
-        int index = 0;
-        for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
-            if (isRepeated(fieldDescriptor)) {
-                continue;
-            }
-            final SettersConstructor constructor =
-                    SettersConstructor.newBuilder()
-                                      .setFieldDescriptor(fieldDescriptor)
-                                      .setFieldIndex(index)
-                                      .setJavaClass(javaClass)
-                                      .setJavaPackage(javaPackage)
-                                      .setBuilderGenericClassName(builderGenericClassName)
-                                      .setMessageTypeCache(messageTypeCache)
-                                      .build();
-            final Collection<MethodSpec> methods = constructor.construct();
-            setters.addAll(methods);
-            ++index;
-        }
-        return setters;
-    }
-
-    private Collection<MethodSpec> createRepeatedFieldMethods() {
-        final List<MethodSpec> methods = newArrayList();
-        int fieldIndex = 0;
-        for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
-            final String labelName = fieldDescriptor.getLabel()
-                                                    .name();
-            if (labelName.equals(REPEATED_FIELD_LABEL)) {
-                final RepeatedFieldMethodsConstructor constructor =
-                        RepeatedFieldMethodsConstructor.newBuilder()
-                                                       .setFieldDescriptor(fieldDescriptor)
-                                                       .setFieldIndex(fieldIndex)
-                                                       .setJavaClass(javaClass)
-                                                       .setJavaPackage(javaPackage)
-                                                       .setBuilderGenericClass(builderGenericClassName)
-                                                       .setMessageTypeCache(messageTypeCache)
-                                                       .build();
-                final Collection<MethodSpec> repeatedFieldMethods = constructor.construct();
-                methods.addAll(repeatedFieldMethods);
-            }
-            ++fieldIndex;
-        }
-        return methods;
-    }
-
-    private void writeClass(File rootFolder, TypeSpec validator) {
-        try {
-            Files.touch(rootFolder);
-            JavaFile.builder(javaPackage, validator)
-                    .build()
-                    .writeTo(rootFolder);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    private static TypeSpec.Builder addFields(TypeSpec.Builder classBuilder,
+                                              Iterable<FieldSpec> fields) {
+        final TypeSpec.Builder result = classBuilder.addFields(fields);
+        return result;
     }
 
     private TypeSpec.Builder addMethods(TypeSpec.Builder builder, Iterable<MethodSpec> methodSpecs) {
@@ -181,39 +97,14 @@ class ValidatorWriter {
         return builder;
     }
 
-    private class FieldConstructor {
-
-        private final FieldDescriptorProto fieldDescriptor;
-
-        private FieldConstructor(FieldDescriptorProto fieldDescriptor) {
-            this.fieldDescriptor = fieldDescriptor;
-        }
-
-        public FieldSpec construct() {
-            if (isRepeated(fieldDescriptor)) {
-                final FieldSpec result = constructRepeatedField();
-                return result;
-            }
-
-            final FieldSpec result = constructField();
-            return result;
-        }
-
-        private FieldSpec constructRepeatedField() {
-            final ClassName rawType = ClassName.get(List.class);
-            final ParameterizedTypeName param =
-                    ParameterizedTypeName.get(rawType, getParameterClass(fieldDescriptor, messageTypeCache));
-            final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
-            return FieldSpec.builder(param, fieldName, Modifier.PRIVATE)
-                            .build();
-        }
-
-        private FieldSpec constructField() {
-            final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
-            final ClassName fieldClass = getParameterClass(fieldDescriptor, messageTypeCache);
-            final FieldSpec result = FieldSpec.builder(fieldClass, fieldName, Modifier.PRIVATE)
-                                              .build();
-            return result;
+    private void writeClass(File rootFolder, TypeSpec validator) {
+        try {
+            Files.touch(rootFolder);
+            JavaFile.builder(javaPackage, validator)
+                    .build()
+                    .writeTo(rootFolder);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

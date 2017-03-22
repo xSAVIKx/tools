@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.protobuf.validators.methods;
+package org.spine3.gradle.protobuf.validators.construction;
 
 import com.google.protobuf.DescriptorProtos;
 import com.squareup.javapoet.ClassName;
@@ -27,7 +27,10 @@ import org.spine3.gradle.protobuf.MessageTypeCache;
 import org.spine3.gradle.protobuf.validators.WriterDto;
 
 import javax.lang.model.element.Modifier;
+import java.util.Collection;
+import java.util.List;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
 import static org.spine3.gradle.protobuf.GenerationUtils.isRepeated;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_ALL_PREFIX;
@@ -100,5 +103,63 @@ public class MethodConstructorFactory {
                                                  .addStatement("return result")
                                                  .build();
         return buildMethod;
+    }
+
+    public Collection<MethodSpec> createMethods() {
+        final List<MethodSpec> methods = newArrayList();
+
+        methods.add(createPrivateConstructor());
+        methods.add(createNewBuilderMethod());
+        methods.add(createBuildMethod());
+
+        methods.addAll(createSingularFieldMethods());
+        methods.addAll(createRepeatedFieldMethods());
+
+        return methods;
+    }
+
+    private Collection<MethodSpec> createSingularFieldMethods() {
+        final List<MethodSpec> setters = newArrayList();
+        int index = 0;
+        for (DescriptorProtos.FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
+            if (isRepeated(fieldDescriptor)) {
+                continue;
+            }
+            final SettersConstructor constructor =
+                    SettersConstructor.newBuilder()
+                                      .setFieldDescriptor(fieldDescriptor)
+                                      .setFieldIndex(index)
+                                      .setJavaClass(javaClass)
+                                      .setJavaPackage(javaPackage)
+                                      .setBuilderGenericClassName(builderGenericClassName)
+                                      .setMessageTypeCache(messageTypeCache)
+                                      .build();
+            final Collection<MethodSpec> methods = constructor.construct();
+            setters.addAll(methods);
+            ++index;
+        }
+        return setters;
+    }
+
+    private Collection<MethodSpec> createRepeatedFieldMethods() {
+        final List<MethodSpec> methods = newArrayList();
+        int fieldIndex = 0;
+        for (DescriptorProtos.FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
+            if (isRepeated(fieldDescriptor)) {
+                final RepeatedFieldMethodsConstructor constructor =
+                        RepeatedFieldMethodsConstructor.newBuilder()
+                                                       .setFieldDescriptor(fieldDescriptor)
+                                                       .setFieldIndex(fieldIndex)
+                                                       .setJavaClass(javaClass)
+                                                       .setJavaPackage(javaPackage)
+                                                       .setBuilderGenericClass(builderGenericClassName)
+                                                       .setMessageTypeCache(messageTypeCache)
+                                                       .build();
+                final Collection<MethodSpec> repeatedFieldMethods = constructor.construct();
+                methods.addAll(repeatedFieldMethods);
+            }
+            ++fieldIndex;
+        }
+        return methods;
     }
 }
