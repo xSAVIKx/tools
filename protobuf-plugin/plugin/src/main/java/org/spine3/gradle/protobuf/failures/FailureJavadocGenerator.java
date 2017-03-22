@@ -33,9 +33,19 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * A Generator for the failure Javadocs content.
+ * A generator for the failure Javadocs content.
  *
- * <p>Could be used only if "descriptorSetOptions.includeSourceInfo = true"
+ * <p>Could be used only if protobuf plugin configured properly:
+ * <pre> {@code
+ * generateProtoTasks {
+ *     all().each { final task ->
+ *         // If true, the descriptor set will contain line number information
+ *         // and comments. Default is false.
+ *         task.descriptorSetOptions.includeSourceInfo = true
+ *         // ...
+ *     }
+ * }
+ * }</pre>
  *
  * @author Dmytro Grankin
  * @see <a href="https://github.com/google/protobuf-gradle-plugin/blob/master/README.md#generate-descriptor-set-files">
