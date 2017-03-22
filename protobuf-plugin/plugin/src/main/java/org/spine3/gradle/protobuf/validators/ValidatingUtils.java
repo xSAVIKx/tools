@@ -26,11 +26,14 @@ import org.spine3.gradle.protobuf.GenerationUtils;
 import org.spine3.gradle.protobuf.MessageTypeCache;
 
 import java.util.Collection;
+import java.util.regex.Pattern;
 
 public class ValidatingUtils {
 
     public static final String SETTER_PREFIX = "set";
     public static final String ADD_ALL_PREFIX = "addAll";
+    public static final String PUT_ALL_PREFIX = "putAll";
+    private static final Pattern PATTERN = Pattern.compile(".ChangesEntry");
 
     private ValidatingUtils() {
         // To prevent initialization.
@@ -51,6 +54,13 @@ public class ValidatingUtils {
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static ClassName getMapValueClassName(FieldDescriptorProto fieldDescriptor,
+                                                 MessageTypeCache messageTypeCache) {
+        final String result = PATTERN.matcher(getParameterClass(fieldDescriptor, messageTypeCache).simpleName())
+                                     .replaceAll("");
+        return ClassName.get("", result);
     }
 
     public static ClassName getBuilderClassName(String javaPackage, String javaClass) {

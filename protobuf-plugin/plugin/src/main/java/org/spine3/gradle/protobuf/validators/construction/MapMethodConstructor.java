@@ -23,6 +23,7 @@ package org.spine3.gradle.protobuf.validators.construction;
 import com.squareup.javapoet.MethodSpec;
 
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author Illia Shepilov
@@ -31,6 +32,6 @@ public class MapMethodConstructor extends AbstractMethodConstructor {
 
     @Override
     Collection<MethodSpec> construct() {
-        return null;
+        return Collections.emptyList();
     }
 }

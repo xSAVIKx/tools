@@ -36,6 +36,7 @@ import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
 import static org.spine3.gradle.protobuf.GenerationUtils.isMap;
 import static org.spine3.gradle.protobuf.GenerationUtils.isRepeated;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_ALL_PREFIX;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.PUT_ALL_PREFIX;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.SETTER_PREFIX;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatorGenericClassName;
@@ -94,7 +95,9 @@ public class MethodConstructor {
         for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
             builder.append('.');
 
-            if (isRepeated(fieldDescriptor)) {
+            if (isMap(fieldDescriptor)) {
+                builder.append(PUT_ALL_PREFIX);
+            } else if (isRepeated(fieldDescriptor)) {
                 builder.append(ADD_ALL_PREFIX);
             } else {
                 builder.append(SETTER_PREFIX);
