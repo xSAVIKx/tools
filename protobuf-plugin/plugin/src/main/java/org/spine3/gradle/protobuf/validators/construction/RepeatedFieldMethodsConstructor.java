@@ -46,25 +46,25 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameter
 /**
  * @author Illia Shepilov
  */
-public class RepeatedFieldMethodsConstructor extends MethodConstructor {
+class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
 
     private static final String CREATE_IF_NEEDED = "createIfNeeded()";
     private static final String ADD_RAW_PREFIX = "addRaw";
     private static final String ADD_PREFIX = "add";
     private static final String REMOVE_PREFIX = "remove";
 
-    private final FieldDescriptorProto fieldDescriptor;
     private final int fieldIndex;
+    private final String javaFieldName;
     private final String methodPartName;
     private final ClassName builderClass;
+    private final ClassName genericClassName;
     private final ClassName parameterClassName;
-    private final String javaFieldName;
-    private final ClassName builderGenericClass;
+    private final FieldDescriptorProto fieldDescriptor;
 
-    public RepeatedFieldMethodsConstructor(RepeatedFieldMethodsConstructorBuilder builder) {
-        this.fieldDescriptor = builder.fieldDescriptor;
+    private RepeatedFieldMethodsConstructor(RepeatedFieldMethodsConstructorBuilder builder) {
         this.fieldIndex = builder.fieldIndex;
-        this.builderGenericClass = builder.builderGenericClass;
+        this.fieldDescriptor = builder.fieldDescriptor;
+        this.genericClassName = builder.genericClassName;
         methodPartName = getJavaFieldName(fieldDescriptor.getName(), true);
         javaFieldName = getJavaFieldName(fieldDescriptor.getName(), false);
         builderClass = getBuilderClassName(builder.javaPackage, builder.javaClass);
@@ -72,7 +72,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
     }
 
     @Override
-    public Collection<MethodSpec> construct() {
+    Collection<MethodSpec> construct() {
         final List<MethodSpec> methods = newArrayList();
         methods.addAll(createRepeatedMethods());
         methods.addAll(createRepeatedRawMethods());
@@ -106,7 +106,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
 
     private MethodSpec createRawAddObjectMethod() {
         final String methodName = getJavaFieldName(ADD_RAW_PREFIX + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClass);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClass)
@@ -129,7 +129,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
 
     private MethodSpec createRawAddByIndexMethod() {
         final String methodName = getJavaFieldName(ADD_RAW_PREFIX + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClass);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClass)
@@ -153,7 +153,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
 
     private MethodSpec createRawAddAllMethod() {
         final String methodName = getJavaFieldName("addAllRaw" + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClass);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClass)
@@ -179,7 +179,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
 
     private MethodSpec createAddAllMethod() {
         final String methodName = getJavaFieldName(ADD_ALL_PREFIX + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClass);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
         final ClassName rawType = ClassName.get(List.class);
         final ParameterizedTypeName parameter = ParameterizedTypeName.get(rawType, parameterClassName);
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
@@ -200,7 +200,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
 
     private MethodSpec createAddObjectMethod() {
         final String methodName = getJavaFieldName(ADD_PREFIX + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClass);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClass)
@@ -218,7 +218,7 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
 
     private MethodSpec createAddByIndexMethod() {
         final String methodName = getJavaFieldName(ADD_PREFIX + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClass);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClass)
@@ -282,60 +282,60 @@ public class RepeatedFieldMethodsConstructor extends MethodConstructor {
         return result;
     }
 
-    public static RepeatedFieldMethodsConstructorBuilder newBuilder() {
+    static RepeatedFieldMethodsConstructorBuilder newBuilder() {
         return new RepeatedFieldMethodsConstructorBuilder();
     }
 
-    public static class RepeatedFieldMethodsConstructorBuilder {
+    static class RepeatedFieldMethodsConstructorBuilder {
 
-        private String javaPackage;
+        private int fieldIndex;
         private String javaClass;
+        private String javaPackage;
+        private ClassName genericClassName;
         private MessageTypeCache messageTypeCache;
         private FieldDescriptorProto fieldDescriptor;
-        private ClassName builderGenericClass;
-        private int fieldIndex;
 
-        public RepeatedFieldMethodsConstructorBuilder setFieldIndex(int fieldIndex) {
+        RepeatedFieldMethodsConstructorBuilder setFieldIndex(int fieldIndex) {
             checkArgument(fieldIndex >= 0);
             this.fieldIndex = fieldIndex;
             return this;
         }
 
-        public RepeatedFieldMethodsConstructorBuilder setJavaPackage(String javaPackage) {
+        RepeatedFieldMethodsConstructorBuilder setJavaPackage(String javaPackage) {
             checkNotNull(javaPackage);
             this.javaPackage = javaPackage;
             return this;
         }
 
-        public RepeatedFieldMethodsConstructorBuilder setJavaClass(String javaClass) {
+        RepeatedFieldMethodsConstructorBuilder setJavaClass(String javaClass) {
             checkNotNull(javaClass);
             this.javaClass = javaClass;
             return this;
         }
 
-        public RepeatedFieldMethodsConstructorBuilder setMessageTypeCache(MessageTypeCache messageTypeCache) {
+        RepeatedFieldMethodsConstructorBuilder setMessageTypeCache(MessageTypeCache messageTypeCache) {
             checkNotNull(messageTypeCache);
             this.messageTypeCache = messageTypeCache;
             return this;
         }
 
-        public RepeatedFieldMethodsConstructorBuilder setFieldDescriptor(FieldDescriptorProto fieldDescriptor) {
+        RepeatedFieldMethodsConstructorBuilder setFieldDescriptor(FieldDescriptorProto fieldDescriptor) {
             checkNotNull(fieldDescriptor);
             this.fieldDescriptor = fieldDescriptor;
             return this;
         }
 
-        public RepeatedFieldMethodsConstructorBuilder setBuilderGenericClass(ClassName builderGenericClassName) {
-            this.builderGenericClass = builderGenericClassName;
+        RepeatedFieldMethodsConstructorBuilder setBuilderGenericClass(ClassName genericClassName) {
+            this.genericClassName = genericClassName;
             return this;
         }
 
-        public RepeatedFieldMethodsConstructor build() {
+        RepeatedFieldMethodsConstructor build() {
             checkNotNull(javaClass);
             checkNotNull(javaPackage);
             checkNotNull(messageTypeCache);
             checkNotNull(fieldDescriptor);
-            checkNotNull(builderGenericClass);
+            checkNotNull(genericClassName);
             checkArgument(fieldIndex >= 0);
             return new RepeatedFieldMethodsConstructor(this);
         }

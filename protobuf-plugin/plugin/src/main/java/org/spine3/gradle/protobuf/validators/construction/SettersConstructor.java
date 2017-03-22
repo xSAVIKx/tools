@@ -28,6 +28,7 @@ import com.squareup.javapoet.ParameterSpec;
 import org.spine3.base.ConversionException;
 import org.spine3.gradle.protobuf.GenerationUtils;
 import org.spine3.gradle.protobuf.MessageTypeCache;
+import org.spine3.gradle.protobuf.validators.ValidatingUtils;
 import org.spine3.validate.ConstraintViolationThrowable;
 
 import javax.lang.model.element.Modifier;
@@ -41,7 +42,7 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.SETTER_PREFI
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
 
-public class SettersConstructor extends MethodConstructor {
+class SettersConstructor extends AbstractMethodConstructor {
 
     private final FieldDescriptorProto fieldDescriptor;
     private final int fieldIndex;
@@ -55,7 +56,7 @@ public class SettersConstructor extends MethodConstructor {
     private SettersConstructor(SettersConstructorBuilder builder) {
         this.fieldDescriptor = builder.fieldDescriptor;
         this.fieldIndex = builder.fieldIndex;
-        this.builderGenericClassName = builder.builderGenericClassName;
+        this.builderGenericClassName = builder.genericClassName;
         this.parameterClassName = getParameterClass(fieldDescriptor, builder.messageTypeCache);
         this.builderClassName = getBuilderClassName(builder.javaPackage, builder.javaClass);
         this.paramName = GenerationUtils.getJavaFieldName(fieldDescriptor.getName(), false);
@@ -64,11 +65,11 @@ public class SettersConstructor extends MethodConstructor {
     }
 
     @Override
-    public Collection<MethodSpec> construct() {
+    Collection<MethodSpec> construct() {
         final List<MethodSpec> methods = newArrayList();
         methods.add(constructSetter());
 
-        if (!parameterClassName.equals(ClassName.get("java.lang", "String"))) {
+        if (!parameterClassName.equals(ValidatingUtils.getStringClassName())) {
             methods.add(constructRawSetter());
         }
 
@@ -118,67 +119,67 @@ public class SettersConstructor extends MethodConstructor {
     }
 
     private ParameterSpec createParameterSpec(FieldDescriptorProto fieldDescriptor, boolean raw) {
-        final ClassName methodParamClass = raw ? ClassName.get("java.lang", "String") : parameterClassName;
+        final ClassName methodParamClass = raw ? ValidatingUtils.getStringClassName() : parameterClassName;
         final String paramName = GenerationUtils.getJavaFieldName(fieldDescriptor.getName(), false);
         final ParameterSpec result = ParameterSpec.builder(methodParamClass, paramName)
                                                   .build();
         return result;
     }
 
-    public static SettersConstructorBuilder newBuilder() {
+    static SettersConstructorBuilder newBuilder() {
         return new SettersConstructorBuilder();
     }
 
-    public static class SettersConstructorBuilder {
+    static class SettersConstructorBuilder {
 
         private String javaPackage;
         private String javaClass;
         private MessageTypeCache messageTypeCache;
         private FieldDescriptorProto fieldDescriptor;
-        private ClassName builderGenericClassName;
+        private ClassName genericClassName;
         private int fieldIndex;
 
-        public SettersConstructorBuilder setFieldIndex(int fieldIndex) {
+        SettersConstructorBuilder setFieldIndex(int fieldIndex) {
             checkArgument(fieldIndex >= 0);
             this.fieldIndex = fieldIndex;
             return this;
         }
 
-        public SettersConstructorBuilder setJavaPackage(String javaPackage) {
+        SettersConstructorBuilder setJavaPackage(String javaPackage) {
             checkNotNull(javaPackage);
             this.javaPackage = javaPackage;
             return this;
         }
 
-        public SettersConstructorBuilder setJavaClass(String javaClass) {
+        SettersConstructorBuilder setJavaClass(String javaClass) {
             checkNotNull(javaClass);
             this.javaClass = javaClass;
             return this;
         }
 
-        public SettersConstructorBuilder setMessageTypeCache(MessageTypeCache messageTypeCache) {
+        SettersConstructorBuilder setMessageTypeCache(MessageTypeCache messageTypeCache) {
             checkNotNull(messageTypeCache);
             this.messageTypeCache = messageTypeCache;
             return this;
         }
 
-        public SettersConstructorBuilder setFieldDescriptor(FieldDescriptorProto fieldDescriptor) {
+        SettersConstructorBuilder setFieldDescriptor(FieldDescriptorProto fieldDescriptor) {
             checkNotNull(fieldDescriptor);
             this.fieldDescriptor = fieldDescriptor;
             return this;
         }
 
-        public SettersConstructorBuilder setBuilderGenericClassName(ClassName builderGenericClassName) {
-            this.builderGenericClassName = builderGenericClassName;
+        SettersConstructorBuilder setGenericClassName(ClassName genericClassName) {
+            this.genericClassName = genericClassName;
             return this;
         }
 
-        public SettersConstructor build() {
+        SettersConstructor build() {
             checkNotNull(javaClass);
             checkNotNull(javaPackage);
             checkNotNull(messageTypeCache);
             checkNotNull(fieldDescriptor);
-            checkNotNull(builderGenericClassName);
+            checkNotNull(genericClassName);
             checkArgument(fieldIndex >= 0);
             return new SettersConstructor(this);
         }
