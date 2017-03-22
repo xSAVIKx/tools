@@ -32,14 +32,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.gradle.protobuf.MessageTypeCache;
 import org.spine3.gradle.protobuf.validators.construction.FieldConstructor;
-import org.spine3.gradle.protobuf.validators.construction.MethodConstructorFactory;
+import org.spine3.gradle.protobuf.validators.construction.MethodConstructor;
 import org.spine3.server.validate.AbstractValidatingBuilder;
 
 import javax.lang.model.element.Modifier;
 import java.io.File;
 import java.io.IOException;
 
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatingBuilderGenericClassName;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatorGenericClassName;
 
 /**
  * Class, which writes Validator java code, based on it's descriptor.
@@ -52,17 +52,19 @@ class ValidatorWriter {
     private final String javaPackage;
     private final ClassName builderGenericClassName;
     private final FieldConstructor fieldConstructor;
-    private final MethodConstructorFactory constructorFactory;
+    private final MethodConstructor constructorFactory;
     private final String targetDir;
 
     ValidatorWriter(WriterDto writerDto, String targetDir, MessageTypeCache messageTypeCache) {
         this.javaClass = writerDto.getJavaClass();
         this.javaPackage = writerDto.getJavaPackage();
         this.targetDir = targetDir;
-        this.constructorFactory = new MethodConstructorFactory(writerDto, messageTypeCache);
+        this.constructorFactory = new MethodConstructor(writerDto, messageTypeCache);
 
         final DescriptorProto descriptor = writerDto.getMsgDescriptor();
-        this.builderGenericClassName = getValidatingBuilderGenericClassName(javaPackage, messageTypeCache, descriptor.getName());
+        this.builderGenericClassName = getValidatorGenericClassName(javaPackage,
+                                                                    messageTypeCache,
+                                                                    descriptor.getName());
         this.fieldConstructor = new FieldConstructor(messageTypeCache, descriptor);
     }
 
