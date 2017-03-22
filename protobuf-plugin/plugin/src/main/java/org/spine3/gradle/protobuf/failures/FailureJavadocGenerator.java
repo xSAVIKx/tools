@@ -223,19 +223,17 @@ public class FailureJavadocGenerator {
     protected static String escapeJavadoc(CharSequence javadoc) {
         final StringBuilder builder = new StringBuilder(javadoc.length() * 2);
 
-        char prevSymbol = '*';
+        char previous = '*';
         for (int i = 0; i < javadoc.length(); i++) {
             final char current = javadoc.charAt(i);
-            builder.append(EscapedSymbols.escape(current, prevSymbol));
-            prevSymbol = current;
+            builder.append(EscapedCharacters.escape(current, previous));
+            previous = current;
         }
 
         return builder.toString();
     }
 
-    // Used in implicit form.
-    @SuppressWarnings("unused")
-    enum EscapedSymbols {
+    enum EscapedCharacters {
         ASTERISK('*', "&#42;"),     // Only "*/" should be avoided.
         SLASH('/', "&#47;"),        // Only "/*" should be avoided.
         BACK_SLASH('\\', "&#92;"),
@@ -244,42 +242,41 @@ public class FailureJavadocGenerator {
         LESS_THAN('<', "&lt;"),
         GREATER_THAN('>', "&gt;");
 
-        private final char ch;
-        private final String escapedVersion;
+        /**
+         * A character that should be avoided in a Javadoc text.
+         */
+        private final char unescapedCharacter;
+        private final String escapedString;
 
-        EscapedSymbols(char ch, String escapedVersion) {
-            this.ch = ch;
-            this.escapedVersion = escapedVersion;
+        EscapedCharacters(char unescapedCharacter, String escapedString) {
+            this.unescapedCharacter = unescapedCharacter;
+            this.escapedString = escapedString;
         }
 
-        public char getCharacter() {
-            return ch;
+        String getEscapedString() {
+            return escapedString;
         }
 
-        public String getEscapedVersion() {
-            return escapedVersion;
-        }
-
-        public static String escape(char current, char previous) {
-            for (EscapedSymbols escapedSymbol : EscapedSymbols.values()) {
-                if (escapedSymbol.getCharacter() == current) {
+        private static String escape(char current, char previous) {
+            for (EscapedCharacters escapedSymbol : EscapedCharacters.values()) {
+                if (escapedSymbol.unescapedCharacter == current) {
                     if (isAsteriskNotCommentBeginningPart(escapedSymbol, previous)
                             || isSlashNotCommentEndingPart(escapedSymbol, previous)) {
                         return String.valueOf(current);
                     }
-                    return escapedSymbol.getEscapedVersion();
+                    return escapedSymbol.escapedString;
                 }
             }
             return String.valueOf(current);
         }
 
-        private static boolean isAsteriskNotCommentBeginningPart(EscapedSymbols current,
+        private static boolean isAsteriskNotCommentBeginningPart(EscapedCharacters current,
                                                                  char previous) {
-            return current == ASTERISK && previous != SLASH.getCharacter();
+            return current == ASTERISK && previous != SLASH.unescapedCharacter;
         }
 
-        private static boolean isSlashNotCommentEndingPart(EscapedSymbols current, char previous) {
-            return current == SLASH && previous != ASTERISK.getCharacter();
+        private static boolean isSlashNotCommentEndingPart(EscapedCharacters current, char previous) {
+            return current == SLASH && previous != ASTERISK.unescapedCharacter;
         }
     }
 }
