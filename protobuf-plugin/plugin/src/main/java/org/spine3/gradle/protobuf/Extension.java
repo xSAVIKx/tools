@@ -32,7 +32,6 @@ import static java.util.Collections.singletonList;
 import static org.spine3.gradle.protobuf.ProtobufPlugin.SPINE_PROTOBUF_EXTENSION_NAME;
 
 /**
- *
  * A configuration for the {@link ProtobufPlugin}.
  *
  * @author Alex Tymchenko
@@ -69,6 +68,16 @@ public class Extension {
      * The absolute path to the test target generated failures root directory.
      */
     public String targetTestGenFailuresRootDir;
+
+    /**
+     * The absolute path to the main target generated validators root directory.
+     */
+    public String targetGenValidatorsRootDir;
+
+    /**
+     * The absolute path to the test target generated validators root directory.
+     */
+    public String targetTestGenValidatorsRootDir;
 
     /**
      * The absolute path to directory to delete.
@@ -139,6 +148,26 @@ public class Extension {
         if (isNullOrEmpty(path)) {
             return project.getProjectDir()
                           .getAbsolutePath() + "/generated/test/spine";
+        } else {
+            return path;
+        }
+    }
+
+    public static String getTargetGenValidatorsRootDir(Project project) {
+        final String path = spineProtobuf(project).targetGenValidatorsRootDir;
+        if (isNullOrEmpty(path)) {
+            return project.getProjectDir()
+                          .getAbsolutePath() + "/generated/main/java";
+        } else {
+            return path;
+        }
+    }
+
+    public static String getTargetTestGenValidatorsRootDir(Project project) {
+        final String path = spineProtobuf(project).targetTestGenValidatorsRootDir;
+        if (isNullOrEmpty(path)) {
+            return project.getProjectDir()
+                          .getAbsolutePath() + "/generated/test/java";
         } else {
             return path;
         }

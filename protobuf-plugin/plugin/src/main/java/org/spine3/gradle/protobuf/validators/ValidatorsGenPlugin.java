@@ -31,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.gradle.SpinePlugin;
 import org.spine3.gradle.protobuf.MessageTypeCache;
-import org.spine3.gradle.protobuf.util.DescriptorSetUtil;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -50,6 +49,8 @@ import static org.spine3.gradle.TaskName.GENERATE_TEST_PROTO;
 import static org.spine3.gradle.TaskName.GENERATE_TEST_VALIDATING_BUILDERS;
 import static org.spine3.gradle.TaskName.GENERATE_VALIDATING_BUILDERS;
 import static org.spine3.gradle.protobuf.Extension.getMainDescriptorSetPath;
+import static org.spine3.gradle.protobuf.Extension.getTargetGenValidatorsRootDir;
+import static org.spine3.gradle.protobuf.Extension.getTargetTestGenValidatorsRootDir;
 import static org.spine3.gradle.protobuf.Extension.getTestDescriptorSetPath;
 import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors;
 
@@ -71,7 +72,8 @@ public class ValidatorsGenPlugin extends SpinePlugin {
     @Override
     public void apply(Project project) {
         log().debug("Preparing to generate validating builders");
-        final Action<Task> mainScopeAction = createAction(getMainDescriptorSetPath(project));
+        final Action<Task> mainScopeAction =
+                createAction(getMainDescriptorSetPath(project), getTargetGenValidatorsRootDir(project));
 
         logDependingTask(log(), GENERATE_VALIDATING_BUILDERS, COMPILE_JAVA, GENERATE_PROTO);
         final GradleTask generateValidator =
@@ -79,7 +81,8 @@ public class ValidatorsGenPlugin extends SpinePlugin {
                                                                       .insertBeforeTask(COMPILE_JAVA)
                                                                       .applyNowTo(project);
         log().debug("Preparing to generate test validating builders");
-        final Action<Task> testScopeAction = createAction(getTestDescriptorSetPath(project));
+        final Action<Task> testScopeAction =
+                createAction(getTestDescriptorSetPath(project), getTargetTestGenValidatorsRootDir(project));
 
         logDependingTask(log(), GENERATE_TEST_VALIDATING_BUILDERS, COMPILE_TEST_JAVA, GENERATE_TEST_PROTO);
         final GradleTask generateTestValidator =
@@ -91,14 +94,14 @@ public class ValidatorsGenPlugin extends SpinePlugin {
                     generateTestValidator);
     }
 
-    private Action<Task> createAction(final String path) {
+    private Action<Task> createAction(final String path, final String targetDir) {
         return new Action<Task>() {
             @Override
             public void execute(Task task) {
                 log().debug("Generating the validators from {}", path);
                 final Set<WriterDto> dtos = process(path);
                 for (WriterDto dto : dtos) {
-                    new ValidatorWriter(dto, messageTypeCache).write();
+                    new ValidatorWriter(dto, targetDir, messageTypeCache).write();
                 }
             }
         };
