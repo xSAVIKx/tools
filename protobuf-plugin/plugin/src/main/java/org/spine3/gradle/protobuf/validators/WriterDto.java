@@ -26,7 +26,7 @@ import com.google.protobuf.DescriptorProtos.DescriptorProto;
 /**
  * @author Illia Shepilov
  */
-class WriterDto {
+public class WriterDto {
 
     private final String javaPackage;
     private final String javaClass;
