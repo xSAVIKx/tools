@@ -82,7 +82,7 @@ message UpdateLabelDetails {
 
     // The label details change.
     // Contains the previous label details and the label details to set for the target label.
-    LabelDetailsChange label_details_change = 2;
+    map<string, DescriptionChange> changes = 2;
 
     // Reserved for future extension.
     reserved 3 to 10;

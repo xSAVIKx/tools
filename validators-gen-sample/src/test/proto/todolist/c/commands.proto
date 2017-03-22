@@ -65,9 +65,9 @@ message UpdateTaskDescription {
     // An identifier of the target task.
     TaskId id = 1;
 
-    // The description change.
-    // Contains the previous description and the description to set for the target task.
-    DescriptionChange description_change = 2;
+    // The label details change.
+    // Contains the previous label details and the label details to set for the target label.
+    map<string, DescriptionChange> changes = 2;
 
     // Reserved for future extension.
     reserved 3 to 10;
