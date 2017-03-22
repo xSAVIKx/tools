@@ -4,7 +4,6 @@ import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.RootDoc;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.spine3.util.Exceptions;
 
@@ -91,7 +90,6 @@ public class ExcludeInternalDocletShould {
     }
 
     @Test
-    @Ignore
     public void exclude_internal_package_content() {
         final String[] args = new JavadocArgsBuilder()
                 .addSource("/internal/InternalPackageClass.java")
@@ -103,7 +101,6 @@ public class ExcludeInternalDocletShould {
     }
 
     @Test
-    @Ignore
     public void exclude_only_from_internal_subpackages() {
         final String[] args = new JavadocArgsBuilder()
                 .addSource("/internal/subinternal/SubInternalPackageClass.java")
