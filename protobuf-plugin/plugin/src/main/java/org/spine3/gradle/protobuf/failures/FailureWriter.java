@@ -33,8 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.base.CommandContext;
 import org.spine3.base.FailureThrowable;
-import org.spine3.gradle.protobuf.failures.fieldtype.FieldType;
-import org.spine3.gradle.protobuf.failures.fieldtype.FieldTypeFactory;
+import org.spine3.gradle.protobuf.fieldtype.FieldType;
+import org.spine3.gradle.protobuf.fieldtype.FieldTypeFactory;
 
 import javax.annotation.Generated;
 import java.io.File;

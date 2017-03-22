@@ -17,33 +17,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.gradle.protobuf.failures.fieldtype;
+package org.spine3.gradle.protobuf.fieldtype;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import org.apache.commons.lang3.ClassUtils;
 import org.spine3.util.Exceptions;
 
-import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.isProtoPrimitive;
+import java.util.Collection;
 
 /**
- * Represents singular {@linkplain FieldType field type}.
+ * Represents repeated {@linkplain FieldType field type}.
  *
  * @author Dmytro Grankin
  */
-public class SingularFieldType implements FieldType {
+public class RepeatedFieldType implements FieldType {
 
-    private static final String SETTER_PREFIX = "set";
+    private static final String SETTER_PREFIX = "addAll";
 
     private final TypeName typeName;
 
     /**
-     * Constructs the {@link SingularFieldType} based on field type name.
+     * Constructs the {@link RepeatedFieldType} based on component type.
      *
-     * @param name the field type name
+     * @param componentTypeName the component type name
      */
-    SingularFieldType(String name) {
-        this.typeName = constructTypeNameFor(name);
+    RepeatedFieldType(String componentTypeName) {
+        this.typeName = constructTypeNameFor(componentTypeName);
     }
 
     /**
@@ -55,10 +56,10 @@ public class SingularFieldType implements FieldType {
     }
 
     /**
-     * Returns "set" setter prefix,
-     * used to initialize a singular field using a protobuf message builder.
+     * Returns "addAll" setter prefix,
+     * used to initialize a repeated field using a protobuf message builder.
      *
-     * Call should be like `builder.setFieldName(FieldType)`.
+     * <p>Call should be like `builder.addAllFieldName({@link java.util.List})`.
      *
      * @return {@inheritDoc}
      */
@@ -67,16 +68,22 @@ public class SingularFieldType implements FieldType {
         return SETTER_PREFIX;
     }
 
-    private static TypeName constructTypeNameFor(String name) {
-        if (isProtoPrimitive(name)) {
+    private static TypeName constructTypeNameFor(String componentTypeName) {
+        final TypeName componentType;
+
+        if (ProtoPrimitives.isProtoPrimitive(componentTypeName)) {
             try {
-                return TypeName.get(ClassUtils.getClass(name));
+                final Class<?> primitiveClass = ClassUtils.getClass(componentTypeName);
+                componentType = TypeName.get(primitiveClass)
+                                        .box();
             } catch (ClassNotFoundException e) {
                 throw Exceptions.wrappedCause(e);
             }
         } else {
-            return ClassName.bestGuess(name);
+            componentType = ClassName.bestGuess(componentTypeName);
         }
+
+        return ParameterizedTypeName.get(ClassName.get(Collection.class), componentType);
     }
 
     @Override

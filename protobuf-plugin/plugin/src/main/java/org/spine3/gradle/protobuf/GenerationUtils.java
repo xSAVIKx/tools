@@ -26,11 +26,11 @@ import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
 
 import java.util.Map;
 
-import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.BOOLEAN;
-import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.DOUBLE;
-import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.FLOAT;
-import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.INT;
-import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.LONG;
+import static org.spine3.gradle.protobuf.fieldtype.ProtoPrimitives.BOOLEAN;
+import static org.spine3.gradle.protobuf.fieldtype.ProtoPrimitives.DOUBLE;
+import static org.spine3.gradle.protobuf.fieldtype.ProtoPrimitives.FLOAT;
+import static org.spine3.gradle.protobuf.fieldtype.ProtoPrimitives.INT;
+import static org.spine3.gradle.protobuf.fieldtype.ProtoPrimitives.LONG;
 
 public class GenerationUtils {
 

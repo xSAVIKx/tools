@@ -17,28 +17,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.gradle.protobuf.failures.fieldtype;
-
-import com.squareup.javapoet.TypeName;
+package org.spine3.gradle.protobuf.fieldtype;
 
 /**
- * Interface for obtaining type specific information.
- *
- * @author Dmytro Grankin
+ * Enumeration of the java primitives, which
+ * can be received from proto message.
  */
-public interface FieldType {
+public enum ProtoPrimitives {
+    INT("int"),
+    LONG("long"),
+    FLOAT("float"),
+    DOUBLE("double"),
+    BOOLEAN("boolean");
 
-    /**
-     * Returns the {@link TypeName} for specific {@link FieldType}.
-     *
-     * @return the type name
-     */
-    TypeName getTypeName();
+    private final String name;
 
-    /**
-     * Returns the setter prefix for specific {@link FieldType}.
-     *
-     * @return the setter prefix
-     */
-    String getSetterPrefix();
+    ProtoPrimitives(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public static boolean isProtoPrimitive(String name) {
+        for (ProtoPrimitives primitive : ProtoPrimitives.values()) {
+            if (name.equals(primitive.getName())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

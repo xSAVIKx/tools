@@ -17,36 +17,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.gradle.protobuf.failures.fieldtype;
+package org.spine3.gradle.protobuf.fieldtype;
 
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import org.apache.commons.lang3.ClassUtils;
 import org.spine3.util.Exceptions;
 
-import java.util.Collection;
-
-import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.isProtoPrimitive;
-
 /**
- * Represents repeated {@linkplain FieldType field type}.
+ * Represents singular {@linkplain FieldType field type}.
  *
  * @author Dmytro Grankin
  */
-public class RepeatedFieldType implements FieldType {
+public class SingularFieldType implements FieldType {
 
-    private static final String SETTER_PREFIX = "addAll";
+    private static final String SETTER_PREFIX = "set";
 
     private final TypeName typeName;
 
     /**
-     * Constructs the {@link RepeatedFieldType} based on component type.
+     * Constructs the {@link SingularFieldType} based on field type name.
      *
-     * @param componentTypeName the component type name
+     * @param name the field type name
      */
-    RepeatedFieldType(String componentTypeName) {
-        this.typeName = constructTypeNameFor(componentTypeName);
+    SingularFieldType(String name) {
+        this.typeName = constructTypeNameFor(name);
     }
 
     /**
@@ -58,10 +53,10 @@ public class RepeatedFieldType implements FieldType {
     }
 
     /**
-     * Returns "addAll" setter prefix,
-     * used to initialize a repeated field using a protobuf message builder.
+     * Returns "set" setter prefix,
+     * used to initialize a singular field using a protobuf message builder.
      *
-     * <p>Call should be like `builder.addAllFieldName({@link java.util.List})`.
+     * Call should be like `builder.setFieldName(FieldType)`.
      *
      * @return {@inheritDoc}
      */
@@ -70,22 +65,16 @@ public class RepeatedFieldType implements FieldType {
         return SETTER_PREFIX;
     }
 
-    private static TypeName constructTypeNameFor(String componentTypeName) {
-        final TypeName componentType;
-
-        if (isProtoPrimitive(componentTypeName)) {
+    private static TypeName constructTypeNameFor(String name) {
+        if (ProtoPrimitives.isProtoPrimitive(name)) {
             try {
-                final Class<?> primitiveClass = ClassUtils.getClass(componentTypeName);
-                componentType = TypeName.get(primitiveClass)
-                                        .box();
+                return TypeName.get(ClassUtils.getClass(name));
             } catch (ClassNotFoundException e) {
                 throw Exceptions.wrappedCause(e);
             }
         } else {
-            componentType = ClassName.bestGuess(componentTypeName);
+            return ClassName.bestGuess(name);
         }
-
-        return ParameterizedTypeName.get(ClassName.get(Collection.class), componentType);
     }
 
     @Override
