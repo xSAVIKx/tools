@@ -32,6 +32,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static java.lang.System.lineSeparator;
+
 /**
  * A generator for the failure Javadocs content.
  *
@@ -53,9 +55,6 @@ import java.util.List;
  */
 public class FailureJavadocGenerator {
 
-    @SuppressWarnings("HardcodedLineSeparator")
-    private static final String LINE_SEPARATOR = "\n";
-
     private final FailureMetadata failureMetadata;
 
     public FailureJavadocGenerator(FailureMetadata failureMetadata) {
@@ -74,11 +73,11 @@ public class FailureJavadocGenerator {
 
         if (leadingComments != null) {
             builder.append("<pre>")
-                   .append(LINE_SEPARATOR)
+                   .append(lineSeparator())
                    .append(escapeJavadoc(leadingComments))
                    .append("</pre>")
-                   .append(LINE_SEPARATOR)
-                   .append(LINE_SEPARATOR);
+                   .append(lineSeparator())
+                   .append(lineSeparator());
         }
 
         builder.append("Failure based on protobuf type {@code ")
@@ -86,7 +85,7 @@ public class FailureJavadocGenerator {
                .append('.')
                .append(failureMetadata.getClassName())
                .append('}')
-               .append(LINE_SEPARATOR);
+               .append(lineSeparator());
         return builder.toString();
     }
 
@@ -99,8 +98,8 @@ public class FailureJavadocGenerator {
         final StringBuilder builder = new StringBuilder("Creates a new instance.");
         final int maxFieldLength = getMaxFieldNameLength();
 
-        builder.append(LINE_SEPARATOR)
-               .append(LINE_SEPARATOR);
+        builder.append(lineSeparator())
+               .append(lineSeparator());
         for (FieldDescriptorProto field : failureMetadata.getDescriptor()
                                                          .getFieldList()) {
             final String leadingComments = getFieldLeadingComments(field);

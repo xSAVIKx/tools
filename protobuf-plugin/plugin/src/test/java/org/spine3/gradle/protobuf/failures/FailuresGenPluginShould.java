@@ -39,6 +39,7 @@ import java.nio.file.Path;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.System.lineSeparator;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
@@ -106,15 +107,13 @@ public class FailuresGenPluginShould {
                     final ClassDoc failureDoc = root.classes()[0];
                     final ConstructorDoc failureCtorDoc = failureDoc.constructors()[0];
 
-                    final String lineSeparator = "\n";
-
-                    final String expectedClassComment = "<pre>" + lineSeparator
-                            + "  The failure definition to test Javadoc generation." + lineSeparator
-                            + " </pre>" + lineSeparator + lineSeparator
+                    final String expectedClassComment = "<pre>" + lineSeparator()
+                            + "  The failure definition to test Javadoc generation." + lineSeparator()
+                            + " </pre>" + lineSeparator() + lineSeparator()
                             + " Failure based on protobuf type {@code org.spine3.sample.failures.Failure}";
-                    final String expectedCtorComment = " Creates a new instance." + lineSeparator + lineSeparator
-                            + " @param id      the failure id" + lineSeparator
-                            + " @param message the failure message" + lineSeparator;
+                    final String expectedCtorComment = " Creates a new instance." + lineSeparator() + lineSeparator()
+                            + " @param id      the failure id" + lineSeparator()
+                            + " @param message the failure message" + lineSeparator();
 
                     assertEquals(expectedClassComment, failureDoc.commentText());
                     assertEquals(expectedCtorComment, failureCtorDoc.getRawCommentText());
