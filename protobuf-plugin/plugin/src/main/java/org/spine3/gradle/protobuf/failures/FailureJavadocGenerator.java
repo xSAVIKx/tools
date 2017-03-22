@@ -22,11 +22,14 @@ package org.spine3.gradle.protobuf.failures;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import com.google.common.collect.Ordering;
+import com.google.common.primitives.Ints;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.SourceCodeInfo.Location;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -201,17 +204,19 @@ public class FailureJavadocGenerator {
     }
 
     private int getMaxFieldNameLength() {
-        int maxLength = Integer.MIN_VALUE;
-        for (FieldDescriptorProto field : failureMetadata.getDescriptor()
-                                                         .getFieldList()) {
-            final int nameLength = field.getName()
-                                        .length();
-            if (nameLength > maxLength) {
-                maxLength = nameLength;
+        final Ordering<FieldDescriptorProto> ordering = new Ordering<FieldDescriptorProto>() {
+            @SuppressWarnings("ConstantConditions") // getName() never returns null.
+            @Override
+            public int compare(@Nullable FieldDescriptorProto left, @Nullable FieldDescriptorProto right) {
+                return Ints.compare(left.getName()
+                                        .length(), right.getName()
+                                                        .length());
             }
-        }
-
-        return maxLength;
+        };
+        final FieldDescriptorProto longestNameField = ordering.max(failureMetadata.getDescriptor()
+                                                                                  .getFieldList());
+        return longestNameField.getName()
+                               .length();
     }
 
     @VisibleForTesting
