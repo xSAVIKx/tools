@@ -138,8 +138,8 @@ public class FailuresGenPluginShould {
 
     private static String getExpectedCtorComment() {
         return " Creates a new instance." + JAVADOC_LINE_SEPARATOR + JAVADOC_LINE_SEPARATOR
-                + " @param id      the failure ID" + JAVADOC_LINE_SEPARATOR
-                + " @param message the failure message" + JAVADOC_LINE_SEPARATOR;
+                + " @param id      The failure ID." + JAVADOC_LINE_SEPARATOR
+                + " @param message The failure message." + JAVADOC_LINE_SEPARATOR;
     }
 
     @Test
