@@ -35,7 +35,6 @@ import org.spine3.gradle.protobuf.failures.Configurers.FailuresGenerationConfigu
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static java.lang.System.lineSeparator;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
@@ -53,6 +52,10 @@ import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.escape
  * @author Dmytro Grankin
  */
 public class FailuresGenPluginShould {
+
+    /** Javadocs received from {@link RootDoc} contain "\n" line separator. */
+    @SuppressWarnings("HardcodedLineSeparator")
+    private static final String JAVADOC_LINE_SEPARATOR = "\n";
 
     @SuppressWarnings("PublicField") // Rules should be public
     @Rule
@@ -127,16 +130,16 @@ public class FailuresGenPluginShould {
     }
 
     private static String getExpectedClassComment() {
-        return "<pre>" + lineSeparator()
-                + "  The failure definition to test Javadoc generation." + lineSeparator()
-                + " </pre>" + lineSeparator() + lineSeparator()
+        return "<pre>" + JAVADOC_LINE_SEPARATOR
+                + "  The failure definition to test Javadoc generation." + JAVADOC_LINE_SEPARATOR
+                + " </pre>" + JAVADOC_LINE_SEPARATOR + JAVADOC_LINE_SEPARATOR
                 + " Failure based on protobuf type {@code org.spine3.sample.failures.Failure}";
     }
 
     private static String getExpectedCtorComment() {
-        return " Creates a new instance." + lineSeparator() + lineSeparator()
-                + " @param id      the failure ID" + lineSeparator()
-                + " @param message the failure message" + lineSeparator();
+        return " Creates a new instance." + JAVADOC_LINE_SEPARATOR + JAVADOC_LINE_SEPARATOR
+                + " @param id      the failure ID" + JAVADOC_LINE_SEPARATOR
+                + " @param message the failure message" + JAVADOC_LINE_SEPARATOR;
     }
 
     @Test
