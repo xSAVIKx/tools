@@ -26,7 +26,6 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spine3.gradle.SpinePlugin;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,45 +35,35 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static java.lang.String.format;
 import static java.util.regex.Pattern.compile;
-import static org.spine3.gradle.TaskName.CHECK_FQN;
-import static org.spine3.gradle.TaskName.COMPILE_JAVA;
-import static org.spine3.gradle.TaskName.PROCESS_RESOURCES;
 
 /**
- * The plugin that verifies Javadocs comment for broken links that stated
- * in wrong format. In case if it's found build process will be failed.
- *
  * @author Alexander Aleksandrov
  */
-public class FqnCheckPlugin extends SpinePlugin {
-
+public class CheckFqnLink {
+    private int exceptionThreshold = 0;
     private static final String DIRECTORY_TO_CHECK = "/src/main/java";
-    private static CheckResultStorage storage = new CheckResultStorage();
-    private static final int exceptionThreshold = 0;
+    private String reactionType = "";
+    private final Project project;
+    private static final CheckResultStorage storage = new CheckResultStorage();
 
-    @Override
-    public void apply(final Project project) {
-        final Action<Task> checkJavadocAction = checkJavadocActionFor(project);
-        newTask(CHECK_FQN, checkJavadocAction).insertAfterTask(COMPILE_JAVA)
-                                              .insertBeforeTask(PROCESS_RESOURCES)
-                                              .applyNowTo(project);
-        log().debug("Starting to check Javadocs {}", checkJavadocAction);
+    public CheckFqnLink(Project project) {
+        this.project = project;
     }
 
-    private static Action<Task> checkJavadocActionFor(final Project project) {
-        log().debug("Preparing an action for Javavdock checker");
+    public Action<Task> actionFor(final Project project) {
+        log().debug("Preparing an action for Javadock checker");
         return new Action<Task>() {
             @Override
             public void execute(Task task) {
+                exceptionThreshold = Extension.getThreshold(project);
+                reactionType = Extension.getReactionType(project);
+
                 final List<String> dirsToCheck = getDirsToCheck(project);
                 findFqnLinksWithoutText(dirsToCheck);
                 log().debug("Ending an action");
@@ -82,8 +71,7 @@ public class FqnCheckPlugin extends SpinePlugin {
         };
     }
 
-    public static List<String> getDirsToCheck(Project project) {
-
+    private static List<String> getDirsToCheck(Project project) {
         log().debug("Finding the directories to check");
         final String mainScopeJavaFolder = project.getProjectDir()
                                                   .getAbsolutePath() + DIRECTORY_TO_CHECK;
@@ -93,9 +81,9 @@ public class FqnCheckPlugin extends SpinePlugin {
         return result;
     }
 
-    private static void findFqnLinksWithoutText(List<String> pathsToDirs) {
-        for (String dirPath : pathsToDirs) {
-            final File file = new File(dirPath);
+    private void findFqnLinksWithoutText(List<String> pathsToDirs) {
+        for (String path : pathsToDirs) {
+            final File file = new File(path);
             if (file.exists()) {
                 checkRecursively(file.toPath());
             } else {
@@ -104,9 +92,9 @@ public class FqnCheckPlugin extends SpinePlugin {
         }
     }
 
-    private static void checkRecursively(Path path) {
+    private void checkRecursively(Path path) {
         try {
-            final SimpleFileVisitor<Path> visitor = new RecursiveFileChecker();
+            final SimpleFileVisitor<Path> visitor = new CheckFqnLink.RecursiveFileChecker();
             log().debug("Starting to check the files recursively in {}", path.toString());
             Files.walkFileTree(path, visitor);
         } catch (IOException e) {
@@ -121,13 +109,13 @@ public class FqnCheckPlugin extends SpinePlugin {
      */
     // A completely different behavior for the visitor methods is required.
 
-    private static class RecursiveFileChecker extends SimpleFileVisitor<Path> {
+    private class RecursiveFileChecker extends SimpleFileVisitor<Path> {
 
         @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-            super.visitFile(file, attrs);
-            log().debug("Performing FQN check for the file: {}", file);
-            check(file);
+        public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
+            super.visitFile(path, attrs);
+            log().debug("Performing FQN check for the file: {}", path);
+            check(path);
             return FileVisitResult.CONTINUE;
         }
 
@@ -139,34 +127,38 @@ public class FqnCheckPlugin extends SpinePlugin {
         }
     }
 
-    static void check(Path file) throws InvalidFqnUsageException {
+    private void check(Path path) throws InvalidFqnUsageException {
         final List<String> content;
-        if (!file.toString().endsWith(".java")) {
+        if (!path.toString()
+                 .endsWith(".java")) {
             return;
         }
         try {
-            content = Files.readAllLines(file, StandardCharsets.UTF_8);
+            content = Files.readAllLines(path, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new IllegalStateException(" Cannot read the contents of the file: " + file, e);
+            throw new IllegalStateException(" Cannot read the contents of the file: " + path, e);
         }
         final List<Optional<InvalidFqnUsage>> invalidLinks = check(content);
 
         if (!invalidLinks.isEmpty()) {
-            storage.save(file, invalidLinks);
-            final String message =
-                    " Links with fully-qualified names should be in format {@link <FQN> <text>}" +
-                            " or {@linkplain <FQN> <text>}.";
-
-            if (storage.getResults().keySet().size()> exceptionThreshold) {
+            storage.save(path, invalidLinks);
+            if (storage.getLinkTotal() > exceptionThreshold) {
+                final String message =
+                        " Links with fully-qualified names should be in format {@link <FQN> <text>}" +
+                        " or {@linkplain <FQN> <text>}.";
                 log().error(message);
-                logErrorsFrom(storage.getResults());
-                throw new InvalidFqnUsageException(file.toFile().getAbsolutePath(), message);
+                storage.logInvalidFqnUsages();
+
+                if (reactionType.equals("error")) {
+                    throw new InvalidFqnUsageException(path.toFile()
+                                                           .getAbsolutePath(), message);
+                }
             }
         }
     }
 
     @VisibleForTesting
-    static List<Optional<InvalidFqnUsage>> check(List<String> content) {
+    private static List<Optional<InvalidFqnUsage>> check(List<String> content) {
         int lineNumber = 0;
         final List<Optional<InvalidFqnUsage>> invalidLinks = newArrayList();
         for (String line : content) {
@@ -181,8 +173,8 @@ public class FqnCheckPlugin extends SpinePlugin {
     }
 
     private static Optional<InvalidFqnUsage> checkSingleComment(String comment) {
-        final Matcher matcher = JavadocPattern.LINK.getPattern()
-                                                   .matcher(comment);
+        final Matcher matcher = CheckFqnLink.JavadocPattern.LINK.getPattern()
+                                                                .matcher(comment);
         final boolean found = matcher.find();
         if (found) {
             final String improperUsage = matcher.group(0);
@@ -192,27 +184,9 @@ public class FqnCheckPlugin extends SpinePlugin {
         return Optional.absent();
     }
 
-    private static void logErrorsFrom(Map storage) {
-        Iterator it = storage.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<Path, List<Optional<InvalidFqnUsage>>> pair = (Map.Entry) it.next();
-            for (Optional<InvalidFqnUsage> link : pair.getValue()) {
-                if (link.isPresent()) {
-                    final String msg = format(
-                            " Wrong link format found: %s on %s line in %s",
-                            link.get().getActualUsage(),
-                            link.get().getIndex(),
-                            pair.getKey());
-                    log().error(msg);
-                }
-            }
-            it.remove();
-        }
-    }
-
     private enum JavadocPattern {
 
-        LINK(compile("(\\{@link|\\{@linkplain) *((?!-)[a-zA-Z0-9-]{1,63}[a-zA-Z0-9-]\\.)+[a-zA-Z]{2,63}(\\}|\\ *\\})"));
+        LINK(compile("(\\{@link|\\{@linkplain) *((?!-)[a-z0-9-]{1,63}\\.)((?!-)[a-zA-Z0-9-]{1,63}[a-zA-Z0-9-]\\.)+[a-zA-Z]{2,63}(\\}|\\ *\\})"));
 
         private final Pattern pattern;
 
@@ -226,12 +200,13 @@ public class FqnCheckPlugin extends SpinePlugin {
     }
 
     private static Logger log() {
-        return LogSingleton.INSTANCE.value;
+        return CheckFqnLink.LogSingleton.INSTANCE.value;
     }
 
     private enum LogSingleton {
         INSTANCE;
         @SuppressWarnings("NonSerializableFieldInSerializableClass")
-        private final Logger value = LoggerFactory.getLogger(FqnCheckPlugin.class);
+        private final Logger value = LoggerFactory.getLogger(CheckFqnLink.class);
     }
+
 }

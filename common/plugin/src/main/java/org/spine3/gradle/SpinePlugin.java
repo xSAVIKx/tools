@@ -164,8 +164,7 @@ public abstract class SpinePlugin implements Plugin<Project> {
                 }
 
                 final TaskContainer existingTasks = project.getTasks();
-                final Task newTask = project.task(name.getValue())
-                                            .doLast(action);
+                final Task newTask = project.task(name.getValue()).doLast(action);
                 if (previousTask != null) {
                     newTask.dependsOn(previousTask.getValue());
                 }

@@ -21,9 +21,17 @@ package org.spine3.tools.javadoc.fqnchecker;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
+import static java.lang.String.format;
 
 /**
  * Utility class to save and address results of fully qualified name javadoc check.
@@ -32,14 +40,36 @@ import java.util.List;
  */
 public class CheckResultStorage {
 
-    private static ImmutableMap<Path, List<Optional<InvalidFqnUsage>>> resultStorage =
-            ImmutableMap.of();
+    private static final Map<Path, List<Optional<InvalidFqnUsage>>> resultStorage = new HashMap<>();
 
-//    private CheckResultStorage(){
-//    }
-
-    public ImmutableMap<Path, List<Optional<InvalidFqnUsage>>> getResults() {
+    public Map<Path, List<Optional<InvalidFqnUsage>>> getResults() {
         return resultStorage;
+    }
+
+    public int getLinkTotal () {
+        int total = 0;
+        for (List<Optional<InvalidFqnUsage>> l : resultStorage.values()) {
+            total += l.size();
+        }
+        return total;
+    }
+
+    public void logInvalidFqnUsages() {
+        Iterator it = resultStorage.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<Path, List<Optional<InvalidFqnUsage>>> pair = (Map.Entry) it.next();
+            for (Optional<InvalidFqnUsage> link : pair.getValue()) {
+                if (link.isPresent()) {
+                    final String msg = format(
+                            " Wrong link format found: %s on %s line in %s",
+                            link.get().getActualUsage(),
+                            link.get().getIndex(),
+                            pair.getKey());
+                    log().error(msg);
+                }
+            }
+            it.remove();
+        }
     }
 
     /**
@@ -49,24 +79,16 @@ public class CheckResultStorage {
      * @param list list of invalid fully qualified names usages
      */
     public void save(Path path, List<Optional<InvalidFqnUsage>> list) {
-        if (resultStorage.isEmpty()) {
-            create(path, list);
-        } else {
-            add(path, list);
-        }
+        resultStorage.put(path, list);
     }
 
-    private static void create(Path path, List<Optional<InvalidFqnUsage>> list) {
-        resultStorage = new ImmutableMap.Builder<Path, List<Optional<InvalidFqnUsage>>>()
-                .put(path, list)
-                .build();
+    private static Logger log() {
+        return CheckResultStorage.LogSingleton.INSTANCE.value;
     }
 
-    private static void add(Path path, List<Optional<InvalidFqnUsage>> list) {
-        resultStorage = new ImmutableMap.Builder<Path, List<Optional<InvalidFqnUsage>>>()
-                .putAll(resultStorage)
-                .put(path, list)
-                .build();
+    private enum LogSingleton {
+        INSTANCE;
+        @SuppressWarnings("NonSerializableFieldInSerializableClass")
+        private final Logger value = LoggerFactory.getLogger(CheckResultStorage.class);
     }
-
 }

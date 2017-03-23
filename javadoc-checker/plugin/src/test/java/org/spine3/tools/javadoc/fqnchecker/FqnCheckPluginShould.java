@@ -41,7 +41,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class FqnCheckPluginShould {
@@ -87,7 +86,7 @@ public class FqnCheckPluginShould {
         BuildResult buildResult = GradleRunner.create()
                                               .withProjectDir(testProjectDir.getRoot())
                                               .withPluginClasspath()
-                                              .withArguments(checkJavadocLink, "--debug")
+                                              .withArguments(checkJavadocLink, "--debug", "--stacktrace")
                                               .buildAndFail();
 
         assertTrue(buildResult.getOutput().contains("Wrong link format found"));
@@ -107,7 +106,9 @@ public class FqnCheckPluginShould {
         BuildResult buildResult = GradleRunner.create()
                                               .withProjectDir(testProjectDir.getRoot())
                                               .withPluginClasspath()
-                                              .withArguments(checkJavadocLink)
+                                              .withArguments(checkJavadocLink,
+                                                             "--debug",
+                                                             "--stacktrace")
                                               .build();
 
         final List<String> expected = Arrays.asList(":compileJava", ":checkJavadocLink");
@@ -134,6 +135,6 @@ public class FqnCheckPluginShould {
 //                                               .resolve(SOURCE_FOLDER);
 //        final Path wrongFqnFormat = Paths.get(testSources.toString() + "/ClassWithoutJavadocs.java");
 //        FileUtils.copyDirectory(new File(resourceFolder), new File(testSources.toString()));
-//        FqnCheckPlugin.check(wrongFqnFormat);
+//        CheckJavadocPlugin.check(wrongFqnFormat);
 //    }
 }
