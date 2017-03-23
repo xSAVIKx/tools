@@ -131,12 +131,14 @@ public class FailuresGenPluginShould {
     private static String getExpectedClassComment() {
         return FailureJavadocGenerator.OPENING_PRE + JAVADOC_LINE_SEPARATOR
                 + "  The failure definition to test Javadoc generation." + JAVADOC_LINE_SEPARATOR
-                + " </pre>" + JAVADOC_LINE_SEPARATOR + JAVADOC_LINE_SEPARATOR
+                + " </pre>" + JAVADOC_LINE_SEPARATOR
+                + ' ' + JAVADOC_LINE_SEPARATOR
                 + " Failure based on protobuf type {@code org.spine3.sample.failures.Failure}";
     }
 
     private static String getExpectedCtorComment() {
-        return " Creates a new instance." + JAVADOC_LINE_SEPARATOR + JAVADOC_LINE_SEPARATOR
+        return " Creates a new instance." + JAVADOC_LINE_SEPARATOR
+                + ' ' + JAVADOC_LINE_SEPARATOR
                 + " @param id      The failure ID." + JAVADOC_LINE_SEPARATOR
                 + " @param message The failure message." + JAVADOC_LINE_SEPARATOR;
     }

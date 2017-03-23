@@ -20,8 +20,8 @@
 
 package org.spine3.gradle.protobuf.failures;
 
-import org.gradle.internal.impldep.com.google.common.escape.Escaper;
-import org.gradle.internal.impldep.com.google.common.escape.Escapers;
+import com.google.common.escape.Escaper;
+import com.google.common.escape.Escapers;
 
 import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.AMPERSAND;
 import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.ASTERISK;
@@ -37,21 +37,24 @@ import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacte
  * @author Dmytro Grankin
  */
 @SuppressWarnings("UtilityClass")
-final class JavadocEscaper {
+class JavadocEscaper {
 
     /**
      * Serves for escaping a Javadoc text without the exclusions.
      */
-    private static final Escaper BASE_ESCAPER =
-            Escapers.builder()
-                    .addEscape(ASTERISK.unescapedCharacter, ASTERISK.escapedString)
-                    .addEscape(SLASH.unescapedCharacter, SLASH.escapedString)
-                    .addEscape(BACK_SLASH.unescapedCharacter, BACK_SLASH.escapedString)
-                    .addEscape(AT_MARK.unescapedCharacter, AT_MARK.escapedString)
-                    .addEscape(AMPERSAND.unescapedCharacter, AMPERSAND.escapedString)
-                    .addEscape(LESS_THAN.unescapedCharacter, LESS_THAN.escapedString)
-                    .addEscape(GREATER_THAN.unescapedCharacter, GREATER_THAN.escapedString)
-                    .build();
+    private static final Escaper BASE_ESCAPER;
+
+    static {
+        BASE_ESCAPER = Escapers.builder()
+                               .addEscape(ASTERISK.unescapedCharacter, ASTERISK.escapedString)
+                               .addEscape(SLASH.unescapedCharacter, SLASH.escapedString)
+                               .addEscape(BACK_SLASH.unescapedCharacter, BACK_SLASH.escapedString)
+                               .addEscape(AT_MARK.unescapedCharacter, AT_MARK.escapedString)
+                               .addEscape(AMPERSAND.unescapedCharacter, AMPERSAND.escapedString)
+                               .addEscape(LESS_THAN.unescapedCharacter, LESS_THAN.escapedString)
+                               .addEscape(GREATER_THAN.unescapedCharacter, GREATER_THAN.escapedString)
+                               .build();
+    }
 
     private JavadocEscaper() {
     }
