@@ -109,7 +109,7 @@ public class FailureJavadocGenerator {
                                                          .getFieldList()) {
             final String leadingComments = getFieldLeadingComments(field);
             final String fieldName = field.getName();
-            final int commentOffset = maxFieldLength - fieldName.length();
+            final int commentOffset = maxFieldLength - fieldName.length() + 1;
             if (leadingComments != null) {
                 builder.append("@param ")
                        .append(fieldName)
