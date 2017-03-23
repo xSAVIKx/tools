@@ -9,7 +9,7 @@ option java_multiple_files = false;
 message Failure {
 
     // The failure ID.
-    int32 id = 1; // is not a part of Javadoc
+    int32 id = 1; // Is not a part of Javadoc.
 
     // The failure message.
     string message = 2;
