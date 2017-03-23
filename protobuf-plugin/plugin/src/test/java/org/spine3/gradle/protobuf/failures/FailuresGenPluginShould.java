@@ -64,7 +64,8 @@ public class FailuresGenPluginShould {
     public void compile_generated_failures() throws Exception {
         final CountDownLatch countDownLatch = new CountDownLatch(1);
 
-        final ProjectConnection connection = new FailuresGenerationConfigurer(testProjectDir).configure();
+        final ProjectConnection connection =
+                new FailuresGenerationConfigurer(testProjectDir).configure();
         final BuildLauncher launcher = connection.newBuild();
 
         launcher.forTasks(
@@ -96,7 +97,8 @@ public class FailuresGenPluginShould {
     public void generate_failure_javadoc() throws Exception {
         final CountDownLatch countDownLatch = new CountDownLatch(1);
 
-        final ProjectConnection connection = new FailuresJavadocConfigurer(testProjectDir).configure();
+        final ProjectConnection connection
+                = new FailuresJavadocConfigurer(testProjectDir).configure();
         final BuildLauncher launcher = connection.newBuild();
 
         launcher.forTasks(
@@ -106,7 +108,9 @@ public class FailuresGenPluginShould {
             launcher.run(new ResultHandler<Void>() {
                 @Override
                 public void onComplete(Void aVoid) {
-                    final RootDoc root = RootDocReceiver.getRootDoc(testProjectDir, FailuresJavadocConfigurer.TEST_SOURCE);
+                    final RootDoc root =
+                            RootDocReceiver.getRootDoc(testProjectDir,
+                                                       FailuresJavadocConfigurer.TEST_SOURCE);
                     final ClassDoc failureDoc = root.classes()[0];
                     final ConstructorDoc failureCtorDoc = failureDoc.constructors()[0];
 
