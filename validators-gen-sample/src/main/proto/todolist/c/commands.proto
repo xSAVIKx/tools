@@ -67,7 +67,7 @@ message UpdateTaskDescription {
 
     // The description change.
     // Contains the previous description and the description to set for the target task.
-    DescriptionChange description_change = 2;
+    map<string, DescriptionChange> description_changes = 2;
 
     // Reserved for future extension.
     reserved 3 to 10;
@@ -82,7 +82,7 @@ message UpdateLabelDetails {
 
     // The label details change.
     // Contains the previous label details and the label details to set for the target label.
-    map<string, DescriptionChange> changes = 2;
+    LabelDetailsChange label_details_changes = 2;
 
     // Reserved for future extension.
     reserved 3 to 10;
