@@ -22,23 +22,17 @@ package org.spine3.gradle.protobuf.validators.construction;
 
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import org.spine3.gradle.protobuf.MessageTypeCache;
+import org.spine3.gradle.protobuf.fieldtype.FieldTypeFactory;
 
 import javax.lang.model.element.Modifier;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
-import static org.spine3.gradle.protobuf.GenerationUtils.isMap;
-import static org.spine3.gradle.protobuf.GenerationUtils.isRepeated;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getMapValueClassName;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getStringClassName;
 
 /**
  * @author Illia Shepilov
@@ -46,11 +40,11 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getStringCla
 public class FieldConstructor {
 
     private final DescriptorProto descriptor;
-    private final MessageTypeCache messageTypeCache;
+    private final FieldTypeFactory fieldTypeFactory;
 
     public FieldConstructor(MessageTypeCache messageTypeCache, DescriptorProto descriptor) {
-        this.messageTypeCache = messageTypeCache;
         this.descriptor = descriptor;
+        this.fieldTypeFactory = new FieldTypeFactory(descriptor, messageTypeCache.getCachedTypes());
     }
 
     public Collection<FieldSpec> getAllFields() {
@@ -62,45 +56,11 @@ public class FieldConstructor {
     }
 
     private FieldSpec construct(FieldDescriptorProto fieldDescriptor) {
-        if (isMap(fieldDescriptor)) {
-            final FieldSpec result = constructMapField(fieldDescriptor);
-            return result;
-        }
-
-        if (isRepeated(fieldDescriptor)) {
-            final FieldSpec result = constructRepeatedField(fieldDescriptor);
-            return result;
-        }
-
-        final FieldSpec result = constructField(fieldDescriptor);
-        return result;
-    }
-
-    //TODO:2017-03-22:illiashepilov: Fix implementation.
-    private FieldSpec constructMapField(FieldDescriptorProto fieldDescriptor) {
-        final ClassName rawType = ClassName.get(Map.class);
+        final TypeName typeName = fieldTypeFactory.create(fieldDescriptor)
+                                                  .getTypeName();
         final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
-        final ClassName parameterClass = getMapValueClassName(fieldDescriptor, messageTypeCache);
-        final ParameterizedTypeName param =
-                ParameterizedTypeName.get(rawType, getStringClassName(), parameterClass);
-        return FieldSpec.builder(param, fieldName, Modifier.PRIVATE)
-                        .build();
-    }
-
-    private FieldSpec constructRepeatedField(FieldDescriptorProto fieldDescriptor) {
-        final ClassName rawType = ClassName.get(List.class);
-        final ClassName parameterClass = getParameterClass(fieldDescriptor, messageTypeCache);
-        final ParameterizedTypeName param = ParameterizedTypeName.get(rawType, parameterClass);
-        final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
-        return FieldSpec.builder(param, fieldName, Modifier.PRIVATE)
-                        .build();
-    }
-
-    private FieldSpec constructField(FieldDescriptorProto fieldDescriptor) {
-        final ClassName fieldClass = getParameterClass(fieldDescriptor, messageTypeCache);
-        final String fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
-        final FieldSpec result = FieldSpec.builder(fieldClass, fieldName, Modifier.PRIVATE)
-                                          .build();
+        FieldSpec result = FieldSpec.builder(typeName, fieldName, Modifier.PRIVATE)
+                                    .build();
         return result;
     }
 }
