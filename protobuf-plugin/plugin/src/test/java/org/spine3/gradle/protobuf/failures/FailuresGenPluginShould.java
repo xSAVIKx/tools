@@ -39,14 +39,13 @@ import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
 import static org.spine3.gradle.protobuf.failures.Configurers.FailuresJavadocConfigurer;
-import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.EscapedCharacters.AMPERSAND;
-import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.EscapedCharacters.ASTERISK;
-import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.EscapedCharacters.AT_MARK;
-import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.EscapedCharacters.BACK_SLASH;
-import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.EscapedCharacters.GREATER_THAN;
-import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.EscapedCharacters.LESS_THAN;
-import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.EscapedCharacters.SLASH;
-import static org.spine3.gradle.protobuf.failures.FailureJavadocGenerator.escapeJavadoc;
+import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.AMPERSAND;
+import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.ASTERISK;
+import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.AT_MARK;
+import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.BACK_SLASH;
+import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.GREATER_THAN;
+import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.LESS_THAN;
+import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.SLASH;
 
 /**
  * @author Dmytro Grankin
@@ -144,26 +143,26 @@ public class FailuresGenPluginShould {
 
     @Test
     public void escape_comment_beginning_and_ending() {
-        assertEquals(" /" + ASTERISK.getEscapedString(), escapeJavadoc(" /*"));
-        assertEquals('*' + SLASH.getEscapedString(), escapeJavadoc("*/"));
+        assertEquals(" /" + ASTERISK.getEscapedString(), JavadocEscaper.escape(" /*"));
+        assertEquals('*' + SLASH.getEscapedString(), JavadocEscaper.escape("*/"));
     }
 
     @Test
     public void not_escape_just_asterisk_and_slash() {
-        assertEquals("*", escapeJavadoc("*"));
-        assertEquals(" /", escapeJavadoc(" /"));
+        assertEquals("*", JavadocEscaper.escape("*"));
+        assertEquals(" /", JavadocEscaper.escape(" /"));
     }
 
     @Test
     public void escape_html() {
-        assertEquals(LESS_THAN.getEscapedString(), escapeJavadoc("<"));
-        assertEquals(GREATER_THAN.getEscapedString(), escapeJavadoc(">"));
-        assertEquals(AMPERSAND.getEscapedString(), escapeJavadoc("&"));
+        assertEquals(LESS_THAN.getEscapedString(), JavadocEscaper.escape("<"));
+        assertEquals(GREATER_THAN.getEscapedString(), JavadocEscaper.escape(">"));
+        assertEquals(AMPERSAND.getEscapedString(), JavadocEscaper.escape("&"));
     }
 
     @Test
     public void escape_at_and_back_slash() {
-        assertEquals(AT_MARK.getEscapedString(), escapeJavadoc("@"));
-        assertEquals(BACK_SLASH.getEscapedString(), escapeJavadoc("\\"));
+        assertEquals(AT_MARK.getEscapedString(), JavadocEscaper.escape("@"));
+        assertEquals(BACK_SLASH.getEscapedString(), JavadocEscaper.escape("\\"));
     }
 }

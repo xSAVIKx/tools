@@ -80,7 +80,7 @@ public class FailureJavadocGenerator {
         if (leadingComments != null) {
             builder.append(OPENING_PRE)
                    .append(lineSeparator())
-                   .append(escapeJavadoc(leadingComments))
+                   .append(JavadocEscaper.escape(leadingComments))
                    .append("</pre>")
                    .append(lineSeparator())
                    .append(lineSeparator());
@@ -115,7 +115,7 @@ public class FailureJavadocGenerator {
                 builder.append("@param ")
                        .append(fieldName)
                        .append(Strings.repeat(" ", commentOffset))
-                       .append(escapeJavadoc(leadingComments));
+                       .append(JavadocEscaper.escape(leadingComments));
             }
         }
 
@@ -220,66 +220,5 @@ public class FailureJavadocGenerator {
                                                                                   .getFieldList());
         return longestNameField.getName()
                                .length();
-    }
-
-    @VisibleForTesting
-    protected static String escapeJavadoc(CharSequence javadoc) {
-        final StringBuilder builder = new StringBuilder(javadoc.length() * 2);
-
-        char previous = '*';
-        for (int i = 0; i < javadoc.length(); i++) {
-            final char current = javadoc.charAt(i);
-            builder.append(EscapedCharacters.escape(current, previous));
-            previous = current;
-        }
-
-        return builder.toString();
-    }
-
-    enum EscapedCharacters {
-        ASTERISK('*', "&#42;"),     // Only "*/" should be avoided.
-        SLASH('/', "&#47;"),        // Only "/*" should be avoided.
-        BACK_SLASH('\\', "&#92;"),
-        AT_MARK('@', "&#64;"),
-        AMPERSAND('&', "&amp;"),
-        LESS_THAN('<', "&lt;"),
-        GREATER_THAN('>', "&gt;");
-
-        /**
-         * A character that should be avoided in a Javadoc text.
-         */
-        private final char unescapedCharacter;
-        private final String escapedString;
-
-        EscapedCharacters(char unescapedCharacter, String escapedString) {
-            this.unescapedCharacter = unescapedCharacter;
-            this.escapedString = escapedString;
-        }
-
-        String getEscapedString() {
-            return escapedString;
-        }
-
-        private static String escape(char current, char previous) {
-            for (EscapedCharacters escapedSymbol : EscapedCharacters.values()) {
-                if (escapedSymbol.unescapedCharacter == current) {
-                    if (isAsteriskNotCommentBeginningPart(escapedSymbol, previous)
-                            || isSlashNotCommentEndingPart(escapedSymbol, previous)) {
-                        return String.valueOf(current);
-                    }
-                    return escapedSymbol.escapedString;
-                }
-            }
-            return String.valueOf(current);
-        }
-
-        private static boolean isAsteriskNotCommentBeginningPart(EscapedCharacters current,
-                                                                 char previous) {
-            return current == ASTERISK && previous != SLASH.unescapedCharacter;
-        }
-
-        private static boolean isSlashNotCommentEndingPart(EscapedCharacters current, char previous) {
-            return current == SLASH && previous != ASTERISK.unescapedCharacter;
-        }
     }
 }
