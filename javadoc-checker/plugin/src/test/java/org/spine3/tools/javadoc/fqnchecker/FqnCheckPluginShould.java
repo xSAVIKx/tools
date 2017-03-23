@@ -22,6 +22,7 @@ package org.spine3.tools.javadoc.fqnchecker;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import org.gradle.internal.impldep.org.apache.commons.io.FileUtils;
+import org.gradle.internal.impldep.org.apache.commons.io.IOUtils;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.GradleRunner;
@@ -31,9 +32,12 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.spine3.gradle.TaskName;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -54,18 +58,16 @@ public class FqnCheckPluginShould {
 
     @Before
     public void setUpTestProject() throws IOException {
-        final Path buildFile = testProjectDir.getRoot()
+        final Path buildGradleFile = testProjectDir.getRoot()
                                              .toPath()
                                              .resolve("build.gradle");
-        final InputStream buildFileContent =
-                getClass().getClassLoader()
-                          .getResourceAsStream("projects/JavaDocCheckerPlugin/build.gradle");
+        final InputStream input = getBuildFileContent(2, "error");
 
 
         final Path testSources = testProjectDir.getRoot()
                                                .toPath()
                                                .resolve(SOURCE_FOLDER);
-        Files.copy(buildFileContent, buildFile);
+        Files.copy(input, buildGradleFile);
         Files.createDirectories(testSources);
 
         ClassLoader classLoader = getClass().getClassLoader();
@@ -86,7 +88,7 @@ public class FqnCheckPluginShould {
         BuildResult buildResult = GradleRunner.create()
                                               .withProjectDir(testProjectDir.getRoot())
                                               .withPluginClasspath()
-                                              .withArguments(checkJavadocLink, "--debug", "--stacktrace")
+                                              .withArguments(checkJavadocLink)
                                               .buildAndFail();
 
         assertTrue(buildResult.getOutput().contains("Wrong link format found"));
@@ -106,9 +108,7 @@ public class FqnCheckPluginShould {
         BuildResult buildResult = GradleRunner.create()
                                               .withProjectDir(testProjectDir.getRoot())
                                               .withPluginClasspath()
-                                              .withArguments(checkJavadocLink,
-                                                             "--debug",
-                                                             "--stacktrace")
+                                              .withArguments(checkJavadocLink)
                                               .build();
 
         final List<String> expected = Arrays.asList(":compileJava", ":checkJavadocLink");
@@ -128,13 +128,16 @@ public class FqnCheckPluginShould {
                 .toList();
     }
 
-//    @Test
-//    public void allow_name_format() throws IOException {
-//        final Path testSources = testProjectDir.getRoot()
-//                                               .toPath()
-//                                               .resolve(SOURCE_FOLDER);
-//        final Path wrongFqnFormat = Paths.get(testSources.toString() + "/ClassWithoutJavadocs.java");
-//        FileUtils.copyDirectory(new File(resourceFolder), new File(testSources.toString()));
-//        CheckJavadocPlugin.check(wrongFqnFormat);
-//    }
+    private InputStream getBuildFileContent(int threshold, String reactionType) throws IOException {
+        final InputStream input =
+                getClass().getClassLoader()
+                          .getResourceAsStream("projects/JavaDocCheckerPlugin/build.gradle");
+        StringWriter writer = new StringWriter();
+        IOUtils.copy(input, writer);
+        String str = writer.toString();
+        String result = str.replace("thresholdValue", String.valueOf(threshold));
+        result = result.replace("reactionTypeValue", '"' + reactionType + '"');
+        final InputStream stream = new ByteArrayInputStream(result.getBytes(StandardCharsets.UTF_8));
+        return stream;
+    }
 }

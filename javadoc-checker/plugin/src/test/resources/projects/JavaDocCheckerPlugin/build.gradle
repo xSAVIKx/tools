@@ -6,8 +6,6 @@ plugins {
 apply plugin: 'org.spine3.tools.javadoc-checker'
 
 checkJavadoc {
-    threshold = 2
-    reactionType = "error"
+    threshold = thresholdValue
+    reactionType = reactionTypeValue
 }
-
-

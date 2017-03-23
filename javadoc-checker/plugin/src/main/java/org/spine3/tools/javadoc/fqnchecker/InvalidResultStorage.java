@@ -20,8 +20,6 @@
 package org.spine3.tools.javadoc.fqnchecker;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +36,7 @@ import static java.lang.String.format;
  *
  * @author Alexander Aleksandrov
  */
-public class CheckResultStorage {
+public class InvalidResultStorage {
 
     private static final Map<Path, List<Optional<InvalidFqnUsage>>> resultStorage = new HashMap<>();
 
@@ -83,12 +81,12 @@ public class CheckResultStorage {
     }
 
     private static Logger log() {
-        return CheckResultStorage.LogSingleton.INSTANCE.value;
+        return InvalidResultStorage.LogSingleton.INSTANCE.value;
     }
 
     private enum LogSingleton {
         INSTANCE;
         @SuppressWarnings("NonSerializableFieldInSerializableClass")
-        private final Logger value = LoggerFactory.getLogger(CheckResultStorage.class);
+        private final Logger value = LoggerFactory.getLogger(InvalidResultStorage.class);
     }
 }

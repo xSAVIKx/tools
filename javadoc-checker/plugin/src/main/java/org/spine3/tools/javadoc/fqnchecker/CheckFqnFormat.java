@@ -45,14 +45,14 @@ import static java.util.regex.Pattern.compile;
 /**
  * @author Alexander Aleksandrov
  */
-public class CheckFqnLink {
+public class CheckFqnFormat {
     private int exceptionThreshold = 0;
     private static final String DIRECTORY_TO_CHECK = "/src/main/java";
     private String reactionType = "";
     private final Project project;
-    private static final CheckResultStorage storage = new CheckResultStorage();
+    private static final InvalidResultStorage storage = new InvalidResultStorage();
 
-    public CheckFqnLink(Project project) {
+    public CheckFqnFormat(Project project) {
         this.project = project;
     }
 
@@ -94,7 +94,7 @@ public class CheckFqnLink {
 
     private void checkRecursively(Path path) {
         try {
-            final SimpleFileVisitor<Path> visitor = new CheckFqnLink.RecursiveFileChecker();
+            final SimpleFileVisitor<Path> visitor = new CheckFqnFormat.RecursiveFileChecker();
             log().debug("Starting to check the files recursively in {}", path.toString());
             Files.walkFileTree(path, visitor);
         } catch (IOException e) {
@@ -173,8 +173,8 @@ public class CheckFqnLink {
     }
 
     private static Optional<InvalidFqnUsage> checkSingleComment(String comment) {
-        final Matcher matcher = CheckFqnLink.JavadocPattern.LINK.getPattern()
-                                                                .matcher(comment);
+        final Matcher matcher = CheckFqnFormat.JavadocPattern.LINK.getPattern()
+                                                                  .matcher(comment);
         final boolean found = matcher.find();
         if (found) {
             final String improperUsage = matcher.group(0);
@@ -200,13 +200,13 @@ public class CheckFqnLink {
     }
 
     private static Logger log() {
-        return CheckFqnLink.LogSingleton.INSTANCE.value;
+        return CheckFqnFormat.LogSingleton.INSTANCE.value;
     }
 
     private enum LogSingleton {
         INSTANCE;
         @SuppressWarnings("NonSerializableFieldInSerializableClass")
-        private final Logger value = LoggerFactory.getLogger(CheckFqnLink.class);
+        private final Logger value = LoggerFactory.getLogger(CheckFqnFormat.class);
     }
 
 }

@@ -1,7 +1,6 @@
 <component name="InspectionProjectProfileManager">
   <profile version="1.0">
     <option name="myName" value="Project Default" />
-    <option name="myLocal" value="true" />
     <inspection_tool class="AbstractClassNeverImplemented" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AbstractClassWithoutAbstractMethods" enabled="true" level="INFO" enabled_by_default="true" />
     <inspection_tool class="AbstractMethodCallInConstructor" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -515,6 +514,7 @@
       <option name="ignoreEnums" value="false" />
       <option name="ignorableAnnotations">
         <value>
+          <item value="org.junit.Rule" />
           <item value="org.junit.Test" />
         </value>
       </option>

@@ -44,8 +44,8 @@ public class CheckJavadocPlugin extends SpinePlugin {
     public void apply(final Project project) {
         project.getExtensions()
                .create(SPINE_LINK_CHECKER_EXTENSION_NAME, Extension.class);
-        final CheckFqnLink checkFqnLink = new CheckFqnLink(project);
-        final Action<Task> action = checkFqnLink.actionFor(project);
+        final CheckFqnFormat checkFqnFormat = new CheckFqnFormat(project);
+        final Action<Task> action = checkFqnFormat.actionFor(project);
         newTask(CHECK_FQN, action).insertAfterTask(COMPILE_JAVA)
                                   .insertBeforeTask(PROCESS_RESOURCES)
                                   .applyNowTo(project);
