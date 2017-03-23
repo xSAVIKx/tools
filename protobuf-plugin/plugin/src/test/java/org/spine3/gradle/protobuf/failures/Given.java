@@ -20,21 +20,30 @@
 
 package org.spine3.gradle.protobuf.failures;
 
+import com.sun.javadoc.RootDoc;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 /**
- * Configurers for the test projects.
+ * Test projects configurers.
  *
  * @author Dmytro Grankin
  */
-class Configurers {
+@SuppressWarnings("UtilityClass")
+class Given {
+
+    private static final Class<Given> cls = Given.class;
+
+    private Given() {
+    }
 
     static class FailuresGenerationConfigurer extends ProjectConfigurer {
 
@@ -63,9 +72,21 @@ class Configurers {
 
     static class FailuresJavadocConfigurer extends ProjectConfigurer {
 
-        static final String TEST_SOURCE = "/generated/main/spine/org/spine3/sample/failures/Failure.java";
-        private static final String PROJECT_NAME = "failures-javadoc-test/";
-        private static final String FAILURES_FILE = "javadoc_failures.proto";
+        /** Javadocs received from {@link RootDoc} contain "\n" line separator. */
+        @SuppressWarnings("HardcodedLineSeparator")
+        private static final String JAVADOC_LINE_SEPARATOR = "\n";
+
+        private static final String JAVA_PACKAGE = "org.spine3.sample.failures";
+        private static final String CLASS_COMMENT =
+                "The failure definition to test Javadoc generation.";
+        private static final String FAILURE_NAME = "Failure";
+        private static final String FAILURES_FILE_NAME = "javadoc_failures.proto";
+        private static final String FIRST_FIELD_COMMENT = "The failure ID.";
+        private static final String FIRST_FIELD_NAME = "id";
+        private static final String SECOND_FIELD_COMMENT = "The failure message.";
+        private static final String SECOND_FIELD_NAME = "message";
+        static final String TEST_SOURCE = "/generated/main/spine/org/spine3/sample/failures/"
+                + FAILURE_NAME + ".java";
 
         FailuresJavadocConfigurer(TemporaryFolder projectDirectory) {
             super(projectDirectory);
@@ -74,18 +95,63 @@ class Configurers {
         @Override
         public ProjectConnection configure() throws IOException {
             writeBuildGradle();
-            writeProto(PROJECT_NAME, FAILURES_FILE);
-
+            writeTestSource();
             return createProjectConnection();
+        }
+
+        private void writeTestSource() throws IOException {
+            final Iterable<String> sourceLines = Arrays.asList(
+                    "syntax = \"proto3\";",
+                    "package spine.sample.failures;",
+                    "option java_package = \"" + JAVA_PACKAGE + "\";",
+                    "option java_multiple_files = false;",
+
+                    "//" + CLASS_COMMENT,
+                    "message " + FAILURE_NAME + " {",
+
+                    "//" + FIRST_FIELD_COMMENT,
+                    "int32 " + FIRST_FIELD_NAME + " = 1; // Is not a part of Javadoc.",
+
+                    "//" + SECOND_FIELD_COMMENT,
+                    "string " + SECOND_FIELD_NAME + " = 2;",
+                    "}"
+
+            );
+
+            final Path sourcePath =
+                    projectDirectory.getRoot()
+                                    .toPath()
+                                    .resolve(BASE_PROTO_LOCATION + FAILURES_FILE_NAME);
+            Files.createDirectories(sourcePath.getParent());
+            Files.write(sourcePath, sourceLines, Charset.forName("UTF-8"));
+        }
+
+        static String getExpectedClassComment() {
+            return ' ' + FailureJavadocGenerator.OPENING_PRE + JAVADOC_LINE_SEPARATOR
+                    + ' ' + CLASS_COMMENT + JAVADOC_LINE_SEPARATOR
+                    + " </pre>" + JAVADOC_LINE_SEPARATOR
+                    + ' ' + JAVADOC_LINE_SEPARATOR
+                    + " Failure based on protobuf type {@code " + JAVA_PACKAGE + '.' + FAILURE_NAME
+                    + '}' + JAVADOC_LINE_SEPARATOR;
+        }
+
+        static String getExpectedCtorComment() {
+            final String param = " @param ";
+            return " Creates a new instance." + JAVADOC_LINE_SEPARATOR
+                    + ' ' + JAVADOC_LINE_SEPARATOR
+                    + param + FIRST_FIELD_NAME + ' ' + FIRST_FIELD_COMMENT + JAVADOC_LINE_SEPARATOR
+                    + param + SECOND_FIELD_NAME + ' ' + SECOND_FIELD_COMMENT
+                    + JAVADOC_LINE_SEPARATOR;
         }
     }
 
     abstract static class ProjectConfigurer {
 
         private static final String BUILD_GRADLE_NAME = "build.gradle";
-        private static final String BASE_PROTO_LOCATION = "src/main/proto/spine/sample/failures/";
+        static final String BASE_PROTO_LOCATION = "src/main/proto/spine/sample/failures/";
 
-        private final TemporaryFolder projectDirectory;
+        @SuppressWarnings("PackageVisibleField") // Inheritance in same file.
+        final TemporaryFolder projectDirectory;
 
         ProjectConfigurer(TemporaryFolder projectDirectory) {
             this.projectDirectory = projectDirectory;
@@ -103,8 +169,8 @@ class Configurers {
             final Path resultingPath = projectDirectory.getRoot()
                                                        .toPath()
                                                        .resolve(BUILD_GRADLE_NAME);
-            final InputStream fileContent = Configurers.class.getClassLoader()
-                                                             .getResourceAsStream(BUILD_GRADLE_NAME);
+            final InputStream fileContent = cls.getClassLoader()
+                                               .getResourceAsStream(BUILD_GRADLE_NAME);
 
             Files.createDirectories(resultingPath.getParent());
             Files.copy(fileContent, resultingPath);
@@ -116,8 +182,8 @@ class Configurers {
             final Path resultingPath = projectDirectory.getRoot()
                                                        .toPath()
                                                        .resolve(protoFilePath);
-            final InputStream fileContent = Configurers.class.getClassLoader()
-                                                             .getResourceAsStream(projectName + protoFilePath);
+            final InputStream fileContent = cls.getClassLoader()
+                                               .getResourceAsStream(projectName + protoFilePath);
 
             Files.createDirectories(resultingPath.getParent());
             Files.copy(fileContent, resultingPath);

@@ -30,7 +30,7 @@ import org.gradle.tooling.ResultHandler;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.spine3.gradle.protobuf.failures.Configurers.FailuresGenerationConfigurer;
+import org.spine3.gradle.protobuf.failures.Given.FailuresGenerationConfigurer;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +38,10 @@ import java.util.concurrent.TimeUnit;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
-import static org.spine3.gradle.protobuf.failures.Configurers.FailuresJavadocConfigurer;
+import static org.spine3.gradle.protobuf.failures.Given.FailuresJavadocConfigurer;
+import static org.spine3.gradle.protobuf.failures.Given.FailuresJavadocConfigurer.TEST_SOURCE;
+import static org.spine3.gradle.protobuf.failures.Given.FailuresJavadocConfigurer.getExpectedClassComment;
+import static org.spine3.gradle.protobuf.failures.Given.FailuresJavadocConfigurer.getExpectedCtorComment;
 import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.AMPERSAND;
 import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.ASTERISK;
 import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.AT_MARK;
@@ -51,10 +54,6 @@ import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacte
  * @author Dmytro Grankin
  */
 public class FailuresGenPluginShould {
-
-    /** Javadocs received from {@link RootDoc} contain "\n" line separator. */
-    @SuppressWarnings("HardcodedLineSeparator")
-    private static final String JAVADOC_LINE_SEPARATOR = "\n";
 
     @SuppressWarnings("PublicField") // Rules should be public
     @Rule
@@ -108,9 +107,7 @@ public class FailuresGenPluginShould {
             launcher.run(new ResultHandler<Void>() {
                 @Override
                 public void onComplete(Void aVoid) {
-                    final RootDoc root =
-                            RootDocReceiver.getRootDoc(testProjectDir,
-                                                       FailuresJavadocConfigurer.TEST_SOURCE);
+                    final RootDoc root = RootDocReceiver.getRootDoc(testProjectDir, TEST_SOURCE);
                     final ClassDoc failureDoc = root.classes()[0];
                     final ConstructorDoc failureCtorDoc = failureDoc.constructors()[0];
 
@@ -130,22 +127,6 @@ public class FailuresGenPluginShould {
             connection.close();
         }
         countDownLatch.await(100, TimeUnit.MILLISECONDS);
-    }
-
-    private static String getExpectedClassComment() {
-        return ' ' + FailureJavadocGenerator.OPENING_PRE + JAVADOC_LINE_SEPARATOR
-                + "  The failure definition to test Javadoc generation." + JAVADOC_LINE_SEPARATOR
-                + " </pre>" + JAVADOC_LINE_SEPARATOR
-                + ' ' + JAVADOC_LINE_SEPARATOR
-                + " Failure based on protobuf type {@code org.spine3.sample.failures.Failure}"
-                + JAVADOC_LINE_SEPARATOR;
-    }
-
-    private static String getExpectedCtorComment() {
-        return " Creates a new instance." + JAVADOC_LINE_SEPARATOR
-                + ' ' + JAVADOC_LINE_SEPARATOR
-                + " @param id      The failure ID." + JAVADOC_LINE_SEPARATOR
-                + " @param message The failure message." + JAVADOC_LINE_SEPARATOR;
     }
 
     @Test
