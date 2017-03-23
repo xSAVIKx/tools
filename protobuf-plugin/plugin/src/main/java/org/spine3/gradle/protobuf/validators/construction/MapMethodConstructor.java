@@ -20,10 +20,23 @@
 
 package org.spine3.gradle.protobuf.validators.construction;
 
+import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
+import org.spine3.gradle.protobuf.MessageTypeCache;
+import org.spine3.validate.ConstraintViolationThrowable;
 
+import javax.lang.model.element.Modifier;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Lists.newArrayList;
+import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_RAW_PREFIX;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
 
 /**
  * @author Illia Shepilov
@@ -31,8 +44,114 @@ import java.util.Collections;
 //TODO:2017-03-22:illiashepilov: finish implementation.
 public class MapMethodConstructor extends AbstractMethodConstructor {
 
+    private final int fieldIndex;
+    private final String javaFieldName;
+    private final String methodPartName;
+    private final ClassName builderClassName;
+    private final ClassName genericClassName;
+    private final ClassName parameterClassName;
+    private final FieldDescriptorProto fieldDescriptor;
+
+    private MapMethodConstructor(MapFieldMethodsConstructorBuilder builder) {
+        this.fieldIndex = builder.fieldIndex;
+        this.fieldDescriptor = builder.fieldDescriptor;
+        this.genericClassName = builder.genericClassName;
+        methodPartName = getJavaFieldName(fieldDescriptor.getName(), true);
+        javaFieldName = getJavaFieldName(fieldDescriptor.getName(), false);
+        builderClassName = getBuilderClassName(builder.javaPackage, builder.javaClass);
+        parameterClassName = getParameterClass(fieldDescriptor, builder.messageTypeCache);
+    }
+
     @Override
     Collection<MethodSpec> construct() {
-        return Collections.emptyList();
+        final List<MethodSpec> methods = newArrayList();
+        methods.addAll(createMapMethods());
+        methods.addAll(createRawMapMethods());
+        return methods;
+    }
+
+    private List<MethodSpec> createRawMapMethods() {
+        final List<MethodSpec> methods = newArrayList();
+
+        return methods;
+    }
+
+    private List<MethodSpec> createMapMethods() {
+        final List<MethodSpec> methods = newArrayList();
+        methods.add(createPutMethod());
+
+        return methods;
+    }
+
+    private MethodSpec createPutMethod() {
+        final String methodName = getJavaFieldName(ADD_RAW_PREFIX + methodPartName, false);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
+        final MethodSpec result = MethodSpec.methodBuilder(methodName)
+                                            .returns(builderClassName)
+                                            .addModifiers(Modifier.PUBLIC)
+                                            .addException(ConstraintViolationThrowable.class)
+//                                            .addParameter()
+                                            .addStatement(descriptorCodeLine)
+                                            .build();
+        return result;
+    }
+
+    static MapFieldMethodsConstructorBuilder newBuilder() {
+        return new MapFieldMethodsConstructorBuilder();
+    }
+
+    static class MapFieldMethodsConstructorBuilder {
+
+        private int fieldIndex;
+        private String javaClass;
+        private String javaPackage;
+        private ClassName genericClassName;
+        private MessageTypeCache messageTypeCache;
+        private FieldDescriptorProto fieldDescriptor;
+
+        MapFieldMethodsConstructorBuilder setFieldIndex(int fieldIndex) {
+            checkArgument(fieldIndex >= 0);
+            this.fieldIndex = fieldIndex;
+            return this;
+        }
+
+        MapFieldMethodsConstructorBuilder setJavaPackage(String javaPackage) {
+            checkNotNull(javaPackage);
+            this.javaPackage = javaPackage;
+            return this;
+        }
+
+        MapFieldMethodsConstructorBuilder setJavaClass(String javaClass) {
+            checkNotNull(javaClass);
+            this.javaClass = javaClass;
+            return this;
+        }
+
+        MapFieldMethodsConstructorBuilder setMessageTypeCache(MessageTypeCache messageTypeCache) {
+            checkNotNull(messageTypeCache);
+            this.messageTypeCache = messageTypeCache;
+            return this;
+        }
+
+        MapFieldMethodsConstructorBuilder setFieldDescriptor(FieldDescriptorProto fieldDescriptor) {
+            checkNotNull(fieldDescriptor);
+            this.fieldDescriptor = fieldDescriptor;
+            return this;
+        }
+
+        MapFieldMethodsConstructorBuilder setBuilderGenericClass(ClassName genericClassName) {
+            this.genericClassName = genericClassName;
+            return this;
+        }
+
+        MapMethodConstructor build() {
+            checkNotNull(javaClass);
+            checkNotNull(javaPackage);
+            checkNotNull(messageTypeCache);
+            checkNotNull(fieldDescriptor);
+            checkNotNull(genericClassName);
+            checkArgument(fieldIndex >= 0);
+            return new MapMethodConstructor(this);
+        }
     }
 }
