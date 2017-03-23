@@ -20,10 +20,10 @@
 
 package org.spine3.gradle.protobuf.validators;
 
-import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
+import com.google.protobuf.DescriptorProtos.FileDescriptorProtoOrBuilder;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -64,7 +64,7 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
 public class ValidatorsGenPlugin extends SpinePlugin {
 
     private final Map<String, DescriptorProto> allMessageDescriptors = newHashMap();
-    private final Map<String, FileDescriptorProto> typeFiles = newHashMap();
+    private final FileDescriptorCache descriptorCache = FileDescriptorCache.getInstance();
 
     /** A map from Protobuf type name to Java class FQN. */
     private final MessageTypeCache messageTypeCache = new MessageTypeCache();
@@ -134,6 +134,13 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return result;
     }
 
+    private ValidatorMetadata createMetadata(DescriptorProto msgDescriptor) {
+        final String className = msgDescriptor.getName() + JAVA_CLASS_NAME_SUFFIX;
+        final String javaPackage = descriptorCache.getJavaPackageFor(msgDescriptor.getName());
+        final ValidatorMetadata result = new ValidatorMetadata(javaPackage, className, msgDescriptor);
+        return result;
+    }
+
     private Set<ValidatorMetadata> obtainAllMetadataValidators(Iterable<ValidatorMetadata> metadataSet) {
         final Set<ValidatorMetadata> result = newHashSet();
         for (ValidatorMetadata metadata : metadataSet) {
@@ -187,8 +194,8 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         for (FileDescriptorProto file : allDescriptors) {
             final boolean isCommandFile = file.getName()
                                               .endsWith("commands.proto");
-            saveMessageToMap(file);
-            fillMap(file);
+            constructAllMessageDesriptorsMap(file);
+            cacheFileDescriptors(file);
             messageTypeCache.cacheTypes(file);
             if (isCommandFile) {
                 log().info("Found commands file: {}", file.getName());
@@ -200,27 +207,17 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return result;
     }
 
-    private Map<String, FileDescriptorProto> fillMap(FileDescriptorProto fileDescriptorProto) {
-        for (DescriptorProto message : fileDescriptorProto.getMessageTypeList()) {
-            typeFiles.put(message.getName(), fileDescriptorProto);
-        }
-        return typeFiles;
-    }
-
-    private void saveMessageToMap(DescriptorProtos.FileDescriptorProtoOrBuilder file) {
+    private void constructAllMessageDesriptorsMap(FileDescriptorProtoOrBuilder file) {
         List<DescriptorProto> messages = file.getMessageTypeList();
         for (DescriptorProto msg : messages) {
             allMessageDescriptors.put(msg.getName(), msg);
         }
     }
 
-    private ValidatorMetadata createMetadata(DescriptorProto message) {
-        final String className = message.getName() + JAVA_CLASS_NAME_SUFFIX;
-        final String javaPackage = typeFiles.get(message.getName())
-                                            .getOptions()
-                                            .getJavaPackage();
-        final ValidatorMetadata result = new ValidatorMetadata(javaPackage, className, message);
-        return result;
+    private void cacheFileDescriptors(FileDescriptorProto fileDescriptor) {
+        for (DescriptorProto msgDescriptor : fileDescriptor.getMessageTypeList()) {
+            descriptorCache.cache(msgDescriptor.getName(), fileDescriptor);
+        }
     }
 
     private enum LogSingleton {
