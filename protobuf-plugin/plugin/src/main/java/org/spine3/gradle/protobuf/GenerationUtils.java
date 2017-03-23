@@ -25,6 +25,7 @@ import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
 
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static org.spine3.gradle.protobuf.fieldtype.ProtoPrimitives.BOOLEAN;
 import static org.spine3.gradle.protobuf.fieldtype.ProtoPrimitives.DOUBLE;
@@ -33,6 +34,8 @@ import static org.spine3.gradle.protobuf.fieldtype.ProtoPrimitives.INT;
 import static org.spine3.gradle.protobuf.fieldtype.ProtoPrimitives.LONG;
 
 public class GenerationUtils {
+
+    private static final Pattern COMPILE = Pattern.compile(".", Pattern.LITERAL);
 
     private GenerationUtils() {
         //Prevent instantiation.
@@ -119,5 +122,15 @@ public class GenerationUtils {
         final String remainingPart = jsonName.substring(1);
 
         return capitalizedFirstSymbol + remainingPart + "Entry";
+    }
+
+    public static boolean isMessage(DescriptorProtos.FieldDescriptorProto fieldDescriptor) {
+        return fieldDescriptor.getType() == Type.TYPE_MESSAGE;
+    }
+
+    public static String getMessageName(String fullName) {
+        final String[] paths = COMPILE.split(fullName);
+        final String msgName = paths[paths.length - 1];
+        return msgName;
     }
 }
