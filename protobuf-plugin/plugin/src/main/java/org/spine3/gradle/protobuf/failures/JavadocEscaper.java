@@ -123,5 +123,10 @@ class JavadocEscaper {
         String getEscapedString() {
             return escapedString;
         }
+
+        @Override
+        public String toString() {
+            return String.valueOf(unescapedCharacter);
+        }
     }
 }
