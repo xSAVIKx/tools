@@ -110,7 +110,7 @@ public class FailuresGenPluginShould {
                     final ClassDoc failureDoc = root.classes()[0];
                     final ConstructorDoc failureCtorDoc = failureDoc.constructors()[0];
 
-                    assertEquals(getExpectedClassComment(), failureDoc.commentText());
+                    assertEquals(getExpectedClassComment(), failureDoc.getRawCommentText());
                     assertEquals(getExpectedCtorComment(), failureCtorDoc.getRawCommentText());
                     countDownLatch.countDown();
                 }
@@ -129,11 +129,12 @@ public class FailuresGenPluginShould {
     }
 
     private static String getExpectedClassComment() {
-        return FailureJavadocGenerator.OPENING_PRE + JAVADOC_LINE_SEPARATOR
+        return ' ' + FailureJavadocGenerator.OPENING_PRE + JAVADOC_LINE_SEPARATOR
                 + "  The failure definition to test Javadoc generation." + JAVADOC_LINE_SEPARATOR
                 + " </pre>" + JAVADOC_LINE_SEPARATOR
                 + ' ' + JAVADOC_LINE_SEPARATOR
-                + " Failure based on protobuf type {@code org.spine3.sample.failures.Failure}";
+                + " Failure based on protobuf type {@code org.spine3.sample.failures.Failure}"
+                + JAVADOC_LINE_SEPARATOR;
     }
 
     private static String getExpectedCtorComment() {
