@@ -241,6 +241,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
                                             .addModifiers(Modifier.PUBLIC)
                                             .returns(builderClass)
                                             .addParameter(parameterClassName, VALUE)
+                                            .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(javaFieldName + ".remove(value)")
                                             .addStatement(RETURN_THIS)
                                             .build();
