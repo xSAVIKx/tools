@@ -40,6 +40,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_ALL_PREFIX;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_RAW_PREFIX;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.CREATE_IF_NEEDED;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
 
@@ -48,15 +50,13 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameter
  */
 class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
 
-    private static final String CREATE_IF_NEEDED = "createIfNeeded()";
-    private static final String ADD_RAW_PREFIX = "addRaw";
     private static final String ADD_PREFIX = "add";
     private static final String REMOVE_PREFIX = "remove";
 
     private final int fieldIndex;
     private final String javaFieldName;
     private final String methodPartName;
-    private final ClassName builderClass;
+    private final ClassName builderClassName;
     private final ClassName genericClassName;
     private final ClassName parameterClassName;
     private final FieldDescriptorProto fieldDescriptor;
@@ -67,7 +67,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
         this.genericClassName = builder.genericClassName;
         methodPartName = getJavaFieldName(fieldDescriptor.getName(), true);
         javaFieldName = getJavaFieldName(fieldDescriptor.getName(), false);
-        builderClass = getBuilderClassName(builder.javaPackage, builder.javaClass);
+        builderClassName = getBuilderClassName(builder.javaPackage, builder.javaClass);
         parameterClassName = getParameterClass(fieldDescriptor, builder.messageTypeCache);
     }
 
@@ -109,7 +109,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
-                                            .returns(builderClass)
+                                            .returns(builderClassName)
                                             .addModifiers(Modifier.PUBLIC)
                                             .addParameter(String.class, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
@@ -132,7 +132,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
-                                            .returns(builderClass)
+                                            .returns(builderClassName)
                                             .addModifiers(Modifier.PUBLIC)
                                             .addParameter(int.class, INDEX)
                                             .addParameter(String.class, VALUE)
@@ -156,7 +156,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
-                                            .returns(builderClass)
+                                            .returns(builderClassName)
                                             .addModifiers(Modifier.PUBLIC)
                                             .addParameter(String.class, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
@@ -183,7 +183,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
         final ClassName rawType = ClassName.get(List.class);
         final ParameterizedTypeName parameter = ParameterizedTypeName.get(rawType, parameterClassName);
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
-                                            .returns(builderClass)
+                                            .returns(builderClassName)
                                             .addModifiers(Modifier.PUBLIC)
                                             .addParameter(parameter, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
@@ -203,7 +203,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
-                                            .returns(builderClass)
+                                            .returns(builderClassName)
                                             .addModifiers(Modifier.PUBLIC)
                                             .addParameter(parameterClassName, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
@@ -221,7 +221,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
-                                            .returns(builderClass)
+                                            .returns(builderClassName)
                                             .addModifiers(Modifier.PUBLIC)
                                             .addParameter(int.class, INDEX)
                                             .addParameter(parameterClassName, VALUE)
@@ -239,7 +239,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
         final String removeMethodName = getJavaFieldName(REMOVE_PREFIX + methodPartName, false);
         final MethodSpec result = MethodSpec.methodBuilder(removeMethodName)
                                             .addModifiers(Modifier.PUBLIC)
-                                            .returns(builderClass)
+                                            .returns(builderClassName)
                                             .addParameter(parameterClassName, VALUE)
                                             .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(javaFieldName + ".remove(value)")
@@ -253,7 +253,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .addModifiers(Modifier.PUBLIC)
-                                            .returns(builderClass)
+                                            .returns(builderClassName)
                                             .addParameter(int.class, INDEX)
                                             .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(javaFieldName + ".remove(index)")
@@ -265,7 +265,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
     private MethodSpec createClearMethod() {
         final MethodSpec result = MethodSpec.methodBuilder("clear")
                                             .addModifiers(Modifier.PUBLIC)
-                                            .returns(builderClass)
+                                            .returns(builderClassName)
                                             .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(javaFieldName + ".clear()")
                                             .addStatement(RETURN_THIS)

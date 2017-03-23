@@ -36,6 +36,7 @@ import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
 import static org.spine3.gradle.protobuf.GenerationUtils.isMap;
 import static org.spine3.gradle.protobuf.GenerationUtils.isRepeated;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_ALL_PREFIX;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.CREATE_IF_NEEDED;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.PUT_ALL_PREFIX;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.SETTER_PREFIX;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
@@ -113,6 +114,7 @@ public class MethodConstructor {
         final MethodSpec buildMethod = MethodSpec.methodBuilder("build")
                                                  .addModifiers(Modifier.PUBLIC)
                                                  .returns(builderGenericClassName)
+                                                 .addStatement(CREATE_IF_NEEDED)
                                                  .addStatement(builder.toString(),
                                                                builderGenericClassName,
                                                                builderGenericClassName)
@@ -152,15 +154,23 @@ public class MethodConstructor {
             return createSingularFieldMethods(fieldDescriptor, index);
         }
 
-        //TODO:2017-03-22:illiashepilov: finish implementation.
         private AbstractMethodConstructor createMapFieldMethods(FieldDescriptorProto dscr,
                                                                 int fieldIndex) {
-            return new MapMethodConstructor();
+            final AbstractMethodConstructor constructor =
+                    MapMethodConstructor.newBuilder()
+                                        .setFieldDescriptor(dscr)
+                                        .setFieldIndex(fieldIndex)
+                                        .setJavaClass(javaClass)
+                                        .setJavaPackage(javaPackage)
+                                        .setBuilderGenericClass(builderGenericClassName)
+                                        .setMessageTypeCache(messageTypeCache)
+                                        .build();
+            return constructor;
         }
 
         private AbstractMethodConstructor createRepeatedFieldMethods(FieldDescriptorProto dscr,
                                                                      int fieldIndex) {
-            final RepeatedFieldMethodsConstructor constructor =
+            final AbstractMethodConstructor constructor =
                     RepeatedFieldMethodsConstructor.newBuilder()
                                                    .setFieldDescriptor(dscr)
                                                    .setFieldIndex(fieldIndex)
@@ -174,7 +184,7 @@ public class MethodConstructor {
 
         private AbstractMethodConstructor createSingularFieldMethods(FieldDescriptorProto dscr,
                                                                      int fieldIndex) {
-            final SettersConstructor constructor =
+            final AbstractMethodConstructor constructor =
                     SettersConstructor.newBuilder()
                                       .setFieldDescriptor(dscr)
                                       .setFieldIndex(fieldIndex)

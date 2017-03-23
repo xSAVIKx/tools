@@ -33,6 +33,8 @@ public class ValidatingUtils {
     public static final String SETTER_PREFIX = "set";
     public static final String ADD_ALL_PREFIX = "addAll";
     public static final String PUT_ALL_PREFIX = "putAll";
+    public static final String ADD_RAW_PREFIX = "addRaw";
+    public static final String CREATE_IF_NEEDED = "createIfNeeded()";
     private static final Pattern PATTERN = Pattern.compile(".ChangesEntry");
 
     private ValidatingUtils() {
