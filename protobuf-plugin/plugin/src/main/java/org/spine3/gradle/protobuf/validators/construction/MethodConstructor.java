@@ -25,6 +25,8 @@ import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import org.spine3.gradle.protobuf.MessageTypeCache;
+import org.spine3.gradle.protobuf.fieldtype.FieldType;
+import org.spine3.gradle.protobuf.fieldtype.FieldTypeFactory;
 import org.spine3.gradle.protobuf.validators.ValidatorMetadata;
 
 import javax.lang.model.element.Modifier;
@@ -41,6 +43,7 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.PUT_ALL_PREF
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.SETTER_PREFIX;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatorGenericClassName;
+import static org.spine3.gradle.protobuf.validators.construction.AbstractMethodConstructor.MethodConstructorBuilder;
 
 /**
  * @author Illia Shepilov
@@ -53,7 +56,8 @@ public class MethodConstructor {
     private final MessageTypeCache messageTypeCache;
     private final DescriptorProto descriptor;
 
-    public MethodConstructor(ValidatorMetadata validatorMetadata, MessageTypeCache messageTypeCache) {
+    public MethodConstructor(ValidatorMetadata validatorMetadata,
+                             MessageTypeCache messageTypeCache) {
         this.javaClass = validatorMetadata.getJavaClass();
         this.javaPackage = validatorMetadata.getJavaPackage();
         this.descriptor = validatorMetadata.getMsgDescriptor();
@@ -69,7 +73,7 @@ public class MethodConstructor {
         methods.add(createPrivateConstructor());
         methods.add(createNewBuilderMethod());
         methods.add(createBuildMethod());
-        methods.addAll(createSetters());
+        methods.addAll(createGeneratedSetters());
 
         return methods;
     }
@@ -123,7 +127,7 @@ public class MethodConstructor {
         return buildMethod;
     }
 
-    private Collection<MethodSpec> createSetters() {
+    private Collection<MethodSpec> createGeneratedSetters() {
         final MethodConstructorFactory methodConstructorFactory = new MethodConstructorFactory();
         final List<MethodSpec> setters = newArrayList();
         int index = 0;
@@ -140,60 +144,36 @@ public class MethodConstructor {
     }
 
     private class MethodConstructorFactory {
-
         private AbstractMethodConstructor getMethodConstructor(FieldDescriptorProto fieldDescriptor,
                                                                int index) {
             if (isMap(fieldDescriptor)) {
-                return createMapFieldMethods(fieldDescriptor, index);
+                return createMethodConstructor(MapFieldMethodConstructor.newBuilder(),
+                                               fieldDescriptor,
+                                               index);
             }
-
             if (isRepeated(fieldDescriptor)) {
-                return createRepeatedFieldMethods(fieldDescriptor, index);
+                return createMethodConstructor(RepeatedFieldMethodConstructor.newBuilder(),
+                                               fieldDescriptor,
+                                               index);
             }
-
-            return createSingularFieldMethods(fieldDescriptor, index);
+            return createMethodConstructor(SingularFieldMethodConstructor.newBuilder(), fieldDescriptor, index);
         }
 
-        private AbstractMethodConstructor createMapFieldMethods(FieldDescriptorProto dscr,
-                                                                int fieldIndex) {
-            final AbstractMethodConstructor constructor =
-                    MapMethodConstructor.newBuilder()
-                                        .setFieldDescriptor(dscr)
-                                        .setFieldIndex(fieldIndex)
-                                        .setJavaClass(javaClass)
-                                        .setJavaPackage(javaPackage)
-                                        .setBuilderGenericClass(builderGenericClassName)
-                                        .setMessageTypeCache(messageTypeCache)
-                                        .build();
-            return constructor;
-        }
-
-        private AbstractMethodConstructor createRepeatedFieldMethods(FieldDescriptorProto dscr,
-                                                                     int fieldIndex) {
-            final AbstractMethodConstructor constructor =
-                    RepeatedFieldMethodsConstructor.newBuilder()
-                                                   .setFieldDescriptor(dscr)
-                                                   .setFieldIndex(fieldIndex)
-                                                   .setJavaClass(javaClass)
-                                                   .setJavaPackage(javaPackage)
-                                                   .setBuilderGenericClass(builderGenericClassName)
-                                                   .setMessageTypeCache(messageTypeCache)
-                                                   .build();
-            return constructor;
-        }
-
-        private AbstractMethodConstructor createSingularFieldMethods(FieldDescriptorProto dscr,
-                                                                     int fieldIndex) {
-            final AbstractMethodConstructor constructor =
-                    SettersConstructor.newBuilder()
-                                      .setFieldDescriptor(dscr)
-                                      .setFieldIndex(fieldIndex)
-                                      .setJavaClass(javaClass)
-                                      .setJavaPackage(javaPackage)
-                                      .setGenericClassName(builderGenericClassName)
-                                      .setMessageTypeCache(messageTypeCache)
-                                      .build();
-            return constructor;
+        private AbstractMethodConstructor createMethodConstructor(MethodConstructorBuilder builder,
+                                                                  FieldDescriptorProto dscr,
+                                                                  int fieldIndex) {
+            final FieldType fieldType = new FieldTypeFactory(descriptor, messageTypeCache.getCachedTypes()).create(dscr);
+            final AbstractMethodConstructor methodConstructor =
+                    builder.setFieldDescriptor(dscr)
+                           .setFieldType(fieldType)
+                           .setFieldIndex(fieldIndex)
+                           .setJavaClass(javaClass)
+                           .setJavaPackage(javaPackage)
+                           .setBuilderGenericClassName(builderGenericClassName)
+                           .setMessageTypeCache(messageTypeCache)
+                           .build();
+            return methodConstructor;
         }
     }
+
 }
