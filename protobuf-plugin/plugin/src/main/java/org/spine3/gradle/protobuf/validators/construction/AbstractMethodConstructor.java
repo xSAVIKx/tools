@@ -20,10 +20,16 @@
 
 package org.spine3.gradle.protobuf.validators.construction;
 
+import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
+import org.spine3.gradle.protobuf.MessageTypeCache;
+import org.spine3.gradle.protobuf.fieldtype.FieldType;
 
 import java.util.Collection;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Illia Shepilov
@@ -63,5 +69,102 @@ abstract class AbstractMethodConstructor {
     static String createGetConvertedSingularValue() {
         final String result = "final $T convertedValue = getConvertedValue($T.class, value)";
         return result;
+    }
+
+    static String createGetConvertedMapValue(){
+        final String result = "final $T<$T, $T> convertedValue = " +
+                "getConvertedValue(new $T<$T<$T, $T>>(){}.getType(), value)";
+        return result;
+    }
+
+    abstract static class MethodConstructorBuilder {
+
+        private int fieldIndex;
+        private String javaClass;
+        private String javaPackage;
+        private ClassName genericClassName;
+        private MessageTypeCache messageTypeCache;
+        private FieldDescriptorProto fieldDescriptor;
+        private FieldType fieldType;
+
+        abstract AbstractMethodConstructor build();
+
+        MethodConstructorBuilder setFieldIndex(int fieldIndex) {
+            checkArgument(fieldIndex >= 0);
+            this.fieldIndex = fieldIndex;
+            return this;
+        }
+
+        MethodConstructorBuilder setJavaPackage(String javaPackage) {
+            checkNotNull(javaPackage);
+            this.javaPackage = javaPackage;
+            return this;
+        }
+
+        MethodConstructorBuilder setJavaClass(String javaClass) {
+            checkNotNull(javaClass);
+            this.javaClass = javaClass;
+            return this;
+        }
+
+        MethodConstructorBuilder setMessageTypeCache(MessageTypeCache messageTypeCache) {
+            checkNotNull(messageTypeCache);
+            this.messageTypeCache = messageTypeCache;
+            return this;
+        }
+
+        MethodConstructorBuilder setFieldDescriptor(FieldDescriptorProto fieldDescriptor) {
+            checkNotNull(fieldDescriptor);
+            this.fieldDescriptor = fieldDescriptor;
+            return this;
+        }
+
+        MethodConstructorBuilder setBuilderGenericClassName(ClassName genericClassName) {
+            this.genericClassName = genericClassName;
+            return this;
+        }
+
+        MethodConstructorBuilder setFieldType(FieldType fieldType) {
+            this.fieldType = fieldType;
+            return this;
+        }
+
+        int getFieldIndex() {
+            return fieldIndex;
+        }
+
+        String getJavaClass() {
+            return javaClass;
+        }
+
+        String getJavaPackage() {
+            return javaPackage;
+        }
+
+        ClassName getGenericClassName() {
+            return genericClassName;
+        }
+
+        MessageTypeCache getMessageTypeCache() {
+            return messageTypeCache;
+        }
+
+        FieldDescriptorProto getFieldDescriptor() {
+            return fieldDescriptor;
+        }
+
+        public FieldType getFieldType() {
+            return fieldType;
+        }
+
+        void checkFields() {
+            checkNotNull(javaClass);
+            checkNotNull(javaPackage);
+            checkNotNull(messageTypeCache);
+            checkNotNull(fieldDescriptor);
+            checkNotNull(genericClassName);
+            checkNotNull(fieldType);
+            checkArgument(fieldIndex >= 0);
+        }
     }
 }

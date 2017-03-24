@@ -22,12 +22,11 @@ package org.spine3.gradle.protobuf.validators.construction;
 
 import com.google.common.reflect.TypeToken;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
-import com.google.protobuf.Descriptors;
+import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import org.spine3.base.ConversionException;
-import org.spine3.gradle.protobuf.MessageTypeCache;
 import org.spine3.validate.ConstraintViolationThrowable;
 
 import javax.lang.model.element.Modifier;
@@ -35,8 +34,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_ALL_PREFIX;
@@ -48,7 +45,7 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameter
 /**
  * @author Illia Shepilov
  */
-class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
+class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
 
     private static final String ADD_PREFIX = "add";
     private static final String REMOVE_PREFIX = "remove";
@@ -61,14 +58,14 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
     private final ClassName parameterClassName;
     private final FieldDescriptorProto fieldDescriptor;
 
-    private RepeatedFieldMethodsConstructor(RepeatedFieldMethodsConstructorBuilder builder) {
-        this.fieldIndex = builder.fieldIndex;
-        this.fieldDescriptor = builder.fieldDescriptor;
-        this.genericClassName = builder.genericClassName;
+    private RepeatedFieldMethodConstructor(MethodConstructorBuilder builder) {
+        this.fieldIndex = builder.getFieldIndex();
+        this.fieldDescriptor = builder.getFieldDescriptor();
+        this.genericClassName = builder.getGenericClassName();
         methodPartName = getJavaFieldName(fieldDescriptor.getName(), true);
         javaFieldName = getJavaFieldName(fieldDescriptor.getName(), false);
-        builderClassName = getBuilderClassName(builder.javaPackage, builder.javaClass);
-        parameterClassName = getParameterClass(fieldDescriptor, builder.messageTypeCache);
+        builderClassName = getBuilderClassName(builder.getJavaPackage(), builder.getJavaClass());
+        parameterClassName = getParameterClass(fieldDescriptor, builder.getMessageTypeCache());
     }
 
     @Override
@@ -118,7 +115,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
                                             .addStatement(createGetConvertedSingularValue(),
                                                           parameterClassName,
                                                           parameterClassName)
-                                            .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
+                                            .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                             .addStatement(createValidateConvertedValueStatement(),
                                                           fieldDescriptor.getName())
                                             .addStatement(javaFieldName + ".add(convertedValue)")
@@ -142,7 +139,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
                                             .addStatement(createGetConvertedSingularValue(),
                                                           parameterClassName,
                                                           parameterClassName)
-                                            .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
+                                            .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                             .addStatement(createValidateConvertedValueStatement(),
                                                           fieldDescriptor.getName())
                                             .addStatement(javaFieldName + ".add(index, convertedValue)")
@@ -168,7 +165,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
                                                           TypeToken.class,
                                                           List.class,
                                                           parameterClassName)
-                                            .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
+                                            .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                             .addStatement(createValidateConvertedValueStatement(),
                                                           fieldDescriptor.getName())
                                             .addStatement(javaFieldName + ADD_ALL_CONVERTED_VALUE)
@@ -189,7 +186,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
                                             .addException(ConstraintViolationThrowable.class)
                                             .addException(ConversionException.class)
                                             .addStatement(CREATE_IF_NEEDED)
-                                            .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
+                                            .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                             .addStatement(createValidateStatement(fieldDescriptor.getName()),
                                                           fieldDescriptor.getName())
                                             .addStatement(javaFieldName + ".addAll(value)")
@@ -208,7 +205,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
                                             .addParameter(parameterClassName, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
                                             .addStatement(CREATE_IF_NEEDED)
-                                            .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
+                                            .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                             .addStatement(createValidateStatement(javaFieldName), javaFieldName)
                                             .addStatement(javaFieldName + ".add(value)")
                                             .addStatement(RETURN_THIS)
@@ -227,7 +224,7 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
                                             .addParameter(parameterClassName, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
                                             .addStatement(javaFieldName + ".add(index, value)")
-                                            .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
+                                            .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                             .addStatement(createValidateStatement(javaFieldName), javaFieldName)
                                             .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(RETURN_THIS)
@@ -287,58 +284,12 @@ class RepeatedFieldMethodsConstructor extends AbstractMethodConstructor {
         return new RepeatedFieldMethodsConstructorBuilder();
     }
 
-    static class RepeatedFieldMethodsConstructorBuilder {
+    static class RepeatedFieldMethodsConstructorBuilder extends MethodConstructorBuilder {
 
-        private int fieldIndex;
-        private String javaClass;
-        private String javaPackage;
-        private ClassName genericClassName;
-        private MessageTypeCache messageTypeCache;
-        private FieldDescriptorProto fieldDescriptor;
-
-        RepeatedFieldMethodsConstructorBuilder setFieldIndex(int fieldIndex) {
-            checkArgument(fieldIndex >= 0);
-            this.fieldIndex = fieldIndex;
-            return this;
-        }
-
-        RepeatedFieldMethodsConstructorBuilder setJavaPackage(String javaPackage) {
-            checkNotNull(javaPackage);
-            this.javaPackage = javaPackage;
-            return this;
-        }
-
-        RepeatedFieldMethodsConstructorBuilder setJavaClass(String javaClass) {
-            checkNotNull(javaClass);
-            this.javaClass = javaClass;
-            return this;
-        }
-
-        RepeatedFieldMethodsConstructorBuilder setMessageTypeCache(MessageTypeCache messageTypeCache) {
-            checkNotNull(messageTypeCache);
-            this.messageTypeCache = messageTypeCache;
-            return this;
-        }
-
-        RepeatedFieldMethodsConstructorBuilder setFieldDescriptor(FieldDescriptorProto fieldDescriptor) {
-            checkNotNull(fieldDescriptor);
-            this.fieldDescriptor = fieldDescriptor;
-            return this;
-        }
-
-        RepeatedFieldMethodsConstructorBuilder setBuilderGenericClass(ClassName genericClassName) {
-            this.genericClassName = genericClassName;
-            return this;
-        }
-
-        RepeatedFieldMethodsConstructor build() {
-            checkNotNull(javaClass);
-            checkNotNull(javaPackage);
-            checkNotNull(messageTypeCache);
-            checkNotNull(fieldDescriptor);
-            checkNotNull(genericClassName);
-            checkArgument(fieldIndex >= 0);
-            return new RepeatedFieldMethodsConstructor(this);
+        @Override
+        RepeatedFieldMethodConstructor build() {
+            checkFields();
+            return new RepeatedFieldMethodConstructor(this);
         }
     }
 }

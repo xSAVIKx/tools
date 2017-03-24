@@ -21,13 +21,12 @@
 package org.spine3.gradle.protobuf.validators.construction;
 
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
-import com.google.protobuf.Descriptors;
+import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import org.spine3.base.ConversionException;
 import org.spine3.gradle.protobuf.GenerationUtils;
-import org.spine3.gradle.protobuf.MessageTypeCache;
 import org.spine3.gradle.protobuf.validators.ValidatingUtils;
 import org.spine3.validate.ConstraintViolationThrowable;
 
@@ -35,14 +34,12 @@ import javax.lang.model.element.Modifier;
 import java.util.Collection;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.SETTER_PREFIX;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
 
-class SettersConstructor extends AbstractMethodConstructor {
+class SingularFieldMethodConstructor extends AbstractMethodConstructor {
 
     private final FieldDescriptorProto fieldDescriptor;
     private final int fieldIndex;
@@ -53,12 +50,12 @@ class SettersConstructor extends AbstractMethodConstructor {
     private final String setterPart;
     private final String fieldName;
 
-    private SettersConstructor(SettersConstructorBuilder builder) {
-        this.fieldDescriptor = builder.fieldDescriptor;
-        this.fieldIndex = builder.fieldIndex;
-        this.builderGenericClassName = builder.genericClassName;
-        this.parameterClassName = getParameterClass(fieldDescriptor, builder.messageTypeCache);
-        this.builderClassName = getBuilderClassName(builder.javaPackage, builder.javaClass);
+    private SingularFieldMethodConstructor(MethodConstructorBuilder builder) {
+        this.fieldDescriptor = builder.getFieldDescriptor();
+        this.fieldIndex = builder.getFieldIndex();
+        this.builderGenericClassName = builder.getGenericClassName();
+        this.parameterClassName = getParameterClass(fieldDescriptor, builder.getMessageTypeCache());
+        this.builderClassName = getBuilderClassName(builder.getJavaPackage(), builder.getJavaClass());
         this.paramName = GenerationUtils.getJavaFieldName(fieldDescriptor.getName(), false);
         this.setterPart = GenerationUtils.getJavaFieldName(paramName, true);
         this.fieldName = GenerationUtils.getJavaFieldName(paramName, false);
@@ -86,7 +83,7 @@ class SettersConstructor extends AbstractMethodConstructor {
                                                 .returns(builderClassName)
                                                 .addParameter(parameter)
                                                 .addException(ConstraintViolationThrowable.class)
-                                                .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
+                                                .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                                 .addStatement(createValidateStatement(paramName),
                                                               fieldDescriptor.getName())
                                                 .addStatement(THIS_POINTER + fieldName + " = " + fieldName)
@@ -106,7 +103,7 @@ class SettersConstructor extends AbstractMethodConstructor {
                                                 .addParameter(parameter)
                                                 .addException(ConstraintViolationThrowable.class)
                                                 .addException(ConversionException.class)
-                                                .addStatement(descriptorCodeLine, Descriptors.FieldDescriptor.class)
+                                                .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                                 .addStatement("final $T convertedValue = getConvertedValue($T.class, " + paramName + ')',
                                                               parameterClassName,
                                                               parameterClassName)
@@ -130,58 +127,12 @@ class SettersConstructor extends AbstractMethodConstructor {
         return new SettersConstructorBuilder();
     }
 
-    static class SettersConstructorBuilder {
+    static class SettersConstructorBuilder extends MethodConstructorBuilder {
 
-        private String javaPackage;
-        private String javaClass;
-        private MessageTypeCache messageTypeCache;
-        private FieldDescriptorProto fieldDescriptor;
-        private ClassName genericClassName;
-        private int fieldIndex;
-
-        SettersConstructorBuilder setFieldIndex(int fieldIndex) {
-            checkArgument(fieldIndex >= 0);
-            this.fieldIndex = fieldIndex;
-            return this;
-        }
-
-        SettersConstructorBuilder setJavaPackage(String javaPackage) {
-            checkNotNull(javaPackage);
-            this.javaPackage = javaPackage;
-            return this;
-        }
-
-        SettersConstructorBuilder setJavaClass(String javaClass) {
-            checkNotNull(javaClass);
-            this.javaClass = javaClass;
-            return this;
-        }
-
-        SettersConstructorBuilder setMessageTypeCache(MessageTypeCache messageTypeCache) {
-            checkNotNull(messageTypeCache);
-            this.messageTypeCache = messageTypeCache;
-            return this;
-        }
-
-        SettersConstructorBuilder setFieldDescriptor(FieldDescriptorProto fieldDescriptor) {
-            checkNotNull(fieldDescriptor);
-            this.fieldDescriptor = fieldDescriptor;
-            return this;
-        }
-
-        SettersConstructorBuilder setGenericClassName(ClassName genericClassName) {
-            this.genericClassName = genericClassName;
-            return this;
-        }
-
-        SettersConstructor build() {
-            checkNotNull(javaClass);
-            checkNotNull(javaPackage);
-            checkNotNull(messageTypeCache);
-            checkNotNull(fieldDescriptor);
-            checkNotNull(genericClassName);
-            checkArgument(fieldIndex >= 0);
-            return new SettersConstructor(this);
+        @Override
+        AbstractMethodConstructor build() {
+            checkFields();
+            return new SingularFieldMethodConstructor(this);
         }
     }
 }
