@@ -20,16 +20,7 @@
 
 package org.spine3.gradle.protobuf.failures;
 
-import com.google.common.escape.Escaper;
-import com.google.common.escape.Escapers;
-
-import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.AMPERSAND;
-import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.ASTERISK;
-import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.AT_MARK;
-import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.BACK_SLASH;
-import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.GREATER_THAN;
-import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.LESS_THAN;
-import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacters.SLASH;
+import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedStrings.fromBeginningOf;
 
 /**
  * Utility class for escaping a Javadoc text.
@@ -39,94 +30,75 @@ import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedCharacte
 @SuppressWarnings("UtilityClass")
 class JavadocEscaper {
 
-    /**
-     * Serves for escaping a Javadoc text without the exclusions.
-     */
-    private static final Escaper BASE_ESCAPER;
-
-    static {
-        BASE_ESCAPER = Escapers.builder()
-                               .addEscape(ASTERISK.unescapedCharacter, ASTERISK.escapedString)
-                               .addEscape(SLASH.unescapedCharacter, SLASH.escapedString)
-                               .addEscape(BACK_SLASH.unescapedCharacter, BACK_SLASH.escapedString)
-                               .addEscape(AT_MARK.unescapedCharacter, AT_MARK.escapedString)
-                               .addEscape(AMPERSAND.unescapedCharacter, AMPERSAND.escapedString)
-                               .addEscape(LESS_THAN.unescapedCharacter, LESS_THAN.escapedString)
-                               .addEscape(GREATER_THAN.unescapedCharacter, GREATER_THAN.escapedString)
-                               .build();
-    }
-
     private JavadocEscaper() {
     }
 
     /**
-     * Escapes the {@link EscapedCharacters} from a Javadoc text.
-     *
-     * <p>There are two exclusions, that should not be escaped:
-     * <ul>
-     * <li>an asterisk if is not part of an opening comment;</li>
-     * <li>a slash if is not part of an ending comment.</li>
-     * </ul>
+     * Escapes the {@link EscapedStrings} from a Javadoc text.
      *
      * @param javadocText the unescaped Javadoc text
      * @return the escaped Javadoc text
      */
     static String escape(String javadocText) {
-        final StringBuilder builder = new StringBuilder(javadocText.length() * 2);
-        final String fullyEscaped = BASE_ESCAPER.escape(javadocText);
+        final StringBuilder escapedJavadocBuilder = new StringBuilder(javadocText.length() * 2);
 
-        char previous = ASTERISK.unescapedCharacter;
-        for (int i = 0; i < fullyEscaped.length(); ) {
+        // If javadocText starts with a slash, it interpreted like a comment ending.
+        // To handle this case, we should add "*" before.
+        String unescapedPart = '*' + javadocText;
+        while (!unescapedPart.isEmpty()) {
+            final EscapedStrings escapedString = fromBeginningOf(unescapedPart);
 
-            // Unescape slash if is not a part of "*/"
-            if (fullyEscaped.startsWith(SLASH.escapedString, i)
-                    && previous != ASTERISK.unescapedCharacter) {
-                previous = SLASH.unescapedCharacter;
-                i += SLASH.escapedString.length();
-
-                // Unescape asterisk if is not a part of "/*"
-            } else if (fullyEscaped.startsWith(ASTERISK.escapedString, i)
-                    && previous != SLASH.unescapedCharacter) {
-                previous = ASTERISK.unescapedCharacter;
-                i += ASTERISK.escapedString.length();
+            if (escapedString != null) {
+                escapedJavadocBuilder.append(escapedString.getEscaped());
+                unescapedPart = unescapedPart.substring(escapedString.getUnescaped()
+                                                                     .length());
             } else {
-                previous = fullyEscaped.charAt(i);
-                i++;
+                escapedJavadocBuilder.append(unescapedPart.charAt(0));
+                unescapedPart = unescapedPart.substring(1);
             }
-
-            builder.append(previous);
         }
 
-        return builder.toString();
+        // Remove added "*" in the beginning.
+        return escapedJavadocBuilder.toString()
+                                    .substring(1);
     }
 
-    enum EscapedCharacters {
-        ASTERISK('*', "&#42;"),
-        SLASH('/', "&#47;"),
-        BACK_SLASH('\\', "&#92;"),
-        AT_MARK('@', "&#64;"),
-        AMPERSAND('&', "&amp;"),
-        LESS_THAN('<', "&lt;"),
-        GREATER_THAN('>', "&gt;");
+    enum EscapedStrings {
+        COMMENT_BEGINNING("/*", "/&#42;"),
+        COMMENT_ENDING("*/", "*&#47;"),
+        BACK_SLASH("\\", "&#92;"),
+        AT_MARK("@", "&#64;"),
+        AMPERSAND("&", "&amp;"),
+        LESS_THAN("<", "&lt;"),
+        GREATER_THAN(">", "&gt;");
 
         /**
-         * A character that should be avoided in a Javadoc text.
+         * A string that should be avoided in a Javadoc text.
          */
-        private final char unescapedCharacter;
-        private final String escapedString;
+        private final String unescaped;
+        private final String escaped;
 
-        EscapedCharacters(char unescapedCharacter, String escapedString) {
-            this.unescapedCharacter = unescapedCharacter;
-            this.escapedString = escapedString;
+        EscapedStrings(String unescaped, String escaped) {
+            this.unescaped = unescaped;
+            this.escaped = escaped;
         }
 
-        String getEscapedString() {
-            return escapedString;
+        static EscapedStrings fromBeginningOf(String unescapedComment) {
+            for (EscapedStrings escapedCharacter : values()) {
+                if (unescapedComment.startsWith(escapedCharacter.unescaped)) {
+                    return escapedCharacter;
+                }
+            }
+
+            return null;
         }
 
-        @Override
-        public String toString() {
-            return String.valueOf(unescapedCharacter);
+        String getEscaped() {
+            return escaped;
+        }
+
+        public String getUnescaped() {
+            return unescaped;
         }
     }
 }
