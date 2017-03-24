@@ -19,7 +19,6 @@
  */
 package org.spine3.tools.javadoc.fqnchecker;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -31,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
@@ -43,26 +43,31 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.regex.Pattern.compile;
 
 /**
+ * Checks the target project Javadocs for broken links that stated in the wrong format.
+ * <p> {@code exceptionThreshold} is a quantity of broken link that will make an exception.
+ * {@code responseType} is behavior that can be either warning or error.
+ *
  * @author Alexander Aleksandrov
  */
-public class CheckFqnFormat {
+public class FqnLinkInspection {
     private int exceptionThreshold = 0;
-    private static final String DIRECTORY_TO_CHECK = "/src/main/java";
-    private String reactionType = "";
+    private String responseType = "";
     private final Project project;
+    private static final String DIRECTORY_TO_CHECK = "/src/main/java";
+    private static final String javaExtension = ".java";
     private static final InvalidResultStorage storage = new InvalidResultStorage();
 
-    public CheckFqnFormat(Project project) {
+    public FqnLinkInspection(Project project) {
         this.project = project;
     }
 
     public Action<Task> actionFor(final Project project) {
-        log().debug("Preparing an action for Javadock checker");
+        log().debug("Preparing an action for the Javadock checker");
         return new Action<Task>() {
             @Override
             public void execute(Task task) {
                 exceptionThreshold = Extension.getThreshold(project);
-                reactionType = Extension.getReactionType(project);
+                responseType = Extension.getResponseType(project);
 
                 final List<String> dirsToCheck = getDirsToCheck(project);
                 findFqnLinksWithoutText(dirsToCheck);
@@ -94,7 +99,7 @@ public class CheckFqnFormat {
 
     private void checkRecursively(Path path) {
         try {
-            final SimpleFileVisitor<Path> visitor = new CheckFqnFormat.RecursiveFileChecker();
+            final FileVisitor<Path> visitor = new RecursiveFileChecker();
             log().debug("Starting to check the files recursively in {}", path.toString());
             Files.walkFileTree(path, visitor);
         } catch (IOException e) {
@@ -107,8 +112,6 @@ public class CheckFqnFormat {
      * Custom {@linkplain java.nio.file.FileVisitor visitor} which recursively checks
      * the contents of the walked folder.
      */
-    // A completely different behavior for the visitor methods is required.
-
     private class RecursiveFileChecker extends SimpleFileVisitor<Path> {
 
         @Override
@@ -130,34 +133,28 @@ public class CheckFqnFormat {
     private void check(Path path) throws InvalidFqnUsageException {
         final List<String> content;
         if (!path.toString()
-                 .endsWith(".java")) {
+                 .endsWith(javaExtension)) {
             return;
         }
         try {
             content = Files.readAllLines(path, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new IllegalStateException(" Cannot read the contents of the file: " + path, e);
+            throw new IllegalStateException("Cannot read the contents of the file: " + path, e);
         }
         final List<Optional<InvalidFqnUsage>> invalidLinks = check(content);
 
         if (!invalidLinks.isEmpty()) {
             storage.save(path, invalidLinks);
             if (storage.getLinkTotal() > exceptionThreshold) {
-                final String message =
-                        " Links with fully-qualified names should be in format {@link <FQN> <text>}" +
-                        " or {@linkplain <FQN> <text>}.";
-                log().error(message);
+                Responses.logWarning();
                 storage.logInvalidFqnUsages();
-
-                if (reactionType.equals("error")) {
-                    throw new InvalidFqnUsageException(path.toFile()
-                                                           .getAbsolutePath(), message);
+                if (responseType.equals(Responses.ERROR.getValue())) {
+                    Responses.failBuildAt(path);
                 }
             }
         }
     }
 
-    @VisibleForTesting
     private static List<Optional<InvalidFqnUsage>> check(List<String> content) {
         int lineNumber = 0;
         final List<Optional<InvalidFqnUsage>> invalidLinks = newArrayList();
@@ -173,8 +170,8 @@ public class CheckFqnFormat {
     }
 
     private static Optional<InvalidFqnUsage> checkSingleComment(String comment) {
-        final Matcher matcher = CheckFqnFormat.JavadocPattern.LINK.getPattern()
-                                                                  .matcher(comment);
+        final Matcher matcher = FqnLinkInspection.JavadocPattern.LINK.getPattern()
+                                                                     .matcher(comment);
         final boolean found = matcher.find();
         if (found) {
             final String improperUsage = matcher.group(0);
@@ -186,6 +183,55 @@ public class CheckFqnFormat {
 
     private enum JavadocPattern {
 
+        /*
+         * This regexp match every link or linkplain in javadoc that is not in the format of
+         * {@link <FQN> <text>} or {@linkplain <FQN> <text>}.
+         *
+         * Wrong links: {@link org.spine3.base.Client} or {@linkplain com.guava.AnyClass }
+         * Correct linsk: {@link Class.InternalClass}, {@link org.spine3.base.Client Client},
+         * {@linkplain org.spine3.base.Client some client class}
+         *
+         * 1st Capturing Group "(\{@link|\{@linkplain)"
+         * 1st Alternative "\{@link"
+         * "\{" matches the character "{" literally (case sensitive)
+         * "@link" matches the characters "@link" literally (case sensitive)
+         * 2nd Alternative "\{@linkplain"
+         * "\{" matches the character "{" literally (case sensitive)
+         * "@linkplain" matches the characters "@linkplain" literally (case sensitive)
+         * " *" matches the character " " literally (case sensitive)
+         * "*" Quantifier — Matches between zero and unlimited times, as many times as possible,
+         * giving back as needed (greedy)
+
+         * 2nd Capturing Group "((?!-)[a-z0-9-]{1,63}\.)"
+         * Negative Lookahead "(?!-)"
+         * Assert that the Regex below does not match
+         * "-"matches the character "-" literally (case sensitive)
+         * Match a single character present in the list below "[a-z0-9-]{1,63}"
+         * "{1,63}" Quantifier — Matches between 1 and 63 times, as many times as possible,
+         * giving back as needed (greedy)
+         * "a-z" a single character in the range between "a" (ASCII 97) and "z" (ASCII 122)
+         * (case sensitive)
+         * "0-9" a single character in the range between "0" (ASCII 48) and "9" (ASCII 57)
+         * (case sensitive)
+         * "-" matches the character "-" literally (case sensitive)
+         * "\." matches the character "." literally (case sensitive)
+
+         * 3rd Capturing Group "((?!-)[a-zA-Z0-9-]{1,63}[a-zA-Z0-9-]\.)+"
+         * "+" Quantifier — Matches between one and unlimited times, as many times as possible,
+         * giving back as needed (greedy)
+         * A repeated capturing group will only capture the last iteration.
+         * Put a capturing group around the repeated group to capture all iterations or use a
+         * non-capturing group instead if you're not interested in the data.
+
+         * 4th Capturing Group "(\}|\ *\})"
+         * 1st Alternative "\}"
+         * "\}" matches the character "}" literally (case sensitive)
+         * 2nd Alternative "\ *\}"
+         * "\ *" matches the character " " literally (case sensitive)
+         *  "*" Quantifier — Matches between zero and unlimited times, as many times as possible,
+         *  giving back as needed (greedy)
+         * "\}" matches the character "}" literally (case sensitive)
+         */
         LINK(compile("(\\{@link|\\{@linkplain) *((?!-)[a-z0-9-]{1,63}\\.)((?!-)[a-zA-Z0-9-]{1,63}[a-zA-Z0-9-]\\.)+[a-zA-Z]{2,63}(\\}|\\ *\\})"));
 
         private final Pattern pattern;
@@ -200,13 +246,13 @@ public class CheckFqnFormat {
     }
 
     private static Logger log() {
-        return CheckFqnFormat.LogSingleton.INSTANCE.value;
+        return FqnLinkInspection.LogSingleton.INSTANCE.value;
     }
 
     private enum LogSingleton {
         INSTANCE;
         @SuppressWarnings("NonSerializableFieldInSerializableClass")
-        private final Logger value = LoggerFactory.getLogger(CheckFqnFormat.class);
+        private final Logger value = LoggerFactory.getLogger(FqnLinkInspection.class);
     }
 
 }

@@ -33,32 +33,32 @@ import static org.spine3.tools.javadoc.fqnchecker.CheckJavadocPlugin.SPINE_LINK_
 public class Extension {
 
     private int threshold = 0;
+    private String responseType = "";
 
-    private String reactionType = "";
-
-    public String getReactionType() {
-        return reactionType;
+    public String getResponseType() {
+        return responseType;
     }
+
     public int getThreshold() {
         return threshold;
     }
 
     public void setThreshold(int threshold) {
-        log().debug("Seting up threshold to {}", threshold);
+        log().debug("Setting up threshold to {}", threshold);
         this.threshold = threshold;
     }
 
-    public void setReactionType(String reactionType) {
-        log().debug("Seting up reaction type to {}", reactionType);
-        this.reactionType = reactionType;
+    public void setResponseType(String responseType) {
+        log().debug("Setting up reaction type to {}", responseType);
+        this.responseType = responseType;
     }
 
-    public static String getReactionType(Project project) {
-        final String reactionType = checkJavadoc(project).reactionType;
-        if (reactionType.isEmpty()) {
-            return "warn";
-        }else {
-            return reactionType;
+    public static String getResponseType(Project project) {
+        final String responseType = checkJavadoc(project).responseType;
+        if (responseType.isEmpty()) {
+            return Responses.WARN.getValue();
+        } else {
+            return responseType;
         }
     }
 
@@ -70,7 +70,6 @@ public class Extension {
             return threshold;
         }
     }
-
 
     private static Extension checkJavadoc(Project project) {
         return (Extension) project.getExtensions()

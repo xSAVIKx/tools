@@ -61,7 +61,7 @@ public class FqnCheckPluginShould {
         final Path buildGradleFile = testProjectDir.getRoot()
                                              .toPath()
                                              .resolve("build.gradle");
-        final InputStream input = getBuildFileContent(2, "error");
+        final InputStream input = getBuildFileContent(2, Responses.ERROR.getValue());
 
 
         final Path testSources = testProjectDir.getRoot()
@@ -136,7 +136,7 @@ public class FqnCheckPluginShould {
         IOUtils.copy(input, writer);
         String str = writer.toString();
         String result = str.replace("thresholdValue", String.valueOf(threshold));
-        result = result.replace("reactionTypeValue", '"' + reactionType + '"');
+        result = result.replace("responseTypeValue", '"' + reactionType + '"');
         final InputStream stream = new ByteArrayInputStream(result.getBytes(StandardCharsets.UTF_8));
         return stream;
     }

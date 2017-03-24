@@ -7,5 +7,5 @@ apply plugin: 'org.spine3.tools.javadoc-checker'
 
 checkJavadoc {
     threshold = thresholdValue
-    reactionType = reactionTypeValue
+    responseType = responseTypeValue
 }

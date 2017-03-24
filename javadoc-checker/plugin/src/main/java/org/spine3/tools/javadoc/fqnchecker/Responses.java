@@ -19,45 +19,46 @@
  */
 package org.spine3.tools.javadoc.fqnchecker;
 
-import org.gradle.api.Action;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spine3.gradle.SpinePlugin;
 
-import static org.spine3.gradle.TaskName.CHECK_FQN;
-import static org.spine3.gradle.TaskName.COMPILE_JAVA;
-import static org.spine3.gradle.TaskName.PROCESS_RESOURCES;
+import java.nio.file.Path;
 
 /**
- * The plugin that verifies Javadoc comments.
- *
  * @author Alexander Aleksandrov
  */
-public class CheckJavadocPlugin extends SpinePlugin {
+public enum Responses {
+    WARN("warn"),
+    ERROR("error");
 
-    public static final String SPINE_LINK_CHECKER_EXTENSION_NAME = "checkJavadoc";
+    private final String responseType;
+    private static final String message =
+            "Links with fully-qualified names should be in format {@link <FQN> <text>}" +
+            " or {@linkplain <FQN> <text>}.";
 
-    @Override
-    public void apply(final Project project) {
-        project.getExtensions()
-               .create(SPINE_LINK_CHECKER_EXTENSION_NAME, Extension.class);
-        final FqnLinkInspection fqnLinkInspection = new FqnLinkInspection(project);
-        final Action<Task> action = fqnLinkInspection.actionFor(project);
-        newTask(CHECK_FQN, action).insertAfterTask(COMPILE_JAVA)
-                                  .insertBeforeTask(PROCESS_RESOURCES)
-                                  .applyNowTo(project);
-        log().debug("Starting to check Javadocs {}", action);
+    Responses(String responseType) {
+        this.responseType = responseType;
+    }
+
+    public String getValue() {
+        return responseType;
+    }
+    public static void logWarning(){
+        log().error(message);
+    }
+
+    public static void failBuildAt(Path path) {
+        throw new InvalidFqnUsageException(path.toFile()
+                                               .getAbsolutePath(), message);
     }
 
     private static Logger log() {
-        return LogSingleton.INSTANCE.value;
+        return Responses.LogSingleton.INSTANCE.value;
     }
 
     private enum LogSingleton {
         INSTANCE;
         @SuppressWarnings("NonSerializableFieldInSerializableClass")
-        private final Logger value = LoggerFactory.getLogger(CheckJavadocPlugin.class);
+        private final Logger value = LoggerFactory.getLogger(Responses.class);
     }
 }

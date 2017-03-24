@@ -44,7 +44,7 @@ public class InvalidResultStorage {
         return resultStorage;
     }
 
-    public int getLinkTotal () {
+    public int getLinkTotal() {
         int total = 0;
         for (List<Optional<InvalidFqnUsage>> l : resultStorage.values()) {
             total += l.size();
@@ -52,16 +52,20 @@ public class InvalidResultStorage {
         return total;
     }
 
+    @SuppressWarnings("MethodWithMultipleLoops")//we need it to go through a map
     public void logInvalidFqnUsages() {
-        Iterator it = resultStorage.entrySet().iterator();
+        final Iterator it = resultStorage.entrySet()
+                                         .iterator();
         while (it.hasNext()) {
             Map.Entry<Path, List<Optional<InvalidFqnUsage>>> pair = (Map.Entry) it.next();
             for (Optional<InvalidFqnUsage> link : pair.getValue()) {
                 if (link.isPresent()) {
                     final String msg = format(
                             " Wrong link format found: %s on %s line in %s",
-                            link.get().getActualUsage(),
-                            link.get().getIndex(),
+                            link.get()
+                                .getActualUsage(),
+                            link.get()
+                                .getIndex(),
                             pair.getKey());
                     log().error(msg);
                 }
