@@ -52,14 +52,16 @@ class ValidatorWriter {
     private final String javaPackage;
     private final ClassName builderGenericClassName;
     private final FieldConstructor fieldConstructor;
-    private final MethodConstructor constructorFactory;
+    private final MethodConstructor methodConstructor;
     private final String targetDir;
 
-    ValidatorWriter(ValidatorMetadata validatorMetadata, String targetDir, MessageTypeCache messageTypeCache) {
+    ValidatorWriter(ValidatorMetadata validatorMetadata,
+                    String targetDir,
+                    MessageTypeCache messageTypeCache) {
         this.javaClass = validatorMetadata.getJavaClass();
         this.javaPackage = validatorMetadata.getJavaPackage();
         this.targetDir = targetDir;
-        this.constructorFactory = new MethodConstructor(validatorMetadata, messageTypeCache);
+        this.methodConstructor = new MethodConstructor(validatorMetadata, messageTypeCache);
 
         final DescriptorProto descriptor = validatorMetadata.getMsgDescriptor();
         this.builderGenericClassName = getValidatorGenericClassName(javaPackage,
@@ -75,7 +77,7 @@ class ValidatorWriter {
         final TypeSpec.Builder classBuilder = TypeSpec.classBuilder(javaClass);
 
         addFields(classBuilder, fieldConstructor.getAllFields());
-        addMethods(classBuilder, constructorFactory.createMethods());
+        addMethods(classBuilder, methodConstructor.createMethods());
 
         final TypeSpec javaClass = classBuilder.build();
 
