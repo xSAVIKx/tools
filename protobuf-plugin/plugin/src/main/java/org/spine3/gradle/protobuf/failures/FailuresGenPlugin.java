@@ -61,8 +61,6 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
  */
 public class FailuresGenPlugin extends SpinePlugin {
 
-    private Project project;
-
     /** A map from Protobuf type name to Java class FQN. */
     private final MessageTypeCache messageTypeCache = new MessageTypeCache();
 
@@ -76,8 +74,6 @@ public class FailuresGenPlugin extends SpinePlugin {
      */
     @Override
     public void apply(final Project project) {
-        this.project = project;
-
         log().debug("Preparing to generate failures");
         final Action<Task> mainScopeAction = new Action<Task>() {
             @Override
