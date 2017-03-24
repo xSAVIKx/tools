@@ -25,7 +25,7 @@ import com.squareup.javapoet.TypeName;
 import org.apache.commons.lang3.ClassUtils;
 import org.spine3.util.Exceptions;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Represents repeated {@linkplain FieldType field type}.
@@ -83,7 +83,7 @@ public class RepeatedFieldType implements FieldType {
             componentType = ClassName.bestGuess(componentTypeName);
         }
 
-        return ParameterizedTypeName.get(ClassName.get(Collection.class), componentType);
+        return ParameterizedTypeName.get(ClassName.get(List.class), componentType);
     }
 
     @Override
