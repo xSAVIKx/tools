@@ -129,17 +129,16 @@ class Given {
         static String getExpectedClassComment() {
             return ' ' + FailureJavadocGenerator.OPENING_PRE + JAVADOC_LINE_SEPARATOR
                     + ' ' + CLASS_COMMENT + JAVADOC_LINE_SEPARATOR
-                    + " </pre>" + JAVADOC_LINE_SEPARATOR
-                    + ' ' + JAVADOC_LINE_SEPARATOR
+                    + " </pre>" + JAVADOC_LINE_SEPARATOR + JAVADOC_LINE_SEPARATOR
                     + " Failure based on protobuf type {@code " + JAVA_PACKAGE + '.' + FAILURE_NAME
                     + '}' + JAVADOC_LINE_SEPARATOR;
         }
 
         static String getExpectedCtorComment() {
             final String param = " @param ";
-            return " Creates a new instance." + JAVADOC_LINE_SEPARATOR
-                    + ' ' + JAVADOC_LINE_SEPARATOR
-                    + param + FIRST_FIELD_NAME + ' ' + FIRST_FIELD_COMMENT + JAVADOC_LINE_SEPARATOR
+            return " Creates a new instance." + JAVADOC_LINE_SEPARATOR + JAVADOC_LINE_SEPARATOR
+                    + param + FIRST_FIELD_NAME + "      " + FIRST_FIELD_COMMENT
+                    + JAVADOC_LINE_SEPARATOR
                     + param + SECOND_FIELD_NAME + ' ' + SECOND_FIELD_COMMENT
                     + JAVADOC_LINE_SEPARATOR;
         }
