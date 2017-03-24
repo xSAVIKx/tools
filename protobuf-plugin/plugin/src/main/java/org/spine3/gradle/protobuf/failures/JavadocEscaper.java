@@ -42,7 +42,7 @@ public class JavadocEscaper {
     public static String escape(String javadocText) {
         final StringBuilder escapedJavadocBuilder = new StringBuilder(javadocText.length() * 2);
 
-        // If javadocText starts with a slash, it interpreted like a comment ending.
+        // If a Javadoc text starts with a slash, it will be interpreted like a comment ending.
         // To handle this case, we should add "*" before.
         String unescapedPart = '*' + javadocText;
         while (!unescapedPart.isEmpty()) {
