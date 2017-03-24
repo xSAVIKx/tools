@@ -34,6 +34,8 @@ public class MapFieldType implements FieldType {
     private static final String SETTER_PREFIX = "putAll";
 
     private final TypeName typeName;
+    private final TypeName keyTypeName;
+    private final TypeName valueTypeName;
 
     /**
      * Constructs the {@link MapFieldType} based on
@@ -42,11 +44,11 @@ public class MapFieldType implements FieldType {
      * @param entryTypeNames the entry containing the key and the value type names.
      */
     MapFieldType(Map.Entry<TypeName, TypeName> entryTypeNames) {
-        this.typeName = ParameterizedTypeName.get(
-                ClassName.get(Map.class),
-                boxIfPrimitive(entryTypeNames.getKey()),
-                boxIfPrimitive(entryTypeNames.getValue())
-        );
+        this.keyTypeName = boxIfPrimitive(entryTypeNames.getKey());
+        this.valueTypeName = boxIfPrimitive(entryTypeNames.getValue());
+        this.typeName = ParameterizedTypeName.get(ClassName.get(Map.class),
+                                                  keyTypeName,
+                                                  valueTypeName);
     }
 
     /**
@@ -55,6 +57,14 @@ public class MapFieldType implements FieldType {
     @Override
     public TypeName getTypeName() {
         return typeName;
+    }
+
+    public TypeName getKeyTypeName() {
+        return keyTypeName;
+    }
+
+    public TypeName getValueTypeName() {
+        return valueTypeName;
     }
 
     /**
