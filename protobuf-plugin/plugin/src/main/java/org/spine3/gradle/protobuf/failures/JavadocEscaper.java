@@ -23,12 +23,12 @@ package org.spine3.gradle.protobuf.failures;
 import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedStrings.fromBeginningOf;
 
 /**
- * Utility class for escaping a Javadoc text.
+ * Escaper for a Javadoc text.
  *
  * @author Dmytro Grankin
  */
 @SuppressWarnings("UtilityClass")
-class JavadocEscaper {
+public class JavadocEscaper {
 
     private JavadocEscaper() {
     }
@@ -39,7 +39,7 @@ class JavadocEscaper {
      * @param javadocText the unescaped Javadoc text
      * @return the escaped Javadoc text
      */
-    static String escape(String javadocText) {
+    public static String escape(String javadocText) {
         final StringBuilder escapedJavadocBuilder = new StringBuilder(javadocText.length() * 2);
 
         // If javadocText starts with a slash, it interpreted like a comment ending.
@@ -63,7 +63,10 @@ class JavadocEscaper {
                                     .substring(1);
     }
 
-    enum EscapedStrings {
+    /**
+     * Enumeration of the strings, that should be escaped in a Javadoc text.
+     */
+    public enum EscapedStrings {
         COMMENT_BEGINNING("/*", "/&#42;"),
         COMMENT_ENDING("*/", "*&#47;"),
         BACK_SLASH("\\", "&#92;"),
@@ -73,9 +76,13 @@ class JavadocEscaper {
         GREATER_THAN(">", "&gt;");
 
         /**
-         * A string that should be avoided in a Javadoc text.
+         * A string that should be escaped in a Javadoc text.
          */
         private final String unescaped;
+
+        /**
+         * The escaped string for the unescaped string.
+         */
         private final String escaped;
 
         EscapedStrings(String unescaped, String escaped) {
@@ -83,9 +90,16 @@ class JavadocEscaper {
             this.escaped = escaped;
         }
 
-        static EscapedStrings fromBeginningOf(String unescapedComment) {
+        /**
+         * Returns an {@link EscapedStrings} element if the beginning of the Javadoc
+         * text starts with an unescaped version of one of {@link EscapedStrings}.
+         *
+         * @param javadocText the Javadoc text
+         * @return the {@link EscapedStrings} element
+         */
+        public static EscapedStrings fromBeginningOf(String javadocText) {
             for (EscapedStrings escapedCharacter : values()) {
-                if (unescapedComment.startsWith(escapedCharacter.unescaped)) {
+                if (javadocText.startsWith(escapedCharacter.unescaped)) {
                     return escapedCharacter;
                 }
             }
@@ -93,7 +107,7 @@ class JavadocEscaper {
             return null;
         }
 
-        String getEscaped() {
+        public String getEscaped() {
             return escaped;
         }
 
