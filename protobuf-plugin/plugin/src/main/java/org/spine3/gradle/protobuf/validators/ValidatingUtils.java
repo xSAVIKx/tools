@@ -52,7 +52,7 @@ public class ValidatingUtils {
             typeName = typeName.substring(1);
             final String parameterType = messageTypeCache.getCachedTypes()
                                                          .get(typeName);
-            return ClassName.get("", parameterType);
+            return ClassName.bestGuess(parameterType);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -62,7 +62,7 @@ public class ValidatingUtils {
                                                  MessageTypeCache messageTypeCache) {
         final String result = PATTERN.matcher(getParameterClass(fieldDescriptor, messageTypeCache).simpleName())
                                      .replaceAll("");
-        return ClassName.get("", result);
+        return ClassName.bestGuess(result);
     }
 
     public static ClassName getBuilderClassName(String javaPackage, String javaClass) {
