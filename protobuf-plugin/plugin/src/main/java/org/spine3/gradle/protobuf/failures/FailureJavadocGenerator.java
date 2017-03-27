@@ -126,16 +126,33 @@ public class FailureJavadocGenerator {
         return builder.toString();
     }
 
+    /**
+     * Returns the failure field leading comments.
+     *
+     * @param field the failure field
+     * @return the field leading comments or empty {@code Optional} if no leading comments
+     */
     private Optional<String> getFieldLeadingComments(FieldDescriptorProto field) {
         final Collection<Integer> fieldPath = getFieldLocationPath(field);
         return getLeadingComments(fieldPath);
     }
 
+    /**
+     * Returns the failure leading comments.
+     *
+     * @return the failure leading comments or empty {@code Optional} if no leading comments
+     */
     private Optional<String> getFailureLeadingComments() {
         final Collection<Integer> path = getMessageLocationPath();
         return getLeadingComments(path);
     }
 
+    /**
+     * Obtains a leading comments by the path.
+     *
+     * @param path the leading comments path
+     * @return the leading comments or empty {@code Optional} if no leading comments
+     */
     private Optional<String> getLeadingComments(Collection<Integer> path) {
         if (!failureMetadata.getFileDescriptor()
                             .hasSourceCodeInfo()) {
