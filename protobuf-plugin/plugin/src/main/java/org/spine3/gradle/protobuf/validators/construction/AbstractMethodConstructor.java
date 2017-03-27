@@ -30,12 +30,18 @@ import java.util.Collection;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
 
 /**
  * @author Illia Shepilov
  */
 abstract class AbstractMethodConstructor {
 
+    static final String REMOVE_PREFIX = "remove";
+    static final String CLEAR_PREFIX = "clear";
+    static final String CLEAR_METHOD_CALL = ".clear()";
+    static final String RAW_SUFFIX = "Raw";
+    static final String CREATE_IF_NEEDED = "createIfNeeded()";
     static final String RETURN_THIS = "return this";
     static final String INDEX = "index";
     static final String VALUE = "value";
@@ -44,14 +50,18 @@ abstract class AbstractMethodConstructor {
 
     abstract Collection<MethodSpec> construct();
 
-    String createDescriptorCodeLine(int index, ClassName genericClassName) {
+    static String createDescriptorCodeLine(int index, ClassName genericClassName) {
         final String result = "final $T fieldDescriptor = " + genericClassName +
                 ".getDescriptor().getFields().get(" + index + ')';
         return result;
     }
 
     static String createValidateConvertedValueStatement() {
-        final String result = "validate(fieldDescriptor, convertedValue, $S)";
+        return createValidateConvertedValueStatement("convertedValue");
+    }
+
+    static String createValidateConvertedValueStatement(String valueName) {
+        final String result = "validate(fieldDescriptor, " + valueName + ", $S)";
         return result;
     }
 
@@ -67,13 +77,18 @@ abstract class AbstractMethodConstructor {
     }
 
     static String createGetConvertedSingularValue() {
-        final String result = "final $T convertedValue = getConvertedValue($T.class, value)";
+        return createGetConvertedSingularValue(VALUE);
+    }
+
+    static String createGetConvertedSingularValue(String valueName) {
+        final String result = "final $T converted" + getJavaFieldName(valueName, true) +
+                " = getConvertedValue($T.class, " + valueName + ")";
         return result;
     }
 
-    static String createGetConvertedMapValue(){
+    static String createGetConvertedMapValue() {
         final String result = "final $T<$T, $T> convertedValue = " +
-                "getConvertedValue(new $T<$T<$T, $T>>(){}.getType(), value)";
+                "getConvertedValue(new $T<$T<$T, $T>>(){}.getType(), map)";
         return result;
     }
 

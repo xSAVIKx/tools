@@ -27,7 +27,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import org.spine3.base.ConversionException;
 import org.spine3.gradle.protobuf.GenerationUtils;
-import org.spine3.gradle.protobuf.validators.ValidatingUtils;
+import org.spine3.gradle.protobuf.fieldtype.FieldType;
 import org.spine3.validate.ConstraintViolationThrowable;
 
 import javax.lang.model.element.Modifier;
@@ -35,9 +35,9 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.SETTER_PREFIX;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getStringClassName;
 
 class SingularFieldMethodConstructor extends AbstractMethodConstructor {
 
@@ -49,8 +49,10 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
     private final String paramName;
     private final String setterPart;
     private final String fieldName;
+    private final FieldType fieldType;
 
     private SingularFieldMethodConstructor(MethodConstructorBuilder builder) {
+        this.fieldType = builder.getFieldType();
         this.fieldDescriptor = builder.getFieldDescriptor();
         this.fieldIndex = builder.getFieldIndex();
         this.builderGenericClassName = builder.getGenericClassName();
@@ -66,7 +68,7 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
         final List<MethodSpec> methods = newArrayList();
         methods.add(constructSetter());
 
-        if (!parameterClassName.equals(ValidatingUtils.getStringClassName())) {
+        if (!parameterClassName.equals(getStringClassName())) {
             methods.add(constructRawSetter());
         }
 
@@ -74,7 +76,7 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
     }
 
     private MethodSpec constructSetter() {
-        final String methodName = SETTER_PREFIX + setterPart;
+        final String methodName = fieldType.getSetterPrefix() + setterPart;
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
         final ParameterSpec parameter = createParameterSpec(fieldDescriptor, false);
 
@@ -93,7 +95,7 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
     }
 
     private MethodSpec constructRawSetter() {
-        final String methodName = SETTER_PREFIX + setterPart + "Raw";
+        final String methodName = fieldType.getSetterPrefix() + setterPart + RAW_SUFFIX;
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
         final ParameterSpec parameter = createParameterSpec(fieldDescriptor, true);
 
@@ -116,7 +118,7 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
     }
 
     private ParameterSpec createParameterSpec(FieldDescriptorProto fieldDescriptor, boolean raw) {
-        final ClassName methodParamClass = raw ? ValidatingUtils.getStringClassName() : parameterClassName;
+        final ClassName methodParamClass = raw ? getStringClassName() : parameterClassName;
         final String paramName = GenerationUtils.getJavaFieldName(fieldDescriptor.getName(), false);
         final ParameterSpec result = ParameterSpec.builder(methodParamClass, paramName)
                                                   .build();

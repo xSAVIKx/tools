@@ -27,18 +27,15 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import org.spine3.base.ConversionException;
+import org.spine3.gradle.protobuf.fieldtype.FieldType;
 import org.spine3.validate.ConstraintViolationThrowable;
 
 import javax.lang.model.element.Modifier;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_ALL_PREFIX;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_RAW_PREFIX;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.CREATE_IF_NEEDED;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
 
@@ -48,7 +45,7 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameter
 class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
 
     private static final String ADD_PREFIX = "add";
-    private static final String REMOVE_PREFIX = "remove";
+    private static final String ADD_RAW_PREFIX = "addRaw";
 
     private final int fieldIndex;
     private final String javaFieldName;
@@ -57,8 +54,10 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
     private final ClassName genericClassName;
     private final ClassName parameterClassName;
     private final FieldDescriptorProto fieldDescriptor;
+    private final FieldType fieldType;
 
     private RepeatedFieldMethodConstructor(MethodConstructorBuilder builder) {
+        this.fieldType = builder.getFieldType();
         this.fieldIndex = builder.getFieldIndex();
         this.fieldDescriptor = builder.getFieldDescriptor();
         this.genericClassName = builder.getGenericClassName();
@@ -88,9 +87,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
 
     private Collection<MethodSpec> createRepeatedMethods() {
         final List<MethodSpec> methods = newArrayList();
-        final MethodSpec checkRepeatedFieldMethod = createCheckRepeatedFieldMethod();
 
-        methods.add(checkRepeatedFieldMethod);
         methods.add(createClearMethod());
         methods.add(createAddByIndexMethod());
         methods.add(createAddObjectMethod());
@@ -149,7 +146,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
     }
 
     private MethodSpec createRawAddAllMethod() {
-        final String methodName = getJavaFieldName("addAllRaw" + methodPartName, false);
+        final String methodName = getJavaFieldName(fieldType.getSetterPrefix() + RAW_SUFFIX + methodPartName, false);
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
@@ -175,10 +172,12 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
     }
 
     private MethodSpec createAddAllMethod() {
-        final String methodName = getJavaFieldName(ADD_ALL_PREFIX + methodPartName, false);
+        final String methodName = getJavaFieldName(fieldType.getSetterPrefix() + methodPartName, false);
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
         final ClassName rawType = ClassName.get(List.class);
-        final ParameterizedTypeName parameter = ParameterizedTypeName.get(rawType, parameterClassName);
+        final ParameterizedTypeName parameter = ParameterizedTypeName.get(rawType,
+                                                                          parameterClassName);
+        final String fieldDescriptorName = fieldDescriptor.getName();
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClassName)
                                             .addModifiers(Modifier.PUBLIC)
@@ -187,8 +186,8 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addException(ConversionException.class)
                                             .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                            .addStatement(createValidateStatement(fieldDescriptor.getName()),
-                                                          fieldDescriptor.getName())
+                                            .addStatement(createValidateStatement(fieldDescriptorName),
+                                                          fieldDescriptorName)
                                             .addStatement(javaFieldName + ".addAll(value)")
                                             .addStatement(RETURN_THIS)
                                             .build();
@@ -206,7 +205,8 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addException(ConstraintViolationThrowable.class)
                                             .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                            .addStatement(createValidateStatement(javaFieldName), javaFieldName)
+                                            .addStatement(createValidateStatement(javaFieldName),
+                                                          javaFieldName)
                                             .addStatement(javaFieldName + ".add(value)")
                                             .addStatement(RETURN_THIS)
                                             .build();
@@ -225,7 +225,8 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addException(ConstraintViolationThrowable.class)
                                             .addStatement(javaFieldName + ".add(index, value)")
                                             .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                            .addStatement(createValidateStatement(javaFieldName), javaFieldName)
+                                            .addStatement(createValidateStatement(javaFieldName),
+                                                          javaFieldName)
                                             .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(RETURN_THIS)
                                             .build();
@@ -260,22 +261,12 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
     }
 
     private MethodSpec createClearMethod() {
-        final MethodSpec result = MethodSpec.methodBuilder("clear")
+        final MethodSpec result = MethodSpec.methodBuilder(CLEAR_PREFIX)
                                             .addModifiers(Modifier.PUBLIC)
                                             .returns(builderClassName)
                                             .addStatement(CREATE_IF_NEEDED)
-                                            .addStatement(javaFieldName + ".clear()")
+                                            .addStatement(javaFieldName + CLEAR_METHOD_CALL)
                                             .addStatement(RETURN_THIS)
-                                            .build();
-        return result;
-    }
-
-    private MethodSpec createCheckRepeatedFieldMethod() {
-        final MethodSpec result = MethodSpec.methodBuilder("createIfNeeded")
-                                            .addModifiers(Modifier.PRIVATE)
-                                            .beginControlFlow("if(" + javaFieldName + " == null)")
-                                            .addStatement(javaFieldName + " = new $T<>()", ArrayList.class)
-                                            .endControlFlow()
                                             .build();
         return result;
     }
