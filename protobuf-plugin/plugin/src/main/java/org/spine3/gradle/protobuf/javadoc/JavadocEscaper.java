@@ -25,8 +25,12 @@ import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.f
 /**
  * Escaper for a Javadoc text.
  *
- * <p>Written Javadoc text can contain the char sequence, that should be escaped.
- * For example, "<" and ">" should be escaped from HTML.
+ * <p>If a Javadoc text received from a source, that has no knowledge of
+ * the Javadoc text restrictions, then such text should be escaped using {@link #escape(String)}.
+ *
+ * <p>Example of such source is a comment from ".proto" file. In particular,
+ * a person that writes a comment in ".proto" file does not know,
+ * that {@literal "<"} and {@literal ">"} should not appear in Javadoc.
  *
  * @author Dmytro Grankin
  */
