@@ -163,7 +163,7 @@ public class FailureJavadocGenerator {
     /**
      * Returns the field location path.
      *
-     * <p>Extensions are not supported.
+     * <p>Protobuf extensions are not supported.
      *
      * @param field the field to get location path
      * @return the field location path
