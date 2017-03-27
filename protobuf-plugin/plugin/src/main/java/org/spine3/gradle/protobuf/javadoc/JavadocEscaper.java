@@ -53,17 +53,17 @@ public class JavadocEscaper {
     public static String escape(String javadocText) {
         final StringBuilder escapedJavadocBuilder = new StringBuilder(javadocText.length() * 2);
 
-        String unescapedPart = '*' + javadocText;
-        while (!unescapedPart.isEmpty()) {
-            final EscapedStrings escapedString = fromBeginningOf(unescapedPart);
+        final StringBuilder unescapedPartBuilder = new StringBuilder('*' + javadocText);
+        while (unescapedPartBuilder.length() != 0) {
+            final EscapedStrings escapedString = fromBeginningOf(unescapedPartBuilder.toString());
 
             if (escapedString != null) {
                 escapedJavadocBuilder.append(escapedString.getEscaped());
-                unescapedPart = unescapedPart.substring(escapedString.getUnescaped()
-                                                                     .length());
+                unescapedPartBuilder.delete(0, escapedString.getUnescaped()
+                                                            .length());
             } else {
-                escapedJavadocBuilder.append(unescapedPart.charAt(0));
-                unescapedPart = unescapedPart.substring(1);
+                escapedJavadocBuilder.append(unescapedPartBuilder.charAt(0));
+                unescapedPartBuilder.deleteCharAt(0);
             }
         }
 
