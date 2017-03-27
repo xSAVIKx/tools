@@ -23,13 +23,13 @@ package org.spine3.gradle.protobuf.javadoc;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.AMPERSAND;
-import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.AT_MARK;
-import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.BACK_SLASH;
-import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.COMMENT_BEGINNING;
-import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.COMMENT_ENDING;
-import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.GREATER_THAN;
-import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.LESS_THAN;
+import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapeSequence.AMPERSAND;
+import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapeSequence.AT_MARK;
+import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapeSequence.BACK_SLASH;
+import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapeSequence.COMMENT_BEGINNING;
+import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapeSequence.COMMENT_ENDING;
+import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapeSequence.GREATER_THAN;
+import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapeSequence.LESS_THAN;
 import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.escape;
 
 /**
