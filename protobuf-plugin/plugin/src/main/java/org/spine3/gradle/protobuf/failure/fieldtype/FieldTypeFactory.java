@@ -17,7 +17,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.gradle.protobuf.failures.fieldtype;
+package org.spine3.gradle.protobuf.failure.fieldtype;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
@@ -28,11 +28,11 @@ import java.util.AbstractMap;
 import java.util.Map;
 
 import static com.google.protobuf.DescriptorProtos.DescriptorProto;
-import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.BOOLEAN;
-import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.DOUBLE;
-import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.FLOAT;
-import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.INT;
-import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.LONG;
+import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoPrimitives.BOOLEAN;
+import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoPrimitives.DOUBLE;
+import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoPrimitives.FLOAT;
+import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoPrimitives.INT;
+import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoPrimitives.LONG;
 
 /**
  * Factory for creation {@link FieldType} instances.

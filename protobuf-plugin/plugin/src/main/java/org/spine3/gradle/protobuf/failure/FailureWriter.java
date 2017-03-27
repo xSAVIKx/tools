@@ -17,7 +17,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.gradle.protobuf.failures;
+package org.spine3.gradle.protobuf.failure;
 
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.GeneratedMessageV3;
@@ -32,8 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.base.CommandContext;
 import org.spine3.base.FailureThrowable;
-import org.spine3.gradle.protobuf.failures.fieldtype.FieldType;
-import org.spine3.gradle.protobuf.failures.fieldtype.FieldTypeFactory;
+import org.spine3.gradle.protobuf.failure.fieldtype.FieldType;
+import org.spine3.gradle.protobuf.failure.fieldtype.FieldTypeFactory;
 
 import javax.annotation.Generated;
 import java.io.File;
@@ -47,8 +47,8 @@ import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
-import static org.spine3.gradle.protobuf.failures.FailureWriter.FailureThrowableCtorParams.COMMAND_CONTEXT;
-import static org.spine3.gradle.protobuf.failures.FailureWriter.FailureThrowableCtorParams.COMMAND_MESSAGE;
+import static org.spine3.gradle.protobuf.failure.FailureWriter.FailureThrowableCtorParams.COMMAND_CONTEXT;
+import static org.spine3.gradle.protobuf.failure.FailureWriter.FailureThrowableCtorParams.COMMAND_MESSAGE;
 
 /**
  * Class, which writes Failure java code, based on it's descriptor.

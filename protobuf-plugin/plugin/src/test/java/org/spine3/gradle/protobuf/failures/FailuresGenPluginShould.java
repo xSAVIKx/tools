@@ -42,14 +42,14 @@ import static org.spine3.gradle.protobuf.failures.Given.FailuresJavadocConfigure
 import static org.spine3.gradle.protobuf.failures.Given.FailuresJavadocConfigurer.TEST_SOURCE;
 import static org.spine3.gradle.protobuf.failures.Given.FailuresJavadocConfigurer.getExpectedClassComment;
 import static org.spine3.gradle.protobuf.failures.Given.FailuresJavadocConfigurer.getExpectedCtorComment;
-import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedStrings.AMPERSAND;
-import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedStrings.AT_MARK;
-import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedStrings.BACK_SLASH;
-import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedStrings.COMMENT_BEGINNING;
-import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedStrings.COMMENT_ENDING;
-import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedStrings.GREATER_THAN;
-import static org.spine3.gradle.protobuf.failures.JavadocEscaper.EscapedStrings.LESS_THAN;
-import static org.spine3.gradle.protobuf.failures.JavadocEscaper.escape;
+import static org.spine3.gradle.protobuf.failure.JavadocEscaper.EscapedStrings.AMPERSAND;
+import static org.spine3.gradle.protobuf.failure.JavadocEscaper.EscapedStrings.AT_MARK;
+import static org.spine3.gradle.protobuf.failure.JavadocEscaper.EscapedStrings.BACK_SLASH;
+import static org.spine3.gradle.protobuf.failure.JavadocEscaper.EscapedStrings.COMMENT_BEGINNING;
+import static org.spine3.gradle.protobuf.failure.JavadocEscaper.EscapedStrings.COMMENT_ENDING;
+import static org.spine3.gradle.protobuf.failure.JavadocEscaper.EscapedStrings.GREATER_THAN;
+import static org.spine3.gradle.protobuf.failure.JavadocEscaper.EscapedStrings.LESS_THAN;
+import static org.spine3.gradle.protobuf.failure.JavadocEscaper.escape;
 
 /**
  * @author Dmytro Grankin

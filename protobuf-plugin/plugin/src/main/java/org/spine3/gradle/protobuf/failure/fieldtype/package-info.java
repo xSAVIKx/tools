@@ -19,8 +19,9 @@
  */
 
 /**
- * Plugins and utilities for Spine Failure generation.
- *
- * @author Alex Tymchenko
+ * Classes for working with different proto field types.
  */
-package org.spine3.gradle.protobuf.failures;
+@ParametersAreNonnullByDefault
+package org.spine3.gradle.protobuf.failure.fieldtype;
+
+import javax.annotation.ParametersAreNonnullByDefault;
