@@ -52,16 +52,17 @@ public class FqnCheckPluginShould {
     private String resourceFolder = "";
     private static final String SOURCE_FOLDER = "src/main/java";
     private final String checkJavadocLink = TaskName.CHECK_FQN.getValue();
+    private final int threshold = 2;
+    private final String responseType = "error";
 
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
-    @Before
-    public void setUpTestProject() throws IOException {
+    public void setUpTestProject(int threshold, String responseType) throws IOException {
         final Path buildGradleFile = testProjectDir.getRoot()
                                              .toPath()
                                              .resolve("build.gradle");
-        final InputStream input = getBuildFileContent(2, Responses.ERROR.getValue());
+        final InputStream input = getBuildFileContent(threshold, responseType);
 
 
         final Path testSources = testProjectDir.getRoot()
@@ -79,6 +80,7 @@ public class FqnCheckPluginShould {
 
     @Test
     public void fail_build_if_wrong_fqn_name_found() throws IOException {
+        setUpTestProject(threshold, responseType);
         final Path testSources = testProjectDir.getRoot()
                                                .toPath()
                                                .resolve(SOURCE_FOLDER);
@@ -88,7 +90,7 @@ public class FqnCheckPluginShould {
         BuildResult buildResult = GradleRunner.create()
                                               .withProjectDir(testProjectDir.getRoot())
                                               .withPluginClasspath()
-                                              .withArguments(checkJavadocLink)
+                                              .withArguments(checkJavadocLink, "--debug")
                                               .buildAndFail();
 
         assertTrue(buildResult.getOutput().contains("Wrong link format found"));
@@ -96,6 +98,7 @@ public class FqnCheckPluginShould {
 
     @Test
     public void allow_correct_fqn_name_format() throws IOException {
+        setUpTestProject(threshold, responseType);
         final Path testSources = testProjectDir.getRoot()
                                                .toPath()
                                                .resolve(SOURCE_FOLDER);
@@ -108,12 +111,32 @@ public class FqnCheckPluginShould {
         BuildResult buildResult = GradleRunner.create()
                                               .withProjectDir(testProjectDir.getRoot())
                                               .withPluginClasspath()
-                                              .withArguments(checkJavadocLink)
+                                              .withArguments(checkJavadocLink, "--debug")
                                               .build();
 
         final List<String> expected = Arrays.asList(":compileJava", ":checkJavadocLink");
 
         assertEquals(expected, extractTasks(buildResult));
+    }
+
+    @Test
+    public void warn_by_default_about_wrong_link_formats() throws IOException {
+        setUpTestProject(2, "warn");
+        final Path testSources = testProjectDir.getRoot()
+                                               .toPath()
+                                               .resolve(SOURCE_FOLDER);
+        FileUtils.copyDirectory(new File(resourceFolder), new File(testSources.toString()));
+
+        BuildResult buildResult = GradleRunner.create()
+                                              .withProjectDir(testProjectDir.getRoot())
+                                              .withPluginClasspath()
+                                              .withArguments(checkJavadocLink, "--debug")
+                                              .build();
+
+        final List<String> expected = Arrays.asList(":compileJava", ":checkJavadocLink");
+
+        assertEquals(expected, extractTasks(buildResult));
+        assertTrue(buildResult.getOutput().contains("Wrong link format found"));
     }
 
     private static List<String> extractTasks(BuildResult buildResult) {

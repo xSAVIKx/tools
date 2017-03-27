@@ -56,7 +56,7 @@ public class Extension {
     public static String getResponseType(Project project) {
         final String responseType = checkJavadoc(project).responseType;
         if (responseType.isEmpty()) {
-            return Responses.WARN.getValue();
+            return Response.WARN.getValue();
         } else {
             return responseType;
         }

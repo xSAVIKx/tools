@@ -43,7 +43,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.regex.Pattern.compile;
 
 /**
- * Checks the target project Javadocs for broken links that stated in the wrong format.
+ * Checks the target project Javadocs for broken links that are stated in the wrong format.
  * <p> {@code exceptionThreshold} is a quantity of broken link that will make an exception.
  * {@code responseType} is behavior that can be either warning or error.
  *
@@ -51,10 +51,10 @@ import static java.util.regex.Pattern.compile;
  */
 public class FqnLinkInspection {
     private int exceptionThreshold = 0;
-    private String responseType = "";
+    private Response responseType = Response.WARN;
     private final Project project;
     private static final String DIRECTORY_TO_CHECK = "/src/main/java";
-    private static final String javaExtension = ".java";
+    private static final String JAVA_EXTENSION = ".java";
     private static final InvalidResultStorage storage = new InvalidResultStorage();
 
     public FqnLinkInspection(Project project) {
@@ -67,7 +67,10 @@ public class FqnLinkInspection {
             @Override
             public void execute(Task task) {
                 exceptionThreshold = Extension.getThreshold(project);
-                responseType = Extension.getResponseType(project);
+                final String type = Extension.getResponseType(project)
+                                             .trim()
+                                             .toUpperCase();
+                responseType = Response.valueOf(type);
 
                 final List<String> dirsToCheck = getDirsToCheck(project);
                 findFqnLinksWithoutText(dirsToCheck);
@@ -133,7 +136,7 @@ public class FqnLinkInspection {
     private void check(Path path) throws InvalidFqnUsageException {
         final List<String> content;
         if (!path.toString()
-                 .endsWith(javaExtension)) {
+                 .endsWith(JAVA_EXTENSION)) {
             return;
         }
         try {
@@ -146,11 +149,8 @@ public class FqnLinkInspection {
         if (!invalidLinks.isEmpty()) {
             storage.save(path, invalidLinks);
             if (storage.getLinkTotal() > exceptionThreshold) {
-                Responses.logWarning();
                 storage.logInvalidFqnUsages();
-                if (responseType.equals(Responses.ERROR.getValue())) {
-                    Responses.failBuildAt(path);
-                }
+                responseType.logOrFail(path);
             }
         }
     }
@@ -184,7 +184,7 @@ public class FqnLinkInspection {
     private enum JavadocPattern {
 
         /*
-         * This regexp match every link or linkplain in javadoc that is not in the format of
+         * This regexp matches every link or linkplain in javadoc that is not in the format of
          * {@link <FQN> <text>} or {@linkplain <FQN> <text>}.
          *
          * Wrong links: {@link org.spine3.base.Client} or {@linkplain com.guava.AnyClass }

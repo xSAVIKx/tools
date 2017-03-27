@@ -27,38 +27,41 @@ import java.nio.file.Path;
 /**
  * @author Alexander Aleksandrov
  */
-public enum Responses {
+public enum Response {
     WARN("warn"),
-    ERROR("error");
+    ERROR("error"){
+        @Override
+        public void logOrFail(Path path) {
+            super.logOrFail(path);
+            throw new InvalidFqnUsageException(path.toFile()
+                                                   .getAbsolutePath(), message);
+        }
+    };
 
     private final String responseType;
     private static final String message =
             "Links with fully-qualified names should be in format {@link <FQN> <text>}" +
             " or {@linkplain <FQN> <text>}.";
 
-    Responses(String responseType) {
+    Response(String responseType) {
         this.responseType = responseType;
     }
 
     public String getValue() {
         return responseType;
     }
-    public static void logWarning(){
+
+    public void logOrFail(Path path){
         log().error(message);
     }
 
-    public static void failBuildAt(Path path) {
-        throw new InvalidFqnUsageException(path.toFile()
-                                               .getAbsolutePath(), message);
-    }
-
     private static Logger log() {
-        return Responses.LogSingleton.INSTANCE.value;
+        return Response.LogSingleton.INSTANCE.value;
     }
 
     private enum LogSingleton {
         INSTANCE;
         @SuppressWarnings("NonSerializableFieldInSerializableClass")
-        private final Logger value = LoggerFactory.getLogger(Responses.class);
+        private final Logger value = LoggerFactory.getLogger(Response.class);
     }
 }

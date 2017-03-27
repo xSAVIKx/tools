@@ -54,23 +54,22 @@ public class InvalidResultStorage {
 
     @SuppressWarnings("MethodWithMultipleLoops")//we need it to go through a map
     public void logInvalidFqnUsages() {
-        final Iterator it = resultStorage.entrySet()
+        final Iterator iterator = resultStorage.entrySet()
                                          .iterator();
-        while (it.hasNext()) {
-            Map.Entry<Path, List<Optional<InvalidFqnUsage>>> pair = (Map.Entry) it.next();
+        while (iterator.hasNext()) {
+            Map.Entry<Path, List<Optional<InvalidFqnUsage>>> pair = (Map.Entry) iterator.next();
             for (Optional<InvalidFqnUsage> link : pair.getValue()) {
                 if (link.isPresent()) {
+                    final InvalidFqnUsage invalidFqnUsage = link.get();
                     final String msg = format(
                             " Wrong link format found: %s on %s line in %s",
-                            link.get()
-                                .getActualUsage(),
-                            link.get()
-                                .getIndex(),
+                            invalidFqnUsage.getActualUsage(),
+                            invalidFqnUsage.getIndex(),
                             pair.getKey());
                     log().error(msg);
                 }
             }
-            it.remove();
+            iterator.remove();
         }
     }
 
