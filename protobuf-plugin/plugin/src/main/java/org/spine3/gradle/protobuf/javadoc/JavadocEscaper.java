@@ -37,6 +37,7 @@ import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.f
 @SuppressWarnings("UtilityClass")
 public class JavadocEscaper {
 
+    // prevent instantiation of this utility class
     private JavadocEscaper() {
     }
 
