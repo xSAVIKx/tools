@@ -42,14 +42,6 @@ import static org.spine3.gradle.protobuf.failure.Given.FailuresJavadocConfigurer
 import static org.spine3.gradle.protobuf.failure.Given.FailuresJavadocConfigurer.TEST_SOURCE;
 import static org.spine3.gradle.protobuf.failure.Given.FailuresJavadocConfigurer.getExpectedClassComment;
 import static org.spine3.gradle.protobuf.failure.Given.FailuresJavadocConfigurer.getExpectedCtorComment;
-import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.AMPERSAND;
-import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.AT_MARK;
-import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.BACK_SLASH;
-import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.COMMENT_BEGINNING;
-import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.COMMENT_ENDING;
-import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.GREATER_THAN;
-import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.LESS_THAN;
-import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.escape;
 
 /**
  * @author Dmytro Grankin
@@ -128,30 +120,5 @@ public class FailuresGenPluginShould {
             connection.close();
         }
         countDownLatch.await(100, TimeUnit.MILLISECONDS);
-    }
-
-    @Test
-    public void escape_comment_beginning_and_ending() {
-        assertEquals(COMMENT_ENDING.getEscaped(), escape(COMMENT_ENDING.getUnescaped()));
-        assertEquals(' ' + COMMENT_BEGINNING.getEscaped(),
-                     escape(' ' + COMMENT_BEGINNING.getUnescaped()));
-    }
-
-    @Test
-    public void escape_slash_in_beginning() {
-        assertEquals("&#47;", escape("/"));
-    }
-
-    @Test
-    public void escape_html() {
-        assertEquals(LESS_THAN.getEscaped(), escape(LESS_THAN.getUnescaped()));
-        assertEquals(GREATER_THAN.getEscaped(), escape(GREATER_THAN.getUnescaped()));
-        assertEquals(AMPERSAND.getEscaped(), escape(AMPERSAND.getUnescaped()));
-    }
-
-    @Test
-    public void escape_at_and_back_slash() {
-        assertEquals(AT_MARK.getEscaped(), escape(AT_MARK.getUnescaped()));
-        assertEquals(BACK_SLASH.getEscaped(), escape(BACK_SLASH.getUnescaped()));
     }
 }
