@@ -252,7 +252,8 @@ public class FailureJavadocGenerator {
     }
 
     /**
-     * Returns a max field name length among the non-empty fields collection.
+     * Returns a max field name length among the non-empty
+     * {@linkplain FieldDescriptorProto field} collection.
      *
      * @param fields the non-empty fields collection
      * @return the max name length
