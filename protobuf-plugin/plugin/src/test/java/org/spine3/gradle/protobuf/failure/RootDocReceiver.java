@@ -28,8 +28,8 @@ import org.junit.rules.TemporaryFolder;
 /**
  * {@link RootDoc} receiver for the tests purposes.
  *
- * <p>This could be achieved by extending {@link Standard} doclet
- * and defining static method with the following signature:
+ * <p>To receive {@link RootDoc}, necessary extend {@link Standard} doclet
+ * and define static method with the following signature:
  * <pre>{@code public static boolean start(RootDoc}</pre>
  *
  * @author Dmytro Grankin
@@ -45,21 +45,21 @@ public class RootDocReceiver extends Standard {
     private static RootDoc rootDoc;
 
     /**
-     * Returns {@link RootDoc} for the specified source.
+     * Returns {@link RootDoc} for the specified source file.
      *
      * <p>Executes {@link #main(String[])}, which in turn
-     * call {@link Main#execute(String, String, String...)}.
-     * Such call chain guarantee proper {@link #rootDoc} initialization.
+     * calls {@link Main#execute(String, String, String...)}.
+     * Such a call chain guarantees a proper {@link #rootDoc} initialization.
      *
-     * @param projectDir the project directory, that contains the source
-     * @param source     the source relative location
+     * @param projectDir     the project directory, that contains the source
+     * @param sourceLocation the source relative location
      * @return the root document
      */
     @SuppressWarnings("StaticVariableUsedBeforeInitialization")
-    static RootDoc getRootDoc(TemporaryFolder projectDir, String source) {
+    static RootDoc getRootDoc(TemporaryFolder projectDir, String sourceLocation) {
         main(new String[]{
                 projectDir.getRoot()
-                          .getAbsolutePath() + source
+                          .getAbsolutePath() + sourceLocation
         });
         return rootDoc;
     }
@@ -70,7 +70,10 @@ public class RootDocReceiver extends Standard {
     }
 
     /**
-     * Return {@code true} anyway, because used just to receive {@link RootDoc}.
+     * Receives the {@link RootDoc} and initializes {@link #rootDoc}.
+     *
+     * <p>Because used just to receive {@link RootDoc}, returns {@code true} anyway,
+     * that signals, that the doclet ran without encountering any errors.
      *
      * <p>Called by {@link Main#execute(String, String, String...)}
      *
