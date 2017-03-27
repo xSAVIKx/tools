@@ -25,10 +25,20 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Path;
 
 /**
+ * This enum states two behavior types that either log warnings or fail build process.
+ *
  * @author Alexander Aleksandrov
  */
 public enum Response {
+    /**
+     * This instance will log warning message.
+     */
     WARN("warn"),
+
+    /**
+     * This instance will log warning message and then will throw an
+     * exception and fail a build process.
+     */
     ERROR("error"){
         @Override
         public void logOrFail(Path path) {
@@ -51,6 +61,11 @@ public enum Response {
         return responseType;
     }
 
+    /**
+     * Logs error message.
+     *
+     * @param path target path to the file under check.
+     */
     public void logOrFail(Path path){
         log().error(message);
     }
