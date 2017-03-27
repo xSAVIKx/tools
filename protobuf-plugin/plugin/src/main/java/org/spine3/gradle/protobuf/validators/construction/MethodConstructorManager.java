@@ -40,15 +40,15 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
 import static org.spine3.gradle.protobuf.GenerationUtils.isMap;
 import static org.spine3.gradle.protobuf.GenerationUtils.isRepeated;
-import static org.spine3.gradle.protobuf.validators.construction.AbstractMethodConstructor.CREATE_IF_NEEDED;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatorGenericClassName;
+import static org.spine3.gradle.protobuf.validators.construction.AbstractMethodConstructor.CREATE_IF_NEEDED;
 import static org.spine3.gradle.protobuf.validators.construction.AbstractMethodConstructor.MethodConstructorBuilder;
 
 /**
  * @author Illia Shepilov
  */
-public class MethodConstructor {
+public class MethodConstructorManager {
 
     private final String javaClass;
     private final String javaPackage;
@@ -56,8 +56,8 @@ public class MethodConstructor {
     private final MessageTypeCache messageTypeCache;
     private final DescriptorProto descriptor;
 
-    public MethodConstructor(ValidatorMetadata validatorMetadata,
-                             MessageTypeCache messageTypeCache) {
+    public MethodConstructorManager(ValidatorMetadata validatorMetadata,
+                                    MessageTypeCache messageTypeCache) {
         this.javaClass = validatorMetadata.getJavaClass();
         this.javaPackage = validatorMetadata.getJavaPackage();
         this.descriptor = validatorMetadata.getMsgDescriptor();
@@ -138,22 +138,24 @@ public class MethodConstructor {
                       .append(')');
     }
 
-    private StringBuilder appendPrefixPrefix(StringBuilder builder, FieldDescriptorProto fieldDescriptor) {
+    private StringBuilder appendPrefixPrefix(StringBuilder builder,
+                                             FieldDescriptorProto fieldDescriptor) {
         final FieldType fieldType =
                 new FieldTypeFactory(descriptor,
                                      messageTypeCache.getCachedTypes()).create(fieldDescriptor);
         return builder.append(fieldType.getSetterPrefix());
     }
 
-    private static List<FieldDescriptorProto> storeDescriptorIfNeeded(FieldDescriptorProto fieldDescriptor,
-                                                                      List<FieldDescriptorProto> fieldDescriptors) {
+    private static List<FieldDescriptorProto> storeDescriptorIfNeeded(
+            FieldDescriptorProto fieldDescriptor, List<FieldDescriptorProto> fieldDescriptors) {
         if (isRepeated(fieldDescriptor)) {
             fieldDescriptors.add(fieldDescriptor);
         }
         return fieldDescriptors;
     }
 
-    private static MethodSpec createCheckRepeatedFieldMethod(Iterable<FieldDescriptorProto> fieldDescriptors) {
+    private static MethodSpec createCheckRepeatedFieldMethod(
+            Iterable<FieldDescriptorProto> fieldDescriptors) {
         final MethodSpec.Builder builder = MethodSpec.methodBuilder("createIfNeeded")
                                                      .addModifiers(Modifier.PRIVATE);
         for (FieldDescriptorProto fieldDescriptor : fieldDescriptors) {
@@ -204,7 +206,9 @@ public class MethodConstructor {
                                                fieldDescriptor,
                                                index);
             }
-            return createMethodConstructor(SingularFieldMethodConstructor.newBuilder(), fieldDescriptor, index);
+            return createMethodConstructor(SingularFieldMethodConstructor.newBuilder(),
+                                           fieldDescriptor,
+                                           index);
         }
 
         private AbstractMethodConstructor createMethodConstructor(MethodConstructorBuilder builder,

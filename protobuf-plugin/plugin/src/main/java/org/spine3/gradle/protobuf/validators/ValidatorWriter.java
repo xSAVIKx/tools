@@ -32,7 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.gradle.protobuf.MessageTypeCache;
 import org.spine3.gradle.protobuf.validators.construction.FieldConstructor;
-import org.spine3.gradle.protobuf.validators.construction.MethodConstructor;
+import org.spine3.gradle.protobuf.validators.construction.MethodConstructorManager;
 import org.spine3.server.validate.AbstractValidatingBuilder;
 
 import javax.lang.model.element.Modifier;
@@ -52,7 +52,7 @@ class ValidatorWriter {
     private final String javaPackage;
     private final ClassName builderGenericClassName;
     private final FieldConstructor fieldConstructor;
-    private final MethodConstructor methodConstructor;
+    private final MethodConstructorManager methodConstructorManager;
     private final String targetDir;
 
     ValidatorWriter(ValidatorMetadata validatorMetadata,
@@ -61,7 +61,7 @@ class ValidatorWriter {
         this.javaClass = validatorMetadata.getJavaClass();
         this.javaPackage = validatorMetadata.getJavaPackage();
         this.targetDir = targetDir;
-        this.methodConstructor = new MethodConstructor(validatorMetadata, messageTypeCache);
+        this.methodConstructorManager = new MethodConstructorManager(validatorMetadata, messageTypeCache);
 
         final DescriptorProto descriptor = validatorMetadata.getMsgDescriptor();
         this.builderGenericClassName = getValidatorGenericClassName(javaPackage,
@@ -77,7 +77,7 @@ class ValidatorWriter {
         final TypeSpec.Builder classBuilder = TypeSpec.classBuilder(javaClass);
 
         addFields(classBuilder, fieldConstructor.getAllFields());
-        addMethods(classBuilder, methodConstructor.createMethods());
+        addMethods(classBuilder, methodConstructorManager.createMethods());
 
         final TypeSpec javaClass = classBuilder.build();
 

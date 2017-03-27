@@ -146,7 +146,8 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
     }
 
     private MethodSpec createRawAddAllMethod() {
-        final String methodName = getJavaFieldName(fieldType.getSetterPrefix() + RAW_SUFFIX + methodPartName, false);
+        final String rawMethodName = fieldType.getSetterPrefix() + RAW_SUFFIX + methodPartName;
+        final String methodName = getJavaFieldName(rawMethodName, false);
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
@@ -172,7 +173,8 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
     }
 
     private MethodSpec createAddAllMethod() {
-        final String methodName = getJavaFieldName(fieldType.getSetterPrefix() + methodPartName, false);
+        final String rawMethodName = fieldType.getSetterPrefix() + methodPartName;
+        final String methodName = getJavaFieldName(rawMethodName, false);
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
         final ClassName rawType = ClassName.get(List.class);
         final ParameterizedTypeName parameter = ParameterizedTypeName.get(rawType,
@@ -195,7 +197,8 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
     }
 
     private MethodSpec createAddObjectMethod() {
-        final String methodName = getJavaFieldName(ADD_PREFIX + methodPartName, false);
+        final String rawMethodName = ADD_PREFIX + methodPartName;
+        final String methodName = getJavaFieldName(rawMethodName, false);
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
