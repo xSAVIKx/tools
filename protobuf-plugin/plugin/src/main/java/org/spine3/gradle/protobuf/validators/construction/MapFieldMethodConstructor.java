@@ -32,27 +32,29 @@ import org.spine3.validate.ConstraintViolationThrowable;
 
 import javax.lang.model.element.Modifier;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
 
 /**
  * @author Illia Shepilov
  */
-//TODO:2017-03-22:illiashepilov: finish implementation.
 public class MapFieldMethodConstructor extends AbstractMethodConstructor {
+
+    private static final String VALUE = "value";
+    private static final String KEY = "key";
+    private static final String MAP_PARAM_NAME = "map";
+    private static final String MAP_TO_VALIDATE_PARAM_NAME = "mapToValidate";
 
     private final int fieldIndex;
     private final String javaFieldName;
     private final String methodPartName;
     private final ClassName builderClassName;
     private final ClassName genericClassName;
-    private final ClassName parameterClassName;
     private final FieldDescriptorProto fieldDescriptor;
     private final MapFieldType fieldType;
 
@@ -64,7 +66,6 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
         this.methodPartName = getJavaFieldName(fieldDescriptor.getName(), true);
         this.javaFieldName = getJavaFieldName(fieldDescriptor.getName(), false);
         this.builderClassName = getBuilderClassName(builder.getJavaPackage(), builder.getJavaClass());
-        this.parameterClassName = getParameterClass(fieldDescriptor, builder.getMessageTypeCache());
     }
 
     @Override
@@ -72,24 +73,26 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
         final List<MethodSpec> methods = newArrayList();
         methods.addAll(createMapMethods());
         methods.addAll(createRawMapMethods());
-        methods.add(createCheckMapFieldMethod());
         return methods;
     }
 
     private List<MethodSpec> createRawMapMethods() {
         final List<MethodSpec> methods = newArrayList();
         methods.add(createPutRawMethod());
+        methods.add(createPutAllRawMethod());
         return methods;
     }
 
     private List<MethodSpec> createMapMethods() {
         final List<MethodSpec> methods = newArrayList();
         methods.add(createPutMethod());
-
+        methods.add(createClearMethod());
+        methods.add(createPutAllMethod());
+        methods.add(createRemoveMethod());
         return methods;
     }
 
-    private MethodSpec createPutRawMethod() {
+    private MethodSpec createPutMethod() {
         final TypeName keyTypeName = fieldType.getKeyTypeName();
         final TypeName valueTypeName = fieldType.getValueTypeName();
         final String methodName = getJavaFieldName("put" + methodPartName, false);
@@ -98,19 +101,21 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
                                             .returns(builderClassName)
                                             .addModifiers(Modifier.PUBLIC)
                                             .addException(ConstraintViolationThrowable.class)
-                                            .addException(ConversionException.class)
-                                            .addParameter(String.class, "key")
-                                            .addParameter(String.class, "value")
-                                            .addStatement(createGetConvertedMapValue(), Map.class, keyTypeName, valueTypeName, TypeToken.class, Map.class, keyTypeName, valueTypeName)
+                                            .addParameter(keyTypeName, KEY)
+                                            .addParameter(valueTypeName, VALUE)
+                                            .addStatement(CREATE_IF_NEEDED)
                                             .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                            .addStatement(createValidateConvertedValueStatement(), fieldDescriptor.getName())
-                                            .addStatement(javaFieldName + ".putAll(convertedValue)")
+                                            .addStatement("final $T<$T, $T> mapToValidate = $T.singletonMap(" + KEY + ", " + VALUE + ")",
+                                                          Map.class, keyTypeName,
+                                                          valueTypeName, Collections.class)
+                                            .addStatement(createValidateStatement(MAP_TO_VALIDATE_PARAM_NAME), javaFieldName)
+                                            .addStatement(javaFieldName + ".put(key, value)")
                                             .addStatement(RETURN_THIS)
                                             .build();
         return result;
     }
 
-    private MethodSpec createPutMethod() {
+    private MethodSpec createPutRawMethod() {
         final TypeName keyTypeName = fieldType.getKeyTypeName();
         final TypeName valueTypeName = fieldType.getValueTypeName();
         final String methodName = getJavaFieldName("putRaw" + methodPartName, false);
@@ -119,23 +124,85 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
                                             .returns(builderClassName)
                                             .addModifiers(Modifier.PUBLIC)
                                             .addException(ConstraintViolationThrowable.class)
-                                            .addParameter(keyTypeName, "key")
-                                            .addParameter(valueTypeName, "value")
-                                            .addStatement(createGetConvertedMapValue(), Map.class, keyTypeName, valueTypeName, TypeToken.class, Map.class, keyTypeName, valueTypeName)
+                                            .addException(ConversionException.class)
+                                            .addParameter(String.class, KEY)
+                                            .addParameter(String.class, VALUE)
+                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(createGetConvertedSingularValue(KEY),
+                                                          keyTypeName, keyTypeName)
+                                            .addStatement(createGetConvertedSingularValue(VALUE),
+                                                          valueTypeName, valueTypeName)
                                             .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                            .addStatement(createValidateConvertedValueStatement(), fieldDescriptor.getName())
+                                            .addStatement("final $T<$T, $T> mapToValidate = $T.singletonMap(convertedKey, convertedValue)",
+                                                          Map.class, keyTypeName,
+                                                          valueTypeName, Collections.class)
+                                            .addStatement(createValidateStatement(MAP_TO_VALIDATE_PARAM_NAME),
+                                                          javaFieldName)
+                                            .addStatement(javaFieldName + ".put(convertedKey, convertedValue)")
+                                            .addStatement(RETURN_THIS)
+                                            .build();
+        return result;
+    }
+
+    private MethodSpec createPutAllMethod() {
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
+        final MethodSpec result = MethodSpec.methodBuilder(fieldType.getSetterPrefix())
+                                            .addModifiers(Modifier.PUBLIC)
+                                            .returns(builderClassName)
+                                            .addParameter(fieldType.getTypeName(), MAP_PARAM_NAME)
+                                            .addException(ConstraintViolationThrowable.class)
+                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(descriptorCodeLine, FieldDescriptor.class)
+                                            .addStatement(createValidateStatement(MAP_PARAM_NAME),
+                                                          javaFieldName)
+                                            .addStatement(javaFieldName + ".putAll(map)")
+                                            .addStatement(RETURN_THIS)
+                                            .build();
+        return result;
+    }
+
+    private MethodSpec createPutAllRawMethod() {
+        final TypeName keyTypeName = fieldType.getKeyTypeName();
+        final TypeName valueTypeName = fieldType.getValueTypeName();
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
+        final MethodSpec result = MethodSpec.methodBuilder(fieldType.getSetterPrefix() + RAW_SUFFIX)
+                                            .addModifiers(Modifier.PUBLIC)
+                                            .returns(builderClassName)
+                                            .addParameter(String.class, MAP_PARAM_NAME)
+                                            .addException(ConstraintViolationThrowable.class)
+                                            .addException(ConversionException.class)
+                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(descriptorCodeLine, FieldDescriptor.class)
+                                            .addStatement(createGetConvertedMapValue(), Map.class,
+                                                          keyTypeName, valueTypeName,
+                                                          TypeToken.class, Map.class,
+                                                          keyTypeName, valueTypeName)
                                             .addStatement(javaFieldName + ".putAll(convertedValue)")
                                             .addStatement(RETURN_THIS)
                                             .build();
         return result;
     }
 
-    private MethodSpec createCheckMapFieldMethod() {
-        final MethodSpec result = MethodSpec.methodBuilder("createIfNeeded")
-                                            .addModifiers(Modifier.PRIVATE)
-                                            .beginControlFlow("if(" + javaFieldName + " == null)")
-                                            .addStatement(javaFieldName + " = new $T<>()", HashMap.class)
-                                            .endControlFlow()
+    private MethodSpec createRemoveMethod() {
+        final TypeName keyTypeName = fieldType.getKeyTypeName();
+        final MethodSpec result = MethodSpec.methodBuilder(REMOVE_PREFIX)
+                                            .addModifiers(Modifier.PUBLIC)
+                                            .returns(builderClassName)
+                                            .addParameter(keyTypeName, KEY)
+                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(javaFieldName + ".remove(" + KEY + ")")
+                                            .addStatement(RETURN_THIS)
+                                            .build();
+        return result;
+    }
+
+    private MethodSpec createClearMethod() {
+        final MethodSpec result = MethodSpec.methodBuilder(CLEAR_PREFIX)
+                                            .addModifiers(Modifier.PUBLIC)
+                                            .returns(builderClassName)
+                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(javaFieldName + CLEAR_METHOD_CALL)
+                                            .addStatement(RETURN_THIS)
                                             .build();
         return result;
     }
