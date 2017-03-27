@@ -66,7 +66,7 @@ public class ValidatingUtils {
                 return ClassName.get(javaPackage, descriptorName);
             }
         }
-        throw new RuntimeException();
+        throw new RuntimeException("Class is not found.");
     }
 
     public static ClassName getStringClassName() {
