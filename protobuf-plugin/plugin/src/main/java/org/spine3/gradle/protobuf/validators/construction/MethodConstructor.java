@@ -30,17 +30,17 @@ import org.spine3.gradle.protobuf.fieldtype.FieldTypeFactory;
 import org.spine3.gradle.protobuf.validators.ValidatorMetadata;
 
 import javax.lang.model.element.Modifier;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
 import static org.spine3.gradle.protobuf.GenerationUtils.isMap;
 import static org.spine3.gradle.protobuf.GenerationUtils.isRepeated;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.ADD_ALL_PREFIX;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.CREATE_IF_NEEDED;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.PUT_ALL_PREFIX;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.SETTER_PREFIX;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatorGenericClassName;
 import static org.spine3.gradle.protobuf.validators.construction.AbstractMethodConstructor.MethodConstructorBuilder;
@@ -72,7 +72,7 @@ public class MethodConstructor {
 
         methods.add(createPrivateConstructor());
         methods.add(createNewBuilderMethod());
-        methods.add(createBuildMethod());
+        methods.addAll(createBuildMethods());
         methods.addAll(createGeneratedSetters());
 
         return methods;
@@ -95,36 +95,84 @@ public class MethodConstructor {
         return buildMethod;
     }
 
-    private MethodSpec createBuildMethod() {
+    private Collection<MethodSpec> createBuildMethods() {
+        final List<FieldDescriptorProto> repeatedFieldDescriptors = newArrayList();
         final StringBuilder builder = new StringBuilder("final $T result = $T.newBuilder()");
+
         for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
             builder.append('.');
-
-            if (isMap(fieldDescriptor)) {
-                builder.append(PUT_ALL_PREFIX);
-            } else if (isRepeated(fieldDescriptor)) {
-                builder.append(ADD_ALL_PREFIX);
-            } else {
-                builder.append(SETTER_PREFIX);
-            }
-
-            builder.append(getJavaFieldName(fieldDescriptor.getName(), true))
-                   .append('(')
-                   .append(getJavaFieldName(fieldDescriptor.getName(), false))
-                   .append(')');
+            appendPrefixPrefix(builder, fieldDescriptor);
+            storeDescriptorIfNeeded(fieldDescriptor, repeatedFieldDescriptors);
+            appendMethodCall(builder, fieldDescriptor);
         }
         builder.append(".build()");
 
-        final MethodSpec buildMethod = MethodSpec.methodBuilder("build")
-                                                 .addModifiers(Modifier.PUBLIC)
-                                                 .returns(builderGenericClassName)
-                                                 .addStatement(CREATE_IF_NEEDED)
-                                                 .addStatement(builder.toString(),
-                                                               builderGenericClassName,
-                                                               builderGenericClassName)
-                                                 .addStatement("return result")
-                                                 .build();
-        return buildMethod;
+        final MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("build")
+                                                           .addModifiers(Modifier.PUBLIC)
+                                                           .returns(builderGenericClassName);
+        if (!repeatedFieldDescriptors.isEmpty()) {
+            methodBuilder.addStatement(CREATE_IF_NEEDED);
+        }
+
+        final MethodSpec method = methodBuilder.addStatement(builder.toString(),
+                                                             builderGenericClassName,
+                                                             builderGenericClassName)
+                                               .addStatement("return result")
+                                               .build();
+
+        if (!repeatedFieldDescriptors.isEmpty()) {
+            final List<MethodSpec> methods = newArrayList();
+            methods.add(createCheckRepeatedFieldMethod(repeatedFieldDescriptors));
+            methods.add(method);
+            return methods;
+        }
+
+        return Collections.singletonList(method);
+    }
+
+    private static StringBuilder appendMethodCall(StringBuilder builder,
+                                                  FieldDescriptorProto fieldDescriptor) {
+        return builder.append(getJavaFieldName(fieldDescriptor.getName(), true))
+                      .append('(')
+                      .append(getJavaFieldName(fieldDescriptor.getName(), false))
+                      .append(')');
+    }
+
+    private StringBuilder appendPrefixPrefix(StringBuilder builder, FieldDescriptorProto fieldDescriptor) {
+        final FieldType fieldType =
+                new FieldTypeFactory(descriptor,
+                                     messageTypeCache.getCachedTypes()).create(fieldDescriptor);
+        return builder.append(fieldType.getSetterPrefix());
+    }
+
+    private static List<FieldDescriptorProto> storeDescriptorIfNeeded(FieldDescriptorProto fieldDescriptor,
+                                                                      List<FieldDescriptorProto> fieldDescriptors) {
+        if (isRepeated(fieldDescriptor)) {
+            fieldDescriptors.add(fieldDescriptor);
+        }
+        return fieldDescriptors;
+    }
+
+    private static MethodSpec createCheckRepeatedFieldMethod(Iterable<FieldDescriptorProto> fieldDescriptors) {
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder("createIfNeeded")
+                                                     .addModifiers(Modifier.PRIVATE);
+        for (FieldDescriptorProto fieldDescriptor : fieldDescriptors) {
+            final String javaFieldName = getJavaFieldName(fieldDescriptor.getName(), false);
+            if (isMap(fieldDescriptor)) {
+                appendMethodBody(builder, javaFieldName, HashMap.class);
+            } else {
+                appendMethodBody(builder, javaFieldName, ArrayList.class);
+            }
+        }
+        return builder.build();
+    }
+
+    private static <T> MethodSpec.Builder appendMethodBody(MethodSpec.Builder builder,
+                                                           String javaFieldName,
+                                                           Class<T> classToCreate) {
+        return builder.beginControlFlow("if(" + javaFieldName + " == null)")
+                      .addStatement(javaFieldName + " = new $T<>()", classToCreate)
+                      .endControlFlow();
     }
 
     private Collection<MethodSpec> createGeneratedSetters() {
