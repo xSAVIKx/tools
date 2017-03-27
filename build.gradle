@@ -1,7 +1,7 @@
 final SPINE_VERSION = '0.8.0'
 final PLUGIN_VERSION = '0.8.0'
 
-final PLUGIN_PUBLISH_VERSION = '0.8.6-SNAPSHOT'
+final PLUGIN_PUBLISH_VERSION = '0.8.7-SNAPSHOT'
 
 buildscript {
     ext {
