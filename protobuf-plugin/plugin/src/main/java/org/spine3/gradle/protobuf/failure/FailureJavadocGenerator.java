@@ -29,6 +29,7 @@ import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.SourceCodeInfo.Location;
+import org.spine3.gradle.protobuf.javadoc.JavadocEscaper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

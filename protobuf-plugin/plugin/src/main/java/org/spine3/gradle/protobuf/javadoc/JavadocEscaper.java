@@ -18,9 +18,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.protobuf.failure;
+package org.spine3.gradle.protobuf.javadoc;
 
-import static org.spine3.gradle.protobuf.failure.JavadocEscaper.EscapedStrings.fromBeginningOf;
+import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapedStrings.fromBeginningOf;
 
 /**
  * Escaper for a Javadoc text.
