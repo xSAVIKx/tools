@@ -21,6 +21,7 @@
 package org.spine3.gradle.protobuf.failures;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
@@ -77,13 +78,13 @@ public class FailureJavadocGenerator {
      */
     @SuppressWarnings("StringBufferWithoutInitialCapacity") // Cannot make valuable initialization
     public String generateClassJavadoc() {
-        final String leadingComments = getFailureLeadingComments();
+        final Optional<String> leadingComments = getFailureLeadingComments();
         final StringBuilder builder = new StringBuilder();
 
-        if (leadingComments != null) {
+        if (leadingComments.isPresent()) {
             builder.append(OPENING_PRE)
                    .append(LINE_SEPARATOR)
-                   .append(JavadocEscaper.escape(leadingComments))
+                   .append(JavadocEscaper.escape(leadingComments.get()))
                    .append("</pre>")
                    .append(LINE_SEPARATOR)
                    .append(LINE_SEPARATOR);
@@ -111,40 +112,38 @@ public class FailureJavadocGenerator {
                .append(LINE_SEPARATOR);
         for (FieldDescriptorProto field : failureMetadata.getDescriptor()
                                                          .getFieldList()) {
-            final String leadingComments = getFieldLeadingComments(field);
+            final Optional<String> leadingComments = getFieldLeadingComments(field);
             final String fieldName = field.getName();
             final int commentOffset = maxFieldLength - fieldName.length() + 1;
-            if (leadingComments != null) {
+            if (leadingComments.isPresent()) {
                 builder.append("@param ")
                        .append(fieldName)
                        .append(Strings.repeat(" ", commentOffset))
-                       .append(JavadocEscaper.escape(leadingComments));
+                       .append(JavadocEscaper.escape(leadingComments.get()));
             }
         }
 
         return builder.toString();
     }
 
-    private String getFieldLeadingComments(FieldDescriptorProto field) {
+    private Optional<String> getFieldLeadingComments(FieldDescriptorProto field) {
         final Collection<Integer> fieldPath = getFieldLocationPath(field);
         return getLeadingComments(fieldPath);
     }
 
-    private String getFailureLeadingComments() {
+    private Optional<String> getFailureLeadingComments() {
         final Collection<Integer> path = getMessageLocationPath();
         return getLeadingComments(path);
     }
 
-    private String getLeadingComments(Collection<Integer> path) {
+    private Optional<String> getLeadingComments(Collection<Integer> path) {
         if (!failureMetadata.getFileDescriptor()
                             .hasSourceCodeInfo()) {
             throw new IllegalStateException("Source code info should be enabled");
         }
 
         final Location location = getLocation(path);
-        return location != null && location.hasLeadingComments()
-               ? location.getLeadingComments()
-               : null;
+        return Optional.fromNullable(location.getLeadingComments());
     }
 
     /**
@@ -206,7 +205,7 @@ public class FailureJavadocGenerator {
             }
         }
 
-        return null;
+        throw new IllegalStateException("The path should be valid.");
     }
 
     private int getMaxFieldNameLength() {
