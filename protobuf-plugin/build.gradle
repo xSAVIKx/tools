@@ -18,7 +18,7 @@ dependencies {
     compile project(path: ":common")
 
     // "tools.jar" contains Javadoc classes used in the failures Javadoc generation tests.
-    // As "Maven" does not contains this artifact, the only way is to use locally stored version.
+    // Because "tools.jar" is a part of a JDK, the only way is to use local version.
     // "JAVA_HOME" environment variable should be set for correct work.
     testCompile files("${System.properties['java.home']}/../lib/tools.jar")
 }
