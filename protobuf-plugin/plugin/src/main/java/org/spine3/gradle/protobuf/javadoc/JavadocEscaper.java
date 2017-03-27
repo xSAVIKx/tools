@@ -44,14 +44,15 @@ public class JavadocEscaper {
     /**
      * Escapes the {@link EscapedStrings} from a Javadoc text.
      *
+     * <p>If a Javadoc text starts with a slash, it will be interpreted like a comment ending.
+     * To handle this case, we should add "*" before a Javadoc text.
+     *
      * @param javadocText the unescaped Javadoc text
      * @return the escaped Javadoc text
      */
     public static String escape(String javadocText) {
         final StringBuilder escapedJavadocBuilder = new StringBuilder(javadocText.length() * 2);
 
-        // If a Javadoc text starts with a slash, it will be interpreted like a comment ending.
-        // To handle this case, we should add "*" before.
         String unescapedPart = '*' + javadocText;
         while (!unescapedPart.isEmpty()) {
             final EscapedStrings escapedString = fromBeginningOf(unescapedPart);
