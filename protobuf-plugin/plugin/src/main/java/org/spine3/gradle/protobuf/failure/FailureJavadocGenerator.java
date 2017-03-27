@@ -206,7 +206,7 @@ public class FailureJavadocGenerator {
             }
         }
 
-        throw new IllegalStateException("The failure file must contains the failure.");
+        throw new IllegalStateException("The failure file should contain the failure.");
     }
 
     private int getFieldIndex(FieldDescriptorProto field) {
