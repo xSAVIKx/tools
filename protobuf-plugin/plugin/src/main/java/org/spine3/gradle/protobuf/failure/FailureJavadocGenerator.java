@@ -22,9 +22,7 @@ package org.spine3.gradle.protobuf.failure;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
@@ -37,7 +35,11 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * A generator for the failure Javadocs content.
@@ -109,20 +111,21 @@ public class FailureJavadocGenerator {
      */
     public String generateConstructorJavadoc() {
         final StringBuilder builder = new StringBuilder("Creates a new instance.");
-        final int maxFieldLength = getMaxFieldNameLength();
+        final Map<FieldDescriptorProto, String> commentedFields = getCommentedFields();
 
-        builder.append(LINE_SEPARATOR)
-               .append(LINE_SEPARATOR);
-        for (FieldDescriptorProto field : failureMetadata.getDescriptor()
-                                                         .getFieldList()) {
-            final Optional<String> leadingComments = getFieldLeadingComments(field);
-            final String fieldName = field.getName();
-            final int commentOffset = maxFieldLength - fieldName.length() + 1;
-            if (leadingComments.isPresent()) {
+        if (!commentedFields.isEmpty()) {
+            int maxFieldLength = getMaxFieldNameLength(commentedFields.keySet());
+
+            builder.append(LINE_SEPARATOR)
+                   .append(LINE_SEPARATOR);
+            for (Entry<FieldDescriptorProto, String> commentedField : commentedFields.entrySet()) {
+                final String fieldName = commentedField.getKey()
+                                                       .getName();
+                final int commentOffset = maxFieldLength - fieldName.length() + 1;
                 builder.append("@param ")
                        .append(fieldName)
                        .append(Strings.repeat(" ", commentOffset))
-                       .append(JavadocEscaper.escape(leadingComments.get()));
+                       .append(JavadocEscaper.escape(commentedField.getValue()));
             }
         }
 
@@ -231,11 +234,31 @@ public class FailureJavadocGenerator {
     }
 
     /**
-     * Returns max field name length among the fields with a leading comments.
+     * Returns ordered field-to-comment map.
      *
-     * @return the name length
+     * @return the commented fields
      */
-    private int getMaxFieldNameLength() {
+    private Map<FieldDescriptorProto, String> getCommentedFields() {
+        final Map<FieldDescriptorProto, String> commentedFields = new LinkedHashMap<>();
+
+        for (FieldDescriptorProto field : failureMetadata.getDescriptor()
+                                                         .getFieldList()) {
+            final Optional<String> leadingComments = getFieldLeadingComments(field);
+            if (leadingComments.isPresent()) {
+                commentedFields.put(field, leadingComments.get());
+            }
+        }
+
+        return commentedFields;
+    }
+
+    /**
+     * Returns a max field name length among the non-empty fields collection.
+     *
+     * @param fields the non-empty fields collection
+     * @return the max name length
+     */
+    private static int getMaxFieldNameLength(Iterable<FieldDescriptorProto> fields) {
         final Ordering<FieldDescriptorProto> ordering = new Ordering<FieldDescriptorProto>() {
             @SuppressWarnings("ConstantConditions") // getName() never returns null.
             @Override
@@ -246,18 +269,7 @@ public class FailureJavadocGenerator {
             }
         };
 
-        final Predicate<FieldDescriptorProto> hasLeadingComment =
-                new Predicate<FieldDescriptorProto>() {
-                    @Override
-                    public boolean apply(@Nullable FieldDescriptorProto input) {
-                        return getFieldLeadingComments(input).isPresent();
-                    }
-                };
-
-        final Iterable<FieldDescriptorProto> fieldsWithComment =
-                Iterables.filter(failureMetadata.getDescriptor()
-                                                .getFieldList(), hasLeadingComment);
-        final FieldDescriptorProto longestNameField = ordering.max(fieldsWithComment);
+        final FieldDescriptorProto longestNameField = ordering.max(fields);
         return longestNameField.getName()
                                .length();
     }
