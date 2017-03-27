@@ -109,7 +109,7 @@ public class FieldTypeFactory {
                 || field.getType() == Type.TYPE_ENUM) {
             String typeName = field.getTypeName();
             // it has a redundant dot in the beginning
-            if (typeName.startsWith(".")) {
+            if (typeName.charAt(0) == '.') {
                 typeName = typeName.substring(1);
             }
             return messageTypeMap.get(typeName);
