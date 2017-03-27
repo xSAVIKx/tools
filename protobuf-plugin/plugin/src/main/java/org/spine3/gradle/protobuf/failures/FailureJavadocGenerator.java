@@ -143,7 +143,9 @@ public class FailureJavadocGenerator {
         }
 
         final Location location = getLocation(path);
-        return Optional.fromNullable(location.getLeadingComments());
+        return location.hasLeadingComments()
+               ? Optional.of(location.getLeadingComments())
+               : Optional.<String>absent();
     }
 
     /**
