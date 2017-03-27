@@ -144,6 +144,10 @@ class Given {
         }
     }
 
+    /**
+     * Abstract base for configuring a {@linkplain TemporaryFolder test project directory}
+     * and receiving {@link ProjectConnection}.
+     */
     abstract static class ProjectConfigurer {
 
         private static final String BUILD_GRADLE_NAME = "build.gradle";
