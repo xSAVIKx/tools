@@ -22,7 +22,9 @@ package org.spine3.gradle.protobuf.failure;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
@@ -228,6 +230,11 @@ public class FailureJavadocGenerator {
         throw new IllegalStateException("The path should be valid.");
     }
 
+    /**
+     * Returns max field name length among the fields with a leading comments.
+     *
+     * @return the name length
+     */
     private int getMaxFieldNameLength() {
         final Ordering<FieldDescriptorProto> ordering = new Ordering<FieldDescriptorProto>() {
             @SuppressWarnings("ConstantConditions") // getName() never returns null.
@@ -238,8 +245,19 @@ public class FailureJavadocGenerator {
                                                         .length());
             }
         };
-        final FieldDescriptorProto longestNameField = ordering.max(failureMetadata.getDescriptor()
-                                                                                  .getFieldList());
+
+        final Predicate<FieldDescriptorProto> hasLeadingComment =
+                new Predicate<FieldDescriptorProto>() {
+                    @Override
+                    public boolean apply(@Nullable FieldDescriptorProto input) {
+                        return getFieldLeadingComments(input).isPresent();
+                    }
+                };
+
+        final Iterable<FieldDescriptorProto> fieldsWithComment =
+                Iterables.filter(failureMetadata.getDescriptor()
+                                                .getFieldList(), hasLeadingComment);
+        final FieldDescriptorProto longestNameField = ordering.max(fieldsWithComment);
         return longestNameField.getName()
                                .length();
     }

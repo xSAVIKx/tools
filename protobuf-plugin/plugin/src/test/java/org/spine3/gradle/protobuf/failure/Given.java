@@ -114,6 +114,8 @@ class Given {
 
                     "//" + SECOND_FIELD_COMMENT,
                     "string " + SECOND_FIELD_NAME + " = 2;",
+
+                    "bool hasNoComment = 3;",
                     "}"
 
             );
