@@ -23,4 +23,7 @@
  *
  * @author Alex Tymchenko
  */
+@ParametersAreNonnullByDefault
 package org.spine3.gradle.protobuf.failure;
+
+import javax.annotation.ParametersAreNonnullByDefault;
