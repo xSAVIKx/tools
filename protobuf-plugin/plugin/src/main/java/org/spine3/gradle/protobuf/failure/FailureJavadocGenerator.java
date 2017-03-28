@@ -253,7 +253,8 @@ public class FailureJavadocGenerator {
     }
 
     /**
-     * Returns ordered field-to-comment map.
+     * Returns field-to-comment map in order of {@linkplain FieldDescriptorProto fields}
+     * declaration in the failure.
      *
      * @return the commented fields
      */
