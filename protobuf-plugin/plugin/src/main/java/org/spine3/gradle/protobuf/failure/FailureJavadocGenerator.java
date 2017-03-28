@@ -217,7 +217,12 @@ public class FailureJavadocGenerator {
             }
         }
 
-        throw new IllegalStateException("The failure file should contain the failure.");
+        final String exceptionMessage = "The failure file \"%s\" should contain \"%s\" failure.";
+        throw new IllegalStateException(String.format(exceptionMessage,
+                                                      failureMetadata.getFileDescriptor()
+                                                                     .getName(),
+                                                      failureMetadata.getDescriptor()
+                                                                     .getName()));
     }
 
     private int getFieldIndex(FieldDescriptorProto field) {
@@ -236,7 +241,9 @@ public class FailureJavadocGenerator {
             }
         }
 
-        throw new IllegalStateException("The path should be valid.");
+        throw new IllegalStateException(String.format("The path %s should be present in \"%s\".",
+                                                      path, failureMetadata.getFileDescriptor()
+                                                                           .getName()));
     }
 
     /**
