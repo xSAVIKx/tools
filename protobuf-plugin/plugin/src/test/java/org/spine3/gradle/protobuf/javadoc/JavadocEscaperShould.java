@@ -47,7 +47,8 @@ public class JavadocEscaperShould {
 
     @Test
     public void escape_slash_in_beginning() {
-        assertEquals("&#47;", escape("/"));
+        final String remainingJavadoc = "ABC";
+        assertEquals("&#47;" + remainingJavadoc, escape('/' + remainingJavadoc));
     }
 
     @Test
