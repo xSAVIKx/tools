@@ -39,7 +39,7 @@ public class RootDocReceiver extends Standard {
 
     /**
      * Should be received only by {@link #getRootDoc(TemporaryFolder, String)} call,
-     * that guarantee proper initialization.
+     * that guarantees proper initialization.
      */
     @SuppressWarnings("StaticVariableMayNotBeInitialized")
     private static RootDoc rootDoc;
@@ -72,8 +72,7 @@ public class RootDocReceiver extends Standard {
     /**
      * Receives the {@link RootDoc} and initializes {@link #rootDoc}.
      *
-     * <p>Because used just to receive {@link RootDoc}, returns {@code true} anyway,
-     * that signals, that the doclet ran without encountering any errors.
+     * <p>Always returns {@code true} to let the doclet processor know there were no issues.
      *
      * <p>Called by {@link Main#execute(String, String, String...)}
      *
