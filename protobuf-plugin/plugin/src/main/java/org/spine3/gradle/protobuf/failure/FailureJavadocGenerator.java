@@ -145,7 +145,7 @@ public class FailureJavadocGenerator {
     /**
      * Returns the failure leading comments.
      *
-     * @return the failure leading comments or empty {@code Optional} if no leading comments
+     * @return the failure leading comments or empty {@code Optional} if there are no such comments
      */
     private Optional<String> getFailureLeadingComments() {
         final Collection<Integer> path = getMessageLocationPath();
@@ -154,6 +154,9 @@ public class FailureJavadocGenerator {
 
     /**
      * Obtains a leading comments by the path.
+     *
+     * <p>A path is a {@linkplain Location#getPathList() list of integers},
+     * that used to identify a {@link Location} in a ".proto" file.
      *
      * @param path the leading comments path
      * @return the leading comments or empty {@code Optional} if no leading comments
@@ -173,9 +176,12 @@ public class FailureJavadocGenerator {
     /**
      * Returns the message location path for a top-level message definition.
      *
-     * <p>Path for nested messages formed in different way.
+     * <p>Path for nested messages additionally includes
+     * {@linkplain com.google.protobuf.Descriptors.Descriptor#getContainingType()
+     * containing type} path.
      *
      * @return the message location path
+     * @see #getLeadingComments(Collection)
      */
     private Collection<Integer> getMessageLocationPath() {
         return Arrays.asList(
@@ -191,6 +197,7 @@ public class FailureJavadocGenerator {
      *
      * @param field the field to get location path
      * @return the field location path
+     * @see #getLeadingComments(Collection)
      */
     private Collection<Integer> getFieldLocationPath(FieldDescriptorProto field) {
         final Collection<Integer> path = new ArrayList<>();
