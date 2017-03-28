@@ -22,7 +22,6 @@ package org.spine3.gradle.protobuf.failure;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
