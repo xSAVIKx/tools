@@ -135,7 +135,7 @@ public class FailureJavadocGenerator {
      * Returns the failure field leading comments.
      *
      * @param field the failure field
-     * @return the field leading comments or empty {@code Optional} if no leading comments
+     * @return the field leading comments or empty {@code Optional} if there are no such comments
      */
     private Optional<String> getFieldLeadingComments(FieldDescriptorProto field) {
         final Collection<Integer> fieldPath = getFieldLocationPath(field);
@@ -159,7 +159,7 @@ public class FailureJavadocGenerator {
      * that used to identify a {@link Location} in a ".proto" file.
      *
      * @param path the leading comments path
-     * @return the leading comments or empty {@code Optional} if no leading comments
+     * @return the leading comments or empty {@code Optional} if there are no such comments
      */
     private Optional<String> getLeadingComments(Collection<Integer> path) {
         if (!failureMetadata.getFileDescriptor()
@@ -231,6 +231,12 @@ public class FailureJavadocGenerator {
                               .indexOf(field);
     }
 
+    /**
+     * Returns the {@link Location} for the {@linkplain Location#getPathList() path}.
+     *
+     * @param path the location path
+     * @return the location for the path
+     */
     private Location getLocation(Collection<Integer> path) {
         for (Location location : failureMetadata.getFileDescriptor()
                                                 .getSourceCodeInfo()
