@@ -19,34 +19,45 @@
  */
 package org.spine3.gradle.protobuf.failure.fieldtype;
 
+import com.google.common.base.Optional;
+
 /**
  * Enumeration of the java primitives, which
  * can be received from proto message.
  */
-enum ProtoPrimitives {
-    INT("int"),
-    LONG("long"),
-    FLOAT("float"),
-    DOUBLE("double"),
-    BOOLEAN("boolean");
+enum ProtoPrimitive {
+    INT("int", Integer.class),
+    LONG("long", Long.class),
+    FLOAT("float", Float.class),
+    DOUBLE("double", Double.class),
+    BOOLEAN("boolean", Boolean.class);
 
-    private final String name;
+    private final String primitiveName;
+    private final Class<?> primitiveWrapper;
 
-    ProtoPrimitives(String name) {
-        this.name = name;
+    ProtoPrimitive(String primitiveName, Class<?> primitiveWrapper) {
+        this.primitiveName = primitiveName;
+        this.primitiveWrapper = primitiveWrapper;
     }
 
-    public String getName() {
-        return name;
+    public String getPrimitiveName() {
+        return primitiveName;
     }
 
-    public static boolean isProtoPrimitive(String name) {
-        for (ProtoPrimitives primitive : ProtoPrimitives.values()) {
-            if (name.equals(primitive.getName())) {
-                return true;
+    /**
+     * Returns the wrapper {@link Class} for the primitive name.
+     *
+     * @param primitiveName the primitive name
+     * @return the wrapped proto primitive class
+     * or empty {@code Optional} if there are no corresponding primitive
+     */
+    public static Optional<? extends Class<?>> getWrappedProtoPrimitive(String primitiveName) {
+        for (ProtoPrimitive primitive : ProtoPrimitive.values()) {
+            if (primitiveName.equals(primitive.primitiveName)) {
+                return Optional.of(primitive.primitiveWrapper);
             }
         }
 
-        return false;
+        return Optional.absent();
     }
 }
