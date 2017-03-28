@@ -20,15 +20,15 @@
 
 syntax = "proto3";
 
-package spine.examples.todolist;
+package spine.samples;
 
-option java_package = "org.spine3.examples.todolist.c.commands";
+option java_package = "org.spine3.samples.c.commands";
 option java_outer_classname = "CommandsProto";
 option java_multiple_files = true;
 option java_generate_equals_and_hash = true;
 
-import "todolist/identifiers.proto";
-import "todolist/changes.proto";
+import "identifiers.proto";
+import "changes.proto";
 
 // An attempt to create a task in a "Quick" mode.
 //
@@ -65,8 +65,8 @@ message UpdateTaskDescription {
     // An identifier of the target task.
     TaskId id = 1;
 
-    // The label details change.
-    // Contains the previous label details and the label details to set for the target label.
+    // The description change.
+    // Contains the previous description and the description to set for the target task.
     map<string, DescriptionChange> description_changes = 2;
 
     // Reserved for future extension.
@@ -82,7 +82,7 @@ message UpdateLabelDetails {
 
     // The label details change.
     // Contains the previous label details and the label details to set for the target label.
-   LabelDetailsChange label_details_changes = 2;
+    LabelDetailsChange label_details_changes = 2;
 
     // Reserved for future extension.
     reserved 3 to 10;

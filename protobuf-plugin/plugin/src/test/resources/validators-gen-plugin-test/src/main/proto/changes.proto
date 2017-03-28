@@ -20,57 +20,48 @@
 
 syntax = "proto3";
 
-package spine.examples.todolist;
+package spine.samples;
 
-option java_package = "org.spine3.examples.todolist";
-option java_outer_classname = "AttributesProto";
+option java_package = "org.spine3.samples";
+option java_outer_classname = "ChangesProto";
 option java_multiple_files = true;
 option java_generate_equals_and_hash = true;
 
-// Variety of choices used for `TaskLabel` coloring.
-//
-enum LabelColor {
+import "spine/annotations.proto";
+import "spine/validate.proto";
+import "attributes.proto";
 
-    // Used as an undefined value marker.
-    LC_UNDEFINED = 0;
+// Definition of a change in a label details field.
+message LabelDetailsChange {
 
-    RED = 1;
+    // The value of the label details that's changing.
+    LabelDetails previous_details = 1;
 
-    GREEN = 2;
+    // The new value of the label details.
+    LabelDetails new_details = 2;
 
-    BLUE = 3;
-
-    GRAY = 4;
+    repeated LabelDetails details = 3;
 }
 
-// Task priority values.
-//
-enum TaskPriority {
+// Definition of a change in a task desciption field.
+message DescriptionChange {
 
-    // Used as an undefined value marker.
-    TP_UNDEFINED = 0;
+    // The value of the task description that's changing.
+    string previous_value = 1;
 
-    HIGH = 1;
-
-    NORMAL = 2;
-
-    LOW = 3;
+    // The new value of the task description.
+    string new_value = 2[(pattern).regex = "a-z{1}"];
 }
 
-// Variety of possible statuses for `Task`
+// DTO for the label details.
 //
-enum TaskStatus {
+// Wrapped by several events to transfer the label data.
+//
+message LabelDetails {
 
-    // Used as an undefined value marker
-    TS_UNDEFINED = 0;
+    // Label title.
+    string title = 1;
 
-    DRAFT = 1;
-
-    FINALIZED = 2;
-
-    OPEN = 3;
-
-    COMPLETED = 4;
-
-    DELETED = 5;
+    // Label color.
+    LabelColor color = 2;
 }
