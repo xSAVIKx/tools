@@ -33,14 +33,13 @@ import org.spine3.gradle.protobuf.javadoc.JavadocEscaper;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
 /**
  * A generator for the failure Javadocs content.
@@ -140,7 +139,7 @@ public class FailureJavadocGenerator {
      * @return the field leading comments or empty {@code Optional} if there are no such comments
      */
     private Optional<String> getFieldLeadingComments(FieldDescriptorProto field) {
-        final Collection<Integer> fieldPath = getFieldLocationPath(field);
+        final LocationPath fieldPath = getFieldLocationPath(field);
         return getLeadingComments(fieldPath);
     }
 
@@ -150,26 +149,23 @@ public class FailureJavadocGenerator {
      * @return the failure leading comments or empty {@code Optional} if there are no such comments
      */
     private Optional<String> getFailureLeadingComments() {
-        final Collection<Integer> path = getMessageLocationPath();
-        return getLeadingComments(path);
+        final LocationPath messagePath = getMessageLocationPath();
+        return getLeadingComments(messagePath);
     }
 
     /**
-     * Obtains a leading comments by the path.
+     * Obtains a leading comments by the {@link LocationPath}.
      *
-     * <p>A path is a {@linkplain Location#getPathList() list of integers},
-     * that used to identify a {@link Location} in a ".proto" file.
-     *
-     * @param path the leading comments path
+     * @param locationPath the location path to get leading comments
      * @return the leading comments or empty {@code Optional} if there are no such comments
      */
-    private Optional<String> getLeadingComments(Collection<Integer> path) {
+    private Optional<String> getLeadingComments(LocationPath locationPath) {
         if (!failureMetadata.getFileDescriptor()
                             .hasSourceCodeInfo()) {
             throw new IllegalStateException("Source code info should be enabled");
         }
 
-        final Location location = getLocation(path);
+        final Location location = getLocation(locationPath);
         return location.hasLeadingComments()
                ? Optional.of(location.getLeadingComments())
                : Optional.<String>absent();
@@ -180,34 +176,33 @@ public class FailureJavadocGenerator {
      *
      * <p>Path for nested messages additionally includes
      * {@linkplain com.google.protobuf.Descriptors.Descriptor#getContainingType()
-     * containing type} path.
+     * containing type} location path.
      *
      * @return the message location path
-     * @see #getLeadingComments(Collection)
      */
-    private Collection<Integer> getMessageLocationPath() {
-        return Arrays.asList(
-                FileDescriptorProto.MESSAGE_TYPE_FIELD_NUMBER,
-                getTopLevelMessageIndex()
+    private LocationPath getMessageLocationPath() {
+        return new LocationPath(
+                Arrays.asList(
+                        FileDescriptorProto.MESSAGE_TYPE_FIELD_NUMBER,
+                        getTopLevelMessageIndex())
         );
     }
 
     /**
-     * Returns the field location path.
+     * Returns the field {@link LocationPath}.
      *
      * <p>Protobuf extensions are not supported.
      *
      * @param field the field to get location path
      * @return the field location path
-     * @see #getLeadingComments(Collection)
      */
-    private Collection<Integer> getFieldLocationPath(FieldDescriptorProto field) {
-        final Collection<Integer> path = new LinkedList<>();
+    private LocationPath getFieldLocationPath(FieldDescriptorProto field) {
+        final LocationPath locationPath = new LocationPath();
 
-        path.addAll(getMessageLocationPath());
-        path.add(DescriptorProto.FIELD_FIELD_NUMBER);
-        path.add(getFieldIndex(field));
-        return path;
+        locationPath.addAll(getMessageLocationPath());
+        locationPath.add(DescriptorProto.FIELD_FIELD_NUMBER);
+        locationPath.add(getFieldIndex(field));
+        return locationPath;
     }
 
     private int getTopLevelMessageIndex() {
@@ -219,12 +214,12 @@ public class FailureJavadocGenerator {
             }
         }
 
-        final String exceptionMessage = "The failure file \"%s\" should contain \"%s\" failure.";
-        throw new IllegalStateException(String.format(exceptionMessage,
-                                                      failureMetadata.getFileDescriptor()
-                                                                     .getName(),
-                                                      failureMetadata.getDescriptor()
-                                                                     .getName()));
+        final String msg = format("The failure file \"%s\" should contain \"%s\" failure.",
+                                  failureMetadata.getFileDescriptor()
+                                                 .getName(),
+                                  failureMetadata.getDescriptor()
+                                                 .getName());
+        throw new IllegalStateException(msg);
     }
 
     private int getFieldIndex(FieldDescriptorProto field) {
@@ -234,24 +229,26 @@ public class FailureJavadocGenerator {
     }
 
     /**
-     * Returns the {@link Location} for the {@linkplain Location#getPathList() path}.
+     * Returns the {@link Location} for the {@link LocationPath}.
      *
-     * @param path the location path
+     * @param locationPath the location path
      * @return the location for the path
      */
-    private Location getLocation(Collection<Integer> path) {
+    private Location getLocation(LocationPath locationPath) {
         for (Location location : failureMetadata.getFileDescriptor()
                                                 .getSourceCodeInfo()
                                                 .getLocationList()) {
             if (location.getPathList()
-                        .equals(path)) {
+                        .equals(locationPath.getPath())) {
                 return location;
             }
         }
 
-        throw new IllegalStateException(String.format("The path %s should be present in \"%s\".",
-                                                      path, failureMetadata.getFileDescriptor()
-                                                                           .getName()));
+        final String msg = format("The location with %s path should be present in \"%s\".",
+                                  locationPath,
+                                  failureMetadata.getFileDescriptor()
+                                                 .getName());
+        throw new IllegalStateException(msg);
     }
 
     /**
@@ -284,7 +281,8 @@ public class FailureJavadocGenerator {
     private static int getMaxFieldNameLength(Iterable<FieldDescriptorProto> fields) {
         final Ordering<FieldDescriptorProto> ordering = new Ordering<FieldDescriptorProto>() {
             @Override
-            public int compare(@Nullable FieldDescriptorProto left, @Nullable FieldDescriptorProto right) {
+            public int compare(@Nullable FieldDescriptorProto left,
+                               @Nullable FieldDescriptorProto right) {
                 checkNotNull(left);
                 checkNotNull(right);
 
