@@ -27,7 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Encapsulates a {@link DescriptorProtos.SourceCodeInfo.Location Location} path.
+ * Encapsulates a {@linkplain DescriptorProtos.SourceCodeInfo.Location#getPathList() location path}.
  *
  * <p>A location path represents {@linkplain DescriptorProtos.SourceCodeInfo.Location#getPathList()
  * list of integers}, that used to identify a {@link DescriptorProtos.SourceCodeInfo.Location}
