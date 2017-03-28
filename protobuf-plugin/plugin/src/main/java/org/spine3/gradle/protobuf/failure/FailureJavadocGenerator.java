@@ -22,6 +22,7 @@ package org.spine3.gradle.protobuf.failure;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
@@ -39,6 +40,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A generator for the failure Javadocs content.
@@ -281,9 +284,11 @@ public class FailureJavadocGenerator {
      */
     private static int getMaxFieldNameLength(Iterable<FieldDescriptorProto> fields) {
         final Ordering<FieldDescriptorProto> ordering = new Ordering<FieldDescriptorProto>() {
-            @SuppressWarnings("ConstantConditions") // getName() never returns null.
             @Override
             public int compare(@Nullable FieldDescriptorProto left, @Nullable FieldDescriptorProto right) {
+                checkNotNull(left);
+                checkNotNull(right);
+
                 return Ints.compare(left.getName()
                                         .length(), right.getName()
                                                         .length());
