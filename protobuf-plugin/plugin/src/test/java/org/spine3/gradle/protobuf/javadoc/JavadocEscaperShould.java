@@ -20,6 +20,7 @@
 
 package org.spine3.gradle.protobuf.javadoc;
 
+import com.google.common.testing.NullPointerTester;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -60,5 +61,13 @@ public class JavadocEscaperShould {
     public void escape_at_and_back_slash() {
         assertEquals(AT_MARK.getEscaped(), escape(AT_MARK.getUnescaped()));
         assertEquals(BACK_SLASH.getEscaped(), escape(BACK_SLASH.getUnescaped()));
+    }
+
+    @Test
+    public void pass_the_null_tolerance_check() {
+        final NullPointerTester nullPointerTester = new NullPointerTester();
+
+        nullPointerTester.testAllPublicStaticMethods(JavadocEscaper.class);
+        nullPointerTester.testAllPublicStaticMethods(JavadocEscaper.EscapeSequence.class);
     }
 }

@@ -20,6 +20,7 @@
 
 package org.spine3.gradle.protobuf.javadoc;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.spine3.gradle.protobuf.javadoc.JavadocEscaper.EscapeSequence.fromBeginningOf;
 
 /**
@@ -51,6 +52,7 @@ public class JavadocEscaper {
      * @return the escaped Javadoc text
      */
     public static String escape(String javadocText) {
+        checkNotNull(javadocText);
         final StringBuilder escapedJavadocBuilder = new StringBuilder(javadocText.length() * 2);
 
         final StringBuilder unescapedPartBuilder = new StringBuilder('*' + javadocText);
@@ -107,6 +109,8 @@ public class JavadocEscaper {
          * @return the {@link EscapeSequence} element
          */
         public static EscapeSequence fromBeginningOf(String javadocText) {
+            checkNotNull(javadocText);
+
             for (EscapeSequence escapedCharacter : values()) {
                 if (javadocText.startsWith(escapedCharacter.unescaped)) {
                     return escapedCharacter;

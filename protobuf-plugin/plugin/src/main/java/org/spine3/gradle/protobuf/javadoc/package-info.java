@@ -21,5 +21,7 @@
 /**
  * Utilities for working with Javadoc.
  */
+@ParametersAreNonnullByDefault
 package org.spine3.gradle.protobuf.javadoc;
 
+import javax.annotation.ParametersAreNonnullByDefault;
