@@ -42,6 +42,7 @@ class Given {
 
     private static final Class<Given> cls = Given.class;
 
+    // prevent instantiation of this utility class
     private Given() {
     }
 
@@ -95,11 +96,11 @@ class Given {
         @Override
         public ProjectConnection configure() throws IOException {
             writeBuildGradle();
-            writeTestSource();
+            writeFailureProto();
             return createProjectConnection();
         }
 
-        private void writeTestSource() throws IOException {
+        private void writeFailureProto() throws IOException {
             final Iterable<String> sourceLines = Arrays.asList(
                     "syntax = \"proto3\";",
                     "package spine.sample.failures;",
