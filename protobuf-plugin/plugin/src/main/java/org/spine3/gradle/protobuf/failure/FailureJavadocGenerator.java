@@ -32,10 +32,10 @@ import com.google.protobuf.DescriptorProtos.SourceCodeInfo.Location;
 import org.spine3.gradle.protobuf.javadoc.JavadocEscaper;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -202,7 +202,7 @@ public class FailureJavadocGenerator {
      * @see #getLeadingComments(Collection)
      */
     private Collection<Integer> getFieldLocationPath(FieldDescriptorProto field) {
-        final Collection<Integer> path = new ArrayList<>();
+        final Collection<Integer> path = new LinkedList<>();
 
         path.addAll(getMessageLocationPath());
         path.add(DescriptorProto.FIELD_FIELD_NUMBER);
