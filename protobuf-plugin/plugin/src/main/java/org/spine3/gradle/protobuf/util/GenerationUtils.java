@@ -21,7 +21,7 @@
 package org.spine3.gradle.protobuf.util;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.protobuf.DescriptorProtos;
+import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
 
 import java.util.Map;
@@ -97,11 +97,11 @@ public class GenerationUtils {
         return resultName;
     }
 
-    public static boolean isRepeated(DescriptorProtos.FieldDescriptorProto field) {
-        return field.getLabel() == DescriptorProtos.FieldDescriptorProto.Label.LABEL_REPEATED;
+    public static boolean isRepeated(FieldDescriptorProto field) {
+        return field.getLabel() == FieldDescriptorProto.Label.LABEL_REPEATED;
     }
 
-    public static boolean isMap(DescriptorProtos.FieldDescriptorProto field) {
+    public static boolean isMap(FieldDescriptorProto field) {
         return field.getTypeName()
                     .endsWith('.' + getEntryNameFor(field));
     }
@@ -116,7 +116,7 @@ public class GenerationUtils {
      * @param mapField the field to construct entry name
      * @return the name of the map field
      */
-    public static String getEntryNameFor(DescriptorProtos.FieldDescriptorProto mapField) {
+    public static String getEntryNameFor(FieldDescriptorProto mapField) {
         final String jsonName = mapField.getJsonName();
         final char capitalizedFirstSymbol = Character.toUpperCase(jsonName.charAt(0));
         final String remainingPart = jsonName.substring(1);
@@ -124,7 +124,7 @@ public class GenerationUtils {
         return capitalizedFirstSymbol + remainingPart + "Entry";
     }
 
-    public static boolean isMessage(DescriptorProtos.FieldDescriptorProto fieldDescriptor) {
+    public static boolean isMessage(FieldDescriptorProto fieldDescriptor) {
         return fieldDescriptor.getType() == Type.TYPE_MESSAGE;
     }
 
