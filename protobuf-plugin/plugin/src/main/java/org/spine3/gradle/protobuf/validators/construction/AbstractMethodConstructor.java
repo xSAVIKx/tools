@@ -33,6 +33,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.getJavaFieldName;
 
 /**
+ * The abstract base for all method constructors.
+ *
  * @author Illia Shepilov
  */
 abstract class AbstractMethodConstructor {
@@ -48,6 +50,11 @@ abstract class AbstractMethodConstructor {
     static final String THIS_POINTER = "this.";
     static final String ADD_ALL_CONVERTED_VALUE = ".addAll(convertedValue)";
 
+    /**
+     * Constructs the methods for the validators.
+     *
+     * @return constructed methods
+     */
     abstract Collection<MethodSpec> construct();
 
     static String createDescriptorCodeLine(int index, ClassName genericClassName) {
@@ -80,7 +87,10 @@ abstract class AbstractMethodConstructor {
         return createGetConvertedSingularValue(VALUE);
     }
 
-    abstract static class MethodConstructorBuilder {
+    /**
+     * An abstract base for the method constructor builders.
+     */
+    abstract static class AbstractMethodConstructorBuilder {
 
         private int fieldIndex;
         private String javaClass;
@@ -90,44 +100,49 @@ abstract class AbstractMethodConstructor {
         private FieldDescriptorProto fieldDescriptor;
         private FieldType fieldType;
 
+        /**
+         * Builds a method constructor for the specified field.
+         *
+         * @return built method constructor
+         */
         abstract AbstractMethodConstructor build();
 
-        MethodConstructorBuilder setFieldIndex(int fieldIndex) {
+        AbstractMethodConstructorBuilder setFieldIndex(int fieldIndex) {
             checkArgument(fieldIndex >= 0);
             this.fieldIndex = fieldIndex;
             return this;
         }
 
-        MethodConstructorBuilder setJavaPackage(String javaPackage) {
+        AbstractMethodConstructorBuilder setJavaPackage(String javaPackage) {
             checkNotNull(javaPackage);
             this.javaPackage = javaPackage;
             return this;
         }
 
-        MethodConstructorBuilder setJavaClass(String javaClass) {
+        AbstractMethodConstructorBuilder setJavaClass(String javaClass) {
             checkNotNull(javaClass);
             this.javaClass = javaClass;
             return this;
         }
 
-        MethodConstructorBuilder setMessageTypeCache(MessageTypeCache messageTypeCache) {
+        AbstractMethodConstructorBuilder setMessageTypeCache(MessageTypeCache messageTypeCache) {
             checkNotNull(messageTypeCache);
             this.messageTypeCache = messageTypeCache;
             return this;
         }
 
-        MethodConstructorBuilder setFieldDescriptor(FieldDescriptorProto fieldDescriptor) {
+        AbstractMethodConstructorBuilder setFieldDescriptor(FieldDescriptorProto fieldDescriptor) {
             checkNotNull(fieldDescriptor);
             this.fieldDescriptor = fieldDescriptor;
             return this;
         }
 
-        MethodConstructorBuilder setBuilderGenericClassName(ClassName genericClassName) {
+        AbstractMethodConstructorBuilder setBuilderGenericClassName(ClassName genericClassName) {
             this.genericClassName = genericClassName;
             return this;
         }
 
-        MethodConstructorBuilder setFieldType(FieldType fieldType) {
+        AbstractMethodConstructorBuilder setFieldType(FieldType fieldType) {
             this.fieldType = fieldType;
             return this;
         }
@@ -160,6 +175,12 @@ abstract class AbstractMethodConstructor {
             return fieldType;
         }
 
+        /**
+         * Checks the builder fields.
+         *
+         * <p>Call of that method should be used inside the {@code #build()} method
+         * before the building of the method constructor.
+         */
         void checkFields() {
             checkNotNull(javaClass);
             checkNotNull(javaPackage);

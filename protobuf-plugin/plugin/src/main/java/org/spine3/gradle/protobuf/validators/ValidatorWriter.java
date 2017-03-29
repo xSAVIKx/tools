@@ -42,7 +42,7 @@ import java.io.IOException;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatorGenericClassName;
 
 /**
- * Class, which writes Validator java code, based on it's descriptor.
+ * Class which writes generated validators to the Java files.
  *
  * @author Illia Shepilov
  */
@@ -71,6 +71,9 @@ class ValidatorWriter {
         this.fieldConstructor = new FieldConstructor(messageTypeCache, descriptor);
     }
 
+    /**
+     * Writes the generated validator to the Java file.
+     */
     void write() {
         log().debug(String.format("Writing the %s class under the %s package", javaClass, javaPackage));
         final File rootDirectory = new File(targetDir);

@@ -51,45 +51,54 @@ import static org.spine3.gradle.protobuf.Extension.getMainDescriptorSetPath;
 import static org.spine3.gradle.protobuf.Extension.getTargetGenValidatorsRootDir;
 import static org.spine3.gradle.protobuf.Extension.getTargetTestGenValidatorsRootDir;
 import static org.spine3.gradle.protobuf.Extension.getTestDescriptorSetPath;
+import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.getMessageName;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.isMap;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.isMessage;
-import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors;
 
 /**
- * Plugin which generates ValidationBuilders, based on commands.proto files.
+ * Plugin which generates validator builders, based on commands.proto files.
  *
  * @author Illia Shepilov
  */
 public class ValidatorsGenPlugin extends SpinePlugin {
 
+    private static final String JAVA_CLASS_NAME_SUFFIX = "Validator";
+
+    /** A map from Protobuf type name to Protobuf DescriptorProto. **/
     private final Map<String, DescriptorProto> allMessageDescriptors = newHashMap();
+
+    /** A map from Protobuf type name to Protobuf FileDescriptorProto. **/
     private final FileDescriptorCache descriptorCache = FileDescriptorCache.getInstance();
 
     /** A map from Protobuf type name to Java class FQN. */
     private final MessageTypeCache messageTypeCache = new MessageTypeCache();
-    private static final String JAVA_CLASS_NAME_SUFFIX = "Validator";
 
     @Override
     public void apply(Project project) {
         log().debug("Preparing to generate validating builders");
         final Action<Task> mainScopeAction =
-                createAction(getMainDescriptorSetPath(project), getTargetGenValidatorsRootDir(project));
+                createAction(getMainDescriptorSetPath(project),
+                             getTargetGenValidatorsRootDir(project));
 
         logDependingTask(log(), GENERATE_VALIDATING_BUILDERS, COMPILE_JAVA, GENERATE_PROTO);
         final GradleTask generateValidator =
-                newTask(GENERATE_VALIDATING_BUILDERS, mainScopeAction).insertAfterTask(GENERATE_PROTO)
-                                                                      .insertBeforeTask(COMPILE_JAVA)
-                                                                      .applyNowTo(project);
+                newTask(GENERATE_VALIDATING_BUILDERS,
+                        mainScopeAction).insertAfterTask(GENERATE_PROTO)
+                                        .insertBeforeTask(COMPILE_JAVA)
+                                        .applyNowTo(project);
         log().debug("Preparing to generate test validating builders");
         final Action<Task> testScopeAction =
-                createAction(getTestDescriptorSetPath(project), getTargetTestGenValidatorsRootDir(project));
+                createAction(getTestDescriptorSetPath(project),
+                             getTargetTestGenValidatorsRootDir(project));
 
-        logDependingTask(log(), GENERATE_TEST_VALIDATING_BUILDERS, COMPILE_TEST_JAVA, GENERATE_TEST_PROTO);
+        logDependingTask(log(), GENERATE_TEST_VALIDATING_BUILDERS,
+                         COMPILE_TEST_JAVA, GENERATE_TEST_PROTO);
         final GradleTask generateTestValidator =
-                newTask(GENERATE_TEST_VALIDATING_BUILDERS, testScopeAction).insertAfterTask(GENERATE_TEST_PROTO)
-                                                                           .insertBeforeTask(COMPILE_TEST_JAVA)
-                                                                           .applyNowTo(project);
+                newTask(GENERATE_TEST_VALIDATING_BUILDERS,
+                        testScopeAction).insertAfterTask(GENERATE_TEST_PROTO)
+                                        .insertBeforeTask(COMPILE_TEST_JAVA)
+                                        .applyNowTo(project);
         log().debug("Validating builders generation phase initialized with tasks: {}, {}",
                     generateValidator,
                     generateTestValidator);
@@ -117,33 +126,39 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return result;
     }
 
-    private Set<ValidatorMetadata> obtainFileMetadataValidators(Iterable<FileDescriptorProto> fileDescriptors) {
+    private Set<ValidatorMetadata> obtainFileMetadataValidators(
+            Iterable<FileDescriptorProto> fileDescriptors) {
         log().debug("Obtaining the metadata for the command validators");
         final Set<ValidatorMetadata> result = newHashSet();
         for (FileDescriptorProto file : fileDescriptors) {
             final List<DescriptorProto> fieldDescriptors = file.getMessageTypeList();
-            final Set<ValidatorMetadata> metadataSet = constructMessageFieldMetadata(fieldDescriptors);
+            final Set<ValidatorMetadata> metadataSet =
+                    constructMessageFieldMetadata(fieldDescriptors);
             result.addAll(metadataSet);
         }
         log().debug("The metadata is obtained.");
         return result;
     }
 
-    private Set<ValidatorMetadata> obtainAllMetadataValidators(Iterable<ValidatorMetadata> metadataSet) {
-        log().debug("Obtaining the metadata for the validators, which will be constructed for the command fields");
+    private Set<ValidatorMetadata> obtainAllMetadataValidators(
+            Iterable<ValidatorMetadata> metadataSet) {
+        log().debug("Obtaining the metadata for the validators, " +
+                            "which will be constructed for the command fields");
         final Set<ValidatorMetadata> result = newHashSet();
         for (ValidatorMetadata metadata : metadataSet) {
             final DescriptorProto msgDescriptor = metadata.getMsgDescriptor();
             final List<DescriptorProto> descriptors = getFiledDescriptors(msgDescriptor);
             result.add(metadata);
-            final Set<ValidatorMetadata> fieldMetadataSet = constructMessageFieldMetadata(descriptors);
+            final Set<ValidatorMetadata> fieldMetadataSet =
+                    constructMessageFieldMetadata(descriptors);
             result.addAll(fieldMetadataSet);
         }
         log().debug("The metadata for the field validators is obtained.");
         return result;
     }
 
-    private Set<ValidatorMetadata> constructMessageFieldMetadata(Iterable<DescriptorProto> descriptors) {
+    private Set<ValidatorMetadata> constructMessageFieldMetadata(
+            Iterable<DescriptorProto> descriptors) {
         final Set<ValidatorMetadata> result = newHashSet();
         for (DescriptorProto descriptorMsg : descriptors) {
             final ValidatorMetadata metadata = createMetadata(descriptorMsg);
@@ -155,11 +170,10 @@ public class ValidatorsGenPlugin extends SpinePlugin {
     private ValidatorMetadata createMetadata(DescriptorProto msgDescriptor) {
         final String className = msgDescriptor.getName() + JAVA_CLASS_NAME_SUFFIX;
         final String javaPackage = descriptorCache.getJavaPackageFor(msgDescriptor.getName());
-        final ValidatorMetadata result = new ValidatorMetadata(javaPackage, className, msgDescriptor);
+        final ValidatorMetadata result =
+                new ValidatorMetadata(javaPackage, className, msgDescriptor);
         return result;
     }
-
-
 
     private List<DescriptorProto> getFiledDescriptors(DescriptorProto msgDescriptor) {
         final List<FieldDescriptorProto> fieldDescriptors = msgDescriptor.getFieldList();
@@ -215,9 +229,9 @@ public class ValidatorsGenPlugin extends SpinePlugin {
     }
 
     private void constructAllMessageDesriptorsMap(FileDescriptorProtoOrBuilder file) {
-        List<DescriptorProto> messages = file.getMessageTypeList();
-        for (DescriptorProto msg : messages) {
-            allMessageDescriptors.put(msg.getName(), msg);
+        List<DescriptorProto> descriptors = file.getMessageTypeList();
+        for (DescriptorProto msgDescriptor : descriptors) {
+            allMessageDescriptors.put(msgDescriptor.getName(), msgDescriptor);
         }
     }
 

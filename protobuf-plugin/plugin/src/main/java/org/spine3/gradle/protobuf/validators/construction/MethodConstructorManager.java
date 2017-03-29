@@ -40,12 +40,14 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.getJavaFieldName;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.isMap;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.isRepeated;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatorGenericClassName;
+import static org.spine3.gradle.protobuf.validators.construction.AbstractMethodConstructor.AbstractMethodConstructorBuilder;
 import static org.spine3.gradle.protobuf.validators.construction.AbstractMethodConstructor.CALL_INITIALIZE_IF_NEEDED;
-import static org.spine3.gradle.protobuf.validators.construction.AbstractMethodConstructor.MethodConstructorBuilder;
 
 /**
+ * The manager for working with method constructors.
+ *
  * @author Illia Shepilov
  */
 public class MethodConstructorManager {
@@ -67,6 +69,11 @@ public class MethodConstructorManager {
                                                                descriptor.getName());
     }
 
+    /**
+     * Creates the Java methods for the proto fields.
+     *
+     * @return generated methods
+     */
     public Collection<MethodSpec> createMethods() {
         final List<MethodSpec> methods = newArrayList();
 
@@ -86,7 +93,7 @@ public class MethodConstructorManager {
     }
 
     private MethodSpec createNewBuilderMethod() {
-        final ClassName builderClass = getBuilderClassName(javaPackage, javaClass);
+        final ClassName builderClass = getClassName(javaPackage, javaClass);
         final MethodSpec buildMethod = MethodSpec.methodBuilder("newBuilder")
                                                  .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                                                  .returns(builderClass)
@@ -193,28 +200,42 @@ public class MethodConstructorManager {
         return setters;
     }
 
+    /**
+     * A factory for the method constructors.
+     */
     private class MethodConstructorFactory {
+
+        /**
+         * Returns the concrete method constructor according to
+         * the passed {@code FieldDescriptorProto}
+         *
+         * @param fieldDescriptor the descriptor for the field
+         * @param fieldIndex      the index of the field
+         * @return the method constructor instance
+         */
         private AbstractMethodConstructor getMethodConstructor(FieldDescriptorProto fieldDescriptor,
-                                                               int index) {
+                                                               int fieldIndex) {
             if (isMap(fieldDescriptor)) {
                 return createMethodConstructor(MapFieldMethodConstructor.newBuilder(),
                                                fieldDescriptor,
-                                               index);
+                                               fieldIndex);
             }
             if (isRepeated(fieldDescriptor)) {
                 return createMethodConstructor(RepeatedFieldMethodConstructor.newBuilder(),
                                                fieldDescriptor,
-                                               index);
+                                               fieldIndex);
             }
             return createMethodConstructor(SingularFieldMethodConstructor.newBuilder(),
                                            fieldDescriptor,
-                                           index);
+                                           fieldIndex);
         }
 
-        private AbstractMethodConstructor createMethodConstructor(MethodConstructorBuilder builder,
-                                                                  FieldDescriptorProto dscr,
-                                                                  int fieldIndex) {
-            final FieldType fieldType = new FieldTypeFactory(descriptor, messageTypeCache.getCachedTypes()).create(dscr);
+        private AbstractMethodConstructor createMethodConstructor(
+                AbstractMethodConstructorBuilder builder,
+                FieldDescriptorProto dscr,
+                int fieldIndex) {
+            final FieldType fieldType =
+                    new FieldTypeFactory(descriptor, messageTypeCache.getCachedTypes()).create(dscr);
             final AbstractMethodConstructor methodConstructor =
                     builder.setFieldDescriptor(dscr)
                            .setFieldType(fieldType)

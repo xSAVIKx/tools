@@ -24,6 +24,8 @@ import com.google.common.base.Objects;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 
 /**
+ * A metadata for the validator builders.
+ *
  * @author Illia Shepilov
  */
 public class ValidatorMetadata {

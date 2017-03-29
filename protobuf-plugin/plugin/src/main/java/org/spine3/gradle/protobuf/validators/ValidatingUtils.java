@@ -22,17 +22,26 @@ package org.spine3.gradle.protobuf.validators;
 
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.squareup.javapoet.ClassName;
-import org.spine3.gradle.protobuf.util.GenerationUtils;
 import org.spine3.gradle.protobuf.MessageTypeCache;
+import org.spine3.gradle.protobuf.util.GenerationUtils;
 
 import java.util.Collection;
 
+/**
+ * Utility class for working with validator generators.
+ */
 public class ValidatingUtils {
 
     private ValidatingUtils() {
         // To prevent initialization.
     }
 
+    /**
+     *
+     * @param fieldDescriptor
+     * @param messageTypeCache
+     * @return
+     */
     public static ClassName getParameterClass(FieldDescriptorProto fieldDescriptor,
                                               MessageTypeCache messageTypeCache) {
         try {
@@ -50,11 +59,26 @@ public class ValidatingUtils {
         }
     }
 
-    public static ClassName getBuilderClassName(String javaPackage, String javaClass) {
-        final ClassName builderClassName = ClassName.get(javaPackage, javaClass);
-        return builderClassName;
+    /**
+     * Returns the {@code ClassName} according to the specified package and class.
+     *
+     * @param javaPackage
+     * @param javaClass
+     * @return
+     */
+    public static ClassName getClassName(String javaPackage, String javaClass) {
+        final ClassName className = ClassName.get(javaPackage, javaClass);
+        return className;
     }
 
+    /**
+     * Returns the {@code ClassName} for the generic parameter of the validator builder.
+     *
+     * @param javaPackage
+     * @param messageTypeCache
+     * @param descriptorName
+     * @return
+     */
     public static ClassName getValidatorGenericClassName(String javaPackage,
                                                          MessageTypeCache messageTypeCache,
                                                          String descriptorName) {
@@ -69,6 +93,11 @@ public class ValidatingUtils {
         throw new RuntimeException("Class is not found.");
     }
 
+    /**
+     * Returns the {@code ClassName} for the {@code String} class.
+     *
+     * @return the {@code ClassName} for the {@code String} class
+     */
     public static ClassName getStringClassName() {
         return ClassName.get(String.class);
     }

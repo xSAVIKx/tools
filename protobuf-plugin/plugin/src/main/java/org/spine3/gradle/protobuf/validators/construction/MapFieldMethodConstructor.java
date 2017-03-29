@@ -40,12 +40,14 @@ import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.getJavaFieldName;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getClassName;
 
 /**
+ * A method constructor for the map fields.
+ *
  * @author Illia Shepilov
  */
-public class MapFieldMethodConstructor extends AbstractMethodConstructor {
+class MapFieldMethodConstructor extends AbstractMethodConstructor {
 
     private static final String VALUE = "value";
     private static final String KEY = "key";
@@ -62,17 +64,11 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
     private MapFieldMethodConstructor(MapFieldMethodsConstructorBuilder builder) {
         this.fieldType = (MapFieldType) builder.getFieldType();
         this.fieldIndex = builder.getFieldIndex();
-        FieldDescriptorProto fieldDescriptor = builder.getFieldDescriptor();
+        final FieldDescriptorProto fieldDescriptor = builder.getFieldDescriptor();
         this.genericClassName = builder.getGenericClassName();
         this.methodPartName = getJavaFieldName(fieldDescriptor.getName(), true);
         this.javaFieldName = getJavaFieldName(fieldDescriptor.getName(), false);
-        this.builderClassName = getBuilderClassName(builder.getJavaPackage(), builder.getJavaClass());
-    }
-
-    static String createGetConvertedMapValue() {
-        final String result = "final $T<$T, $T> convertedValue = " +
-                "getConvertedValue(new $T<$T<$T, $T>>(){}.getType(), map)";
-        return result;
+        this.builderClassName = getClassName(builder.getJavaPackage(), builder.getJavaClass());
     }
 
     @Override
@@ -220,11 +216,25 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
         return result;
     }
 
+    private static String createGetConvertedMapValue() {
+        final String result = "final $T<$T, $T> convertedValue = " +
+                "getConvertedValue(new $T<$T<$T, $T>>(){}.getType(), map)";
+        return result;
+    }
+
+    /**
+     * Creates a new builder for the {@code MapFieldMethodsConstructor} class.
+     *
+     * @return created builder
+     */
     static MapFieldMethodsConstructorBuilder newBuilder() {
         return new MapFieldMethodsConstructorBuilder();
     }
 
-    static class MapFieldMethodsConstructorBuilder extends MethodConstructorBuilder {
+    /**
+     * A builder for the {@code MapFieldMethodsConstructor} class.
+     */
+    static class MapFieldMethodsConstructorBuilder extends AbstractMethodConstructorBuilder {
         @Override
         AbstractMethodConstructor build() {
             checkFields();
@@ -232,14 +242,14 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
         }
     }
 
-     private enum LogSingleton {
-             INSTANCE;
+    private enum LogSingleton {
+        INSTANCE;
 
-             @SuppressWarnings("NonSerializableFieldInSerializableClass")
-             private final Logger value = LoggerFactory.getLogger(MapFieldMethodConstructor.class);
-         }
+        @SuppressWarnings("NonSerializableFieldInSerializableClass")
+        private final Logger value = LoggerFactory.getLogger(MapFieldMethodConstructor.class);
+    }
 
-         private static Logger log() {
-             return LogSingleton.INSTANCE.value;
-         }
+    private static Logger log() {
+        return LogSingleton.INSTANCE.value;
+    }
 }

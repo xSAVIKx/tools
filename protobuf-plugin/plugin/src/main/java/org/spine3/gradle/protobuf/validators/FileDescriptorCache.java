@@ -44,6 +44,11 @@ class FileDescriptorCache {
         return javaPackage;
     }
 
+    FileDescriptorProto getFileDescriptor(String msg) {
+        final FileDescriptorProto result = typeFiles.get(msg);
+        return result;
+    }
+
     private enum Singleton {
         INSTANCE;
         @SuppressWarnings("NonSerializableFieldInSerializableClass")

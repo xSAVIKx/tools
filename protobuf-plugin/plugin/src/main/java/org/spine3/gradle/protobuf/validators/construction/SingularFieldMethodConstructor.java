@@ -37,10 +37,13 @@ import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.getJavaFieldName;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getStringClassName;
 
+/**
+ * A method constructor for the singular fields.
+ */
 class SingularFieldMethodConstructor extends AbstractMethodConstructor {
 
     private final FieldDescriptorProto fieldDescriptor;
@@ -53,13 +56,13 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
     private final String fieldName;
     private final FieldType fieldType;
 
-    private SingularFieldMethodConstructor(MethodConstructorBuilder builder) {
+    private SingularFieldMethodConstructor(AbstractMethodConstructorBuilder builder) {
         this.fieldType = builder.getFieldType();
         this.fieldDescriptor = builder.getFieldDescriptor();
         this.fieldIndex = builder.getFieldIndex();
         this.builderGenericClassName = builder.getGenericClassName();
         this.parameterClassName = getParameterClass(fieldDescriptor, builder.getMessageTypeCache());
-        this.builderClassName = getBuilderClassName(builder.getJavaPackage(), builder.getJavaClass());
+        this.builderClassName = getClassName(builder.getJavaPackage(), builder.getJavaClass());
         this.paramName = getJavaFieldName(fieldDescriptor.getName(), false);
         this.setterPart = getJavaFieldName(paramName, true);
         this.fieldName = getJavaFieldName(paramName, false);
@@ -82,20 +85,22 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
     private MethodSpec constructSetter() {
         log().debug("The setters construction for the singular field is started.");
         final String methodName = fieldType.getSetterPrefix() + setterPart;
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex,
+                                                                   builderGenericClassName);
         final ParameterSpec parameter = createParameterSpec(fieldDescriptor, false);
 
-        final MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
-                                                .addModifiers(Modifier.PUBLIC)
-                                                .returns(builderClassName)
-                                                .addParameter(parameter)
-                                                .addException(ConstraintViolationThrowable.class)
-                                                .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                                .addStatement(createValidateStatement(paramName),
-                                                              fieldDescriptor.getName())
-                                                .addStatement(THIS_POINTER + fieldName + " = " + fieldName)
-                                                .addStatement(RETURN_THIS)
-                                                .build();
+        final MethodSpec methodSpec =
+                MethodSpec.methodBuilder(methodName)
+                          .addModifiers(Modifier.PUBLIC)
+                          .returns(builderClassName)
+                          .addParameter(parameter)
+                          .addException(ConstraintViolationThrowable.class)
+                          .addStatement(descriptorCodeLine, FieldDescriptor.class)
+                          .addStatement(createValidateStatement(paramName),
+                                        fieldDescriptor.getName())
+                          .addStatement(THIS_POINTER + fieldName + " = " + fieldName)
+                          .addStatement(RETURN_THIS)
+                          .build();
         log().debug("The setters construction for the singular method is finished.");
         return methodSpec;
     }
@@ -133,11 +138,19 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
         return result;
     }
 
+    /**
+     * Creates a new builder for the {@code SingularFieldMethodConstructor} class.
+     *
+     * @return constructed builder
+     */
     static SettersConstructorBuilder newBuilder() {
         return new SettersConstructorBuilder();
     }
 
-    static class SettersConstructorBuilder extends MethodConstructorBuilder {
+    /**
+     * A builder class for the {@code SingularFieldMethodConstructor} class.
+     */
+    static class SettersConstructorBuilder extends AbstractMethodConstructorBuilder {
 
         @Override
         AbstractMethodConstructor build() {
