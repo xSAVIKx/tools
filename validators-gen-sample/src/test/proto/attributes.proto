@@ -27,11 +27,8 @@ option java_outer_classname = "AttributesProto";
 option java_multiple_files = true;
 option java_generate_equals_and_hash = true;
 
-// Variety of choices used for `TaskLabel` coloring.
-//
 enum LabelColor {
 
-    // Used as an undefined value marker.
     LC_UNDEFINED = 0;
 
     RED = 1;
@@ -43,11 +40,8 @@ enum LabelColor {
     GRAY = 4;
 }
 
-// Task priority values.
-//
 enum TaskPriority {
 
-    // Used as an undefined value marker.
     TP_UNDEFINED = 0;
 
     HIGH = 1;
@@ -57,11 +51,8 @@ enum TaskPriority {
     LOW = 3;
 }
 
-// Variety of possible statuses for `Task`
-//
 enum TaskStatus {
 
-    // Used as an undefined value marker
     TS_UNDEFINED = 0;
 
     DRAFT = 1;

@@ -31,37 +31,25 @@ import "spine/annotations.proto";
 import "spine/validate.proto";
 import "attributes.proto";
 
-// Definition of a change in a label details field.
 message LabelDetailsChange {
 
-    // The value of the label details that's changing.
     LabelDetails previous_details = 1;
 
-    // The new value of the label details.
     LabelDetails new_details = 2;
 
     repeated LabelDetails details = 3;
 }
 
-// Definition of a change in a task desciption field.
 message DescriptionChange {
 
-    // The value of the task description that's changing.
     string previous_value = 1;
 
-    // The new value of the task description.
     string new_value = 2[(pattern).regex = "a-z{1}"];
 }
 
-// DTO for the label details.
-//
-// Wrapped by several events to transfer the label data.
-//
 message LabelDetails {
 
-    // Label title.
     string title = 1;
 
-    // Label color.
     LabelColor color = 2;
 }
