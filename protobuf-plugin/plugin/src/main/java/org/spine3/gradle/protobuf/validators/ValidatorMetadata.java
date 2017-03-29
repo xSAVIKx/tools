@@ -30,15 +30,14 @@ import com.google.protobuf.DescriptorProtos.DescriptorProto;
  */
 public class ValidatorMetadata {
 
-    private final String javaPackage;
     private final String javaClass;
+    private final String javaPackage;
     private final DescriptorProto msgDescriptor;
 
     ValidatorMetadata(String javaPackage, String javaClass, DescriptorProto msgDescriptor) {
         this.javaPackage = javaPackage;
         this.javaClass = javaClass;
         this.msgDescriptor = msgDescriptor;
-
     }
 
     public String getJavaPackage() {

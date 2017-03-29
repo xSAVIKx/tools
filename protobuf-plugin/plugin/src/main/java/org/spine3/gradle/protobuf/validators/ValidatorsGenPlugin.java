@@ -65,10 +65,10 @@ public class ValidatorsGenPlugin extends SpinePlugin {
 
     private static final String JAVA_CLASS_NAME_SUFFIX = "Validator";
 
-    /** A map from Protobuf type name to Protobuf DescriptorProto. **/
+    /** A map from Protobuf type name to Protobuf DescriptorProto. */
     private final Map<String, DescriptorProto> allMessageDescriptors = newHashMap();
 
-    /** A map from Protobuf type name to Protobuf FileDescriptorProto. **/
+    /** A map from Protobuf type name to Protobuf FileDescriptorProto. */
     private final FileDescriptorCache descriptorCache = FileDescriptorCache.getInstance();
 
     /** A map from Protobuf type name to Java class FQN. */

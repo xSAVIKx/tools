@@ -64,9 +64,10 @@ public class MethodConstructorManager {
         this.javaPackage = validatorMetadata.getJavaPackage();
         this.descriptor = validatorMetadata.getMsgDescriptor();
         this.messageTypeCache = messageTypeCache;
+        final String javaFieldName = getJavaFieldName(descriptor.getName(), false);
         builderGenericClassName = getValidatorGenericClassName(javaPackage,
                                                                messageTypeCache,
-                                                               descriptor.getName());
+                                                               javaFieldName);
     }
 
     /**

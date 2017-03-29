@@ -39,7 +39,7 @@ import java.util.List;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.getJavaFieldName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getClassName;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClassName;
 
 /**
  * A method constructor for the repeated fields.
@@ -52,23 +52,23 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
     private static final String ADD_RAW_PREFIX = "addRaw";
 
     private final int fieldIndex;
+    private final FieldType fieldType;
     private final String javaFieldName;
     private final String methodPartName;
     private final ClassName builderClassName;
-    private final ClassName genericClassName;
-    private final ClassName parameterClassName;
+    private final ClassName listElementClassName;
+    private final ClassName builderGenericClassName;
     private final FieldDescriptorProto fieldDescriptor;
-    private final FieldType fieldType;
 
     private RepeatedFieldMethodConstructor(AbstractMethodConstructorBuilder builder) {
         this.fieldType = builder.getFieldType();
         this.fieldIndex = builder.getFieldIndex();
         this.fieldDescriptor = builder.getFieldDescriptor();
-        this.genericClassName = builder.getGenericClassName();
+        this.builderGenericClassName = builder.getGenericClassName();
         this.methodPartName = getJavaFieldName(fieldDescriptor.getName(), true);
         this.javaFieldName = getJavaFieldName(fieldDescriptor.getName(), false);
         this.builderClassName = getClassName(builder.getJavaPackage(), builder.getJavaClass());
-        this.parameterClassName = getParameterClass(fieldDescriptor, builder.getMessageTypeCache());
+        this.listElementClassName = getParameterClassName(fieldDescriptor, builder.getMessageTypeCache());
     }
 
     @Override
@@ -108,7 +108,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
 
     private MethodSpec createRawAddObjectMethod() {
         final String methodName = getJavaFieldName(ADD_RAW_PREFIX + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClassName)
@@ -118,8 +118,8 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addException(ConversionException.class)
                                             .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(createGetConvertedSingularValue(),
-                                                          parameterClassName,
-                                                          parameterClassName)
+                                                          listElementClassName,
+                                                          listElementClassName)
                                             .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                             .addStatement(createValidateConvertedValueStatement(),
                                                           fieldDescriptor.getName())
@@ -131,7 +131,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
 
     private MethodSpec createRawAddByIndexMethod() {
         final String methodName = getJavaFieldName(ADD_RAW_PREFIX + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
 
         final MethodSpec result =
                 MethodSpec.methodBuilder(methodName)
@@ -143,8 +143,8 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                           .addException(ConversionException.class)
                           .addStatement(CALL_INITIALIZE_IF_NEEDED)
                           .addStatement(createGetConvertedSingularValue(),
-                                        parameterClassName,
-                                        parameterClassName)
+                                        listElementClassName,
+                                        listElementClassName)
                           .addStatement(descriptorCodeLine, FieldDescriptor.class)
                           .addStatement(createValidateConvertedValueStatement(),
                                         fieldDescriptor.getName())
@@ -157,7 +157,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
     private MethodSpec createRawAddAllMethod() {
         final String rawMethodName = fieldType.getSetterPrefix() + RAW_SUFFIX + methodPartName;
         final String methodName = getJavaFieldName(rawMethodName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClassName)
@@ -168,10 +168,10 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(createGetConvertedCollectionValue(),
                                                           List.class,
-                                                          parameterClassName,
+                                                          listElementClassName,
                                                           TypeToken.class,
                                                           List.class,
-                                                          parameterClassName)
+                                                          listElementClassName)
                                             .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                             .addStatement(createValidateConvertedValueStatement(),
                                                           fieldDescriptor.getName())
@@ -184,10 +184,10 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
     private MethodSpec createAddAllMethod() {
         final String rawMethodName = fieldType.getSetterPrefix() + methodPartName;
         final String methodName = getJavaFieldName(rawMethodName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
         final ClassName rawType = ClassName.get(List.class);
         final ParameterizedTypeName parameter = ParameterizedTypeName.get(rawType,
-                                                                          parameterClassName);
+                                                                          listElementClassName);
         final String fieldDescriptorName = fieldDescriptor.getName();
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClassName)
@@ -208,12 +208,12 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
     private MethodSpec createAddObjectMethod() {
         final String rawMethodName = ADD_PREFIX + methodPartName;
         final String methodName = getJavaFieldName(rawMethodName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClassName)
                                             .addModifiers(Modifier.PUBLIC)
-                                            .addParameter(parameterClassName, VALUE)
+                                            .addParameter(listElementClassName, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
                                             .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(descriptorCodeLine, FieldDescriptor.class)
@@ -227,13 +227,13 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
 
     private MethodSpec createAddByIndexMethod() {
         final String methodName = getJavaFieldName(ADD_PREFIX + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
 
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClassName)
                                             .addModifiers(Modifier.PUBLIC)
                                             .addParameter(int.class, INDEX)
-                                            .addParameter(parameterClassName, VALUE)
+                                            .addParameter(listElementClassName, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
                                             .addStatement(javaFieldName + ".add(index, value)")
                                             .addStatement(descriptorCodeLine, FieldDescriptor.class)
@@ -250,7 +250,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
         final MethodSpec result = MethodSpec.methodBuilder(removeMethodName)
                                             .addModifiers(Modifier.PUBLIC)
                                             .returns(builderClassName)
-                                            .addParameter(parameterClassName, VALUE)
+                                            .addParameter(listElementClassName, VALUE)
                                             .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(javaFieldName + ".remove(value)")
                                             .addStatement(RETURN_THIS)

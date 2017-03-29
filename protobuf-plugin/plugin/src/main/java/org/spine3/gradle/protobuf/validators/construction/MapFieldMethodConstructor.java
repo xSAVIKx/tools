@@ -57,9 +57,11 @@ class MapFieldMethodConstructor extends AbstractMethodConstructor {
     private final int fieldIndex;
     private final String javaFieldName;
     private final String methodPartName;
-    private final ClassName builderClassName;
-    private final ClassName genericClassName;
+    private final TypeName keyTypeName;
+    private final TypeName valueTypeName;
     private final MapFieldType fieldType;
+    private final ClassName genericClassName;
+    private final ClassName builderClassName;
 
     private MapFieldMethodConstructor(MapFieldMethodsConstructorBuilder builder) {
         this.fieldType = (MapFieldType) builder.getFieldType();
@@ -69,6 +71,8 @@ class MapFieldMethodConstructor extends AbstractMethodConstructor {
         this.methodPartName = getJavaFieldName(fieldDescriptor.getName(), true);
         this.javaFieldName = getJavaFieldName(fieldDescriptor.getName(), false);
         this.builderClassName = getClassName(builder.getJavaPackage(), builder.getJavaClass());
+        this.keyTypeName = fieldType.getKeyTypeName();
+        this.valueTypeName = fieldType.getValueTypeName();
     }
 
     @Override
@@ -102,8 +106,6 @@ class MapFieldMethodConstructor extends AbstractMethodConstructor {
     }
 
     private MethodSpec createPutMethod() {
-        final TypeName keyTypeName = fieldType.getKeyTypeName();
-        final TypeName valueTypeName = fieldType.getValueTypeName();
         final String methodName = getJavaFieldName("put" + methodPartName, false);
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
@@ -125,8 +127,6 @@ class MapFieldMethodConstructor extends AbstractMethodConstructor {
     }
 
     private MethodSpec createPutRawMethod() {
-        final TypeName keyTypeName = fieldType.getKeyTypeName();
-        final TypeName valueTypeName = fieldType.getValueTypeName();
         final String methodName = getJavaFieldName("putRaw" + methodPartName, false);
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
@@ -171,8 +171,6 @@ class MapFieldMethodConstructor extends AbstractMethodConstructor {
     }
 
     private MethodSpec createPutAllRawMethod() {
-        final TypeName keyTypeName = fieldType.getKeyTypeName();
-        final TypeName valueTypeName = fieldType.getValueTypeName();
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
         final MethodSpec result = MethodSpec.methodBuilder(fieldType.getSetterPrefix() + RAW_SUFFIX)
                                             .addModifiers(Modifier.PUBLIC)
@@ -193,7 +191,6 @@ class MapFieldMethodConstructor extends AbstractMethodConstructor {
     }
 
     private MethodSpec createRemoveMethod() {
-        final TypeName keyTypeName = fieldType.getKeyTypeName();
         final MethodSpec result = MethodSpec.methodBuilder(REMOVE_PREFIX)
                                             .addModifiers(Modifier.PUBLIC)
                                             .returns(builderClassName)

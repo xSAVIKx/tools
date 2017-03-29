@@ -38,7 +38,7 @@ import java.util.List;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.getJavaFieldName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getClassName;
-import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClass;
+import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getStringClassName;
 
 /**
@@ -46,26 +46,24 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getStringCla
  */
 class SingularFieldMethodConstructor extends AbstractMethodConstructor {
 
-    private final FieldDescriptorProto fieldDescriptor;
     private final int fieldIndex;
-    private final ClassName parameterClassName;
+    private final String fieldName;
+    private final String setterPart;
+    private final FieldType fieldType;
+    private final ClassName fieldClassName;
     private final ClassName builderClassName;
     private final ClassName builderGenericClassName;
-    private final String paramName;
-    private final String setterPart;
-    private final String fieldName;
-    private final FieldType fieldType;
+    private final FieldDescriptorProto fieldDescriptor;
 
     private SingularFieldMethodConstructor(AbstractMethodConstructorBuilder builder) {
         this.fieldType = builder.getFieldType();
         this.fieldDescriptor = builder.getFieldDescriptor();
         this.fieldIndex = builder.getFieldIndex();
         this.builderGenericClassName = builder.getGenericClassName();
-        this.parameterClassName = getParameterClass(fieldDescriptor, builder.getMessageTypeCache());
+        this.fieldClassName = getParameterClassName(fieldDescriptor, builder.getMessageTypeCache());
         this.builderClassName = getClassName(builder.getJavaPackage(), builder.getJavaClass());
-        this.paramName = getJavaFieldName(fieldDescriptor.getName(), false);
-        this.setterPart = getJavaFieldName(paramName, true);
-        this.fieldName = getJavaFieldName(paramName, false);
+        this.fieldName = getJavaFieldName(fieldDescriptor.getName(), false);
+        this.setterPart = getJavaFieldName(fieldName, true);
     }
 
     @Override
@@ -75,7 +73,7 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
         final List<MethodSpec> methods = newArrayList();
         methods.add(constructSetter());
 
-        if (!parameterClassName.equals(getStringClassName())) {
+        if (!fieldClassName.equals(getStringClassName())) {
             methods.add(constructRawSetter());
         }
         log().debug("The method construction for the {} singular field is finished.", javaFieldName);
@@ -96,7 +94,7 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
                           .addParameter(parameter)
                           .addException(ConstraintViolationThrowable.class)
                           .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                          .addStatement(createValidateStatement(paramName),
+                          .addStatement(createValidateStatement(fieldName),
                                         fieldDescriptor.getName())
                           .addStatement(THIS_POINTER + fieldName + " = " + fieldName)
                           .addStatement(RETURN_THIS)
@@ -118,9 +116,8 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
                                                 .addException(ConstraintViolationThrowable.class)
                                                 .addException(ConversionException.class)
                                                 .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                                .addStatement("final $T convertedValue = getConvertedValue($T.class, " + paramName + ')',
-                                                              parameterClassName,
-                                                              parameterClassName)
+                                                .addStatement("final $T convertedValue = getConvertedValue($T.class, " + fieldName + ')',
+                                                              fieldClassName, fieldClassName)
                                                 .addStatement(createValidateConvertedValueStatement(),
                                                               fieldDescriptor.getName())
                                                 .addStatement(THIS_POINTER + fieldName + " = convertedValue")
@@ -131,7 +128,7 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
     }
 
     private ParameterSpec createParameterSpec(FieldDescriptorProto fieldDescriptor, boolean raw) {
-        final ClassName methodParamClass = raw ? getStringClassName() : parameterClassName;
+        final ClassName methodParamClass = raw ? getStringClassName() : fieldClassName;
         final String paramName = getJavaFieldName(fieldDescriptor.getName(), false);
         final ParameterSpec result = ParameterSpec.builder(methodParamClass, paramName)
                                                   .build();

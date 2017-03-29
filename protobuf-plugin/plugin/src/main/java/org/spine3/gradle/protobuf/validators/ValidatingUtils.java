@@ -37,23 +37,30 @@ public class ValidatingUtils {
     }
 
     /**
+     * Returns the {@code ClassName} for the ProtoBuf field
+     * based on the passed {@code FieldDescriptorProto}.
      *
-     * @param fieldDescriptor
-     * @param messageTypeCache
-     * @return
+     * @param fieldDescriptor  the field descriptor of the ProtoBuf field
+     * @param messageTypeCache the cache of the message types
+     * @return the obtained {@code ClassName}
      */
-    public static ClassName getParameterClass(FieldDescriptorProto fieldDescriptor,
-                                              MessageTypeCache messageTypeCache) {
+    public static ClassName getParameterClassName(FieldDescriptorProto fieldDescriptor,
+                                                  MessageTypeCache messageTypeCache) {
+        String typeName = fieldDescriptor.getTypeName();
+        if (typeName.isEmpty()) {
+            return getJavaTypeForScalarType(fieldDescriptor);
+        }
+        typeName = typeName.substring(1);
+        final String parameterType = messageTypeCache.getCachedTypes()
+                                                     .get(typeName);
+        return ClassName.bestGuess(parameterType);
+    }
+
+    private static ClassName getJavaTypeForScalarType(FieldDescriptorProto fieldDescriptor) {
+        final String fieldName = fieldDescriptor.getType()
+                                                .name();
         try {
-            String typeName = fieldDescriptor.getTypeName();
-            if (typeName.isEmpty()) {
-                return ClassName.get(Class.forName(GenerationUtils.getType(fieldDescriptor.getType()
-                                                                                          .name())));
-            }
-            typeName = typeName.substring(1);
-            final String parameterType = messageTypeCache.getCachedTypes()
-                                                         .get(typeName);
-            return ClassName.bestGuess(parameterType);
+            return ClassName.get(Class.forName(GenerationUtils.getType(fieldName)));
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -62,9 +69,9 @@ public class ValidatingUtils {
     /**
      * Returns the {@code ClassName} according to the specified package and class.
      *
-     * @param javaPackage
-     * @param javaClass
-     * @return
+     * @param javaPackage the package of the class
+     * @param javaClass   the name of the class
+     * @return the constructed {@code ClassName}
      */
     public static ClassName getClassName(String javaPackage, String javaClass) {
         final ClassName className = ClassName.get(javaPackage, javaClass);
@@ -74,20 +81,20 @@ public class ValidatingUtils {
     /**
      * Returns the {@code ClassName} for the generic parameter of the validator builder.
      *
-     * @param javaPackage
-     * @param messageTypeCache
-     * @param descriptorName
-     * @return
+     * @param javaPackage      the package of the class
+     * @param messageTypeCache the cache of the message types
+     * @param fieldName        the name of the field
+     * @return the constructed {@code ClassName}
      */
     public static ClassName getValidatorGenericClassName(String javaPackage,
                                                          MessageTypeCache messageTypeCache,
-                                                         String descriptorName) {
+                                                         String fieldName) {
         final Collection<String> values = messageTypeCache.getCachedTypes()
                                                           .values();
-        final String expectedClassName = javaPackage + '.' + descriptorName;
+        final String expectedClassName = javaPackage + '.' + fieldName;
         for (String value : values) {
             if (value.equals(expectedClassName)) {
-                return ClassName.get(javaPackage, descriptorName);
+                return ClassName.get(javaPackage, fieldName);
             }
         }
         throw new RuntimeException("Class is not found.");
