@@ -20,18 +20,17 @@
 
 package org.spine3.gradle.protobuf.failure;
 
-import com.google.protobuf.DescriptorProtos;
-
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Encapsulates a {@linkplain DescriptorProtos.SourceCodeInfo.Location#getPathList() location path}.
+ * Encapsulates a {@linkplain com.google.protobuf.DescriptorProtos.SourceCodeInfo.Location#getPathList()
+ * location path}.
  *
- * <p>A location path represents {@linkplain DescriptorProtos.SourceCodeInfo.Location#getPathList()
- * list of integers}, that used to identify a {@link DescriptorProtos.SourceCodeInfo.Location}
- * in a ".proto" file.
+ * <p>A location path represents {@linkplain com.google.protobuf.DescriptorProtos.SourceCodeInfo.Location#getPathList()
+ * list of integers}, that used to identify a {@linkplain com.google.protobuf.DescriptorProtos.SourceCodeInfo.Location
+ * location} in a ".proto" file.
  *
  * @author Dmytro Grankin
  */
