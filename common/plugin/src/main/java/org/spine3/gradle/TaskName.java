@@ -62,7 +62,7 @@ public enum TaskName {
      *
      * <p>Relates only to `main` classes.
      */
-    CHECK_FQN("checkFqn"),
+    CHECK_FQN("checkJavadocLink"),
 
     /**
      * The name of the failure generation task added to the Gradle lifecycle.
