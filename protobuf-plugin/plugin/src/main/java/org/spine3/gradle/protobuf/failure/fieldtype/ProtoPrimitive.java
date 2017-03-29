@@ -22,7 +22,7 @@ package org.spine3.gradle.protobuf.failure.fieldtype;
 import com.google.common.base.Optional;
 
 /**
- * Enumeration of the java primitives, which
+ * Enumeration of the Java primitives, which
  * can be received from proto message.
  */
 enum ProtoPrimitive {
