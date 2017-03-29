@@ -78,6 +78,23 @@ enum ProtoScalarType {
     }
 
     /**
+     * Returns the boxed {@link Class} for the Protobuf scalar primitive name.
+     *
+     * @param scalarPrimitiveName the Protobuf scalar primitive name
+     * @return the boxed primitive class or empty {@code Optional}
+     * if the specified primitive name does not belong to {@link ProtoScalarType}.
+     */
+    static Optional<? extends Class<?>> getBoxedScalarPrimitive(String scalarPrimitiveName) {
+        for (ProtoScalarPrimitive primitive : ProtoScalarPrimitive.values()) {
+            if (scalarPrimitiveName.equals(primitive.primitiveName)) {
+                return Optional.of(primitive.boxedPrimitive);
+            }
+        }
+
+        return Optional.absent();
+    }
+
+    /**
      * Enumeration of the Java primitives, which
      * are {@linkplain ProtoScalarType Protobuf scalar types}.
      */
@@ -94,23 +111,6 @@ enum ProtoScalarType {
         ProtoScalarPrimitive(String primitiveName, Class<?> boxedPrimitive) {
             this.primitiveName = primitiveName;
             this.boxedPrimitive = boxedPrimitive;
-        }
-
-        /**
-         * Returns the boxed {@link Class} for the Protobuf scalar primitive name.
-         *
-         * @param scalarPrimitiveName the Protobuf scalar primitive name
-         * @return the boxed primitive class or empty {@code Optional}
-         * if the specified primitive name does not belong to {@link ProtoScalarType}.
-         */
-        static Optional<? extends Class<?>> getBoxedScalarPrimitive(String scalarPrimitiveName) {
-            for (ProtoScalarPrimitive primitive : ProtoScalarPrimitive.values()) {
-                if (scalarPrimitiveName.equals(primitive.primitiveName)) {
-                    return Optional.of(primitive.boxedPrimitive);
-                }
-            }
-
-            return Optional.absent();
         }
     }
 }
