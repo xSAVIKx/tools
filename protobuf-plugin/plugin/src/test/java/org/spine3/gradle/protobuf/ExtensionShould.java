@@ -130,6 +130,38 @@ public class ExtensionShould {
     }
 
     @Test
+    public void return_targetGenValidatorsRootDir_if_not_set(){
+        final String dir = Extension.getTargetGenValidatorsRootDir(project);
+
+        assertNotEmptyAndIsInProjectDir(dir);
+    }
+
+    @Test
+    public void return_targetTestGenValidatorsRootDir_if_set() {
+        spineProtobuf().targetTestGenValidatorsRootDir = newUuid();
+
+        final String dir = Extension.getTargetTestGenValidatorsRootDir(project);
+
+        assertEquals(spineProtobuf().targetTestGenValidatorsRootDir, dir);
+    }
+
+    @Test
+    public void return_targetTestGenValidatorsRootDir_if_not_set(){
+        final String dir = Extension.getTargetTestGenValidatorsRootDir(project);
+
+        assertNotEmptyAndIsInProjectDir(dir);
+    }
+
+    @Test
+    public void return_targetGenValidatorsRootDir_if_set() {
+        spineProtobuf().targetGenValidatorsRootDir = newUuid();
+
+        final String dir = Extension.getTargetGenValidatorsRootDir(project);
+
+        assertEquals(spineProtobuf().targetGenValidatorsRootDir, dir);
+    }
+
+    @Test
     public void return_default_dirsToClean_if_not_set() {
         final List<String> actualDirs = Extension.getDirsToClean(project);
 
