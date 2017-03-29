@@ -174,10 +174,6 @@ public class FailureJavadocGenerator {
     /**
      * Returns the message location path for a top-level message definition.
      *
-     * <p>Path for nested messages additionally includes
-     * {@linkplain com.google.protobuf.Descriptors.Descriptor#getContainingType()
-     * containing type} location path.
-     *
      * @return the message location path
      */
     private LocationPath getMessageLocationPath() {
@@ -189,7 +185,7 @@ public class FailureJavadocGenerator {
     }
 
     /**
-     * Returns the field {@link LocationPath}.
+     * Returns the field {@link LocationPath} for a top-level message definition.
      *
      * <p>Protobuf extensions are not supported.
      *
