@@ -200,8 +200,8 @@ public class ValidatorsGenPlugin extends SpinePlugin {
     }
 
     private List<DescriptorProto> addDescriptor(List<DescriptorProto> descriptors,
-                                                FieldDescriptorProto descriptor) {
-        final String msgName = getMessageName(descriptor.getTypeName());
+                                                FieldDescriptorProto fileDescriptor) {
+        final String msgName = getMessageName(fileDescriptor.getTypeName());
         final DescriptorProto fieldDescriptor = allMessageDescriptors.get(msgName);
         if (fieldDescriptor != null) {
             descriptors.add(fieldDescriptor);
@@ -213,22 +213,22 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         log().debug("Obtaining the file descriptors by {} path", descFilePath);
         final List<FileDescriptorProto> result = new LinkedList<>();
         final Collection<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath);
-        for (FileDescriptorProto file : allDescriptors) {
-            final boolean isCommandFile = file.getName()
+        for (FileDescriptorProto fileDescriptor : allDescriptors) {
+            final boolean isCommandFile = fileDescriptor.getName()
                                               .endsWith("commands.proto");
-            constructAllMessageDesriptorsMap(file);
-            cacheFileDescriptors(file);
-            messageTypeCache.cacheTypes(file);
+            cacheAllMessageDescriptors(fileDescriptor);
+            cacheFileDescriptors(fileDescriptor);
+            messageTypeCache.cacheTypes(fileDescriptor);
             if (isCommandFile) {
-                log().info("Found command file: {}", file.getName());
-                result.add(file);
+                log().info("Found command file: {}", fileDescriptor.getName());
+                result.add(fileDescriptor);
             }
         }
         log().debug("Found commands in files: {}", result);
         return result;
     }
 
-    private void constructAllMessageDesriptorsMap(FileDescriptorProtoOrBuilder file) {
+    private void cacheAllMessageDescriptors(FileDescriptorProtoOrBuilder file) {
         List<DescriptorProto> descriptors = file.getMessageTypeList();
         for (DescriptorProto msgDescriptor : descriptors) {
             allMessageDescriptors.put(msgDescriptor.getName(), msgDescriptor);
