@@ -42,7 +42,7 @@ import static org.spine3.gradle.protobuf.GenerationUtils.isMap;
 import static org.spine3.gradle.protobuf.GenerationUtils.isRepeated;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatorGenericClassName;
-import static org.spine3.gradle.protobuf.validators.construction.AbstractMethodConstructor.CREATE_IF_NEEDED;
+import static org.spine3.gradle.protobuf.validators.construction.AbstractMethodConstructor.CALL_INITIALIZE_IF_NEEDED;
 import static org.spine3.gradle.protobuf.validators.construction.AbstractMethodConstructor.MethodConstructorBuilder;
 
 /**
@@ -111,7 +111,7 @@ public class MethodConstructorManager {
                                                            .addModifiers(Modifier.PUBLIC)
                                                            .returns(builderGenericClassName);
         if (!repeatedFieldDescriptors.isEmpty()) {
-            methodBuilder.addStatement(CREATE_IF_NEEDED);
+            methodBuilder.addStatement(CALL_INITIALIZE_IF_NEEDED);
         }
 
         final MethodSpec method = methodBuilder.addStatement(builder.toString(),

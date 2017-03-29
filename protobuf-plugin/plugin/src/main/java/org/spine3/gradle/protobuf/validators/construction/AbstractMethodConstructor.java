@@ -41,7 +41,7 @@ abstract class AbstractMethodConstructor {
     static final String CLEAR_PREFIX = "clear";
     static final String CLEAR_METHOD_CALL = ".clear()";
     static final String RAW_SUFFIX = "Raw";
-    static final String CREATE_IF_NEEDED = "createIfNeeded()";
+    static final String CALL_INITIALIZE_IF_NEEDED = "createIfNeeded()";
     static final String RETURN_THIS = "return this";
     static final String INDEX = "index";
     static final String VALUE = "value";
