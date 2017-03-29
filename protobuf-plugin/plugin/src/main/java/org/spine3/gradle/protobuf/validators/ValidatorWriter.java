@@ -49,11 +49,11 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidator
 class ValidatorWriter {
 
     private final String javaClass;
+    private final String targetDir;
     private final String javaPackage;
     private final ClassName builderGenericClassName;
     private final FieldConstructor fieldConstructor;
     private final MethodConstructorManager methodConstructorManager;
-    private final String targetDir;
 
     ValidatorWriter(ValidatorMetadata validatorMetadata,
                     String targetDir,
@@ -75,17 +75,17 @@ class ValidatorWriter {
      * Writes the generated validator to the Java file.
      */
     void write() {
-        log().debug(String.format("Writing the %s class under the %s package", javaClass, javaPackage));
+        final String debugMsg = String.format("Writing the %s class under the %s package",
+                                              javaClass, javaPackage);
+        log().debug(debugMsg);
+
         final File rootDirectory = new File(targetDir);
-
         final TypeSpec.Builder classBuilder = TypeSpec.classBuilder(javaClass);
-
         addFields(classBuilder, fieldConstructor.getAllFields());
         addMethods(classBuilder, methodConstructorManager.createMethods());
-
         final TypeSpec javaClass = classBuilder.build();
-
         writeClass(rootDirectory, javaClass);
+
         log().debug("Class was written.");
     }
 
@@ -95,7 +95,8 @@ class ValidatorWriter {
         return result;
     }
 
-    private TypeSpec.Builder addMethods(TypeSpec.Builder builder, Iterable<MethodSpec> methodSpecs) {
+    private TypeSpec.Builder addMethods(TypeSpec.Builder builder,
+                                        Iterable<MethodSpec> methodSpecs) {
         final ClassName abstractBuilderTypeName = ClassName.get(AbstractValidatingBuilder.class);
         final ParameterizedTypeName superClass =
                 ParameterizedTypeName.get(abstractBuilderTypeName, builderGenericClassName);
