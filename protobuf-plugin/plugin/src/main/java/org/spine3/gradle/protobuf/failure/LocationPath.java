@@ -24,6 +24,9 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Encapsulates a {@linkplain com.google.protobuf.DescriptorProtos.SourceCodeInfo.Location#getPathList()
  * location path}.
@@ -51,7 +54,7 @@ public class LocationPath {
      * @param locationPath the list of path items
      */
     public LocationPath(List<Integer> locationPath) {
-        this.path = locationPath;
+        this.path = checkPath(locationPath);
     }
 
     /**
@@ -59,7 +62,8 @@ public class LocationPath {
      *
      * @param pathItem the path item
      */
-    public void add(int pathItem) {
+    public void add(Integer pathItem) {
+        checkPathItem(pathItem);
         path.add(pathItem);
     }
 
@@ -69,11 +73,24 @@ public class LocationPath {
      * @param locationPath the location path
      */
     public void addAll(LocationPath locationPath) {
-        path.addAll(locationPath.path);
+        checkNotNull(locationPath);
+        path.addAll(checkPath(locationPath.path));
     }
 
     public List<Integer> getPath() {
         return Collections.unmodifiableList(path);
+    }
+
+    private static List<Integer> checkPath(List<Integer> locationPath) {
+        checkNotNull(locationPath);
+        for (Integer pathItem : locationPath) {
+            checkPathItem(pathItem);
+        }
+        return locationPath;
+    }
+
+    private static void checkPathItem(Integer pathItem) {
+        checkArgument(pathItem >= 0);
     }
 
     @Override
