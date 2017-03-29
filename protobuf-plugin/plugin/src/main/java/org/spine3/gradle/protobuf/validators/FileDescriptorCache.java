@@ -22,7 +22,6 @@ package org.spine3.gradle.protobuf.validators;
 
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 
-import java.util.Collections;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.newHashMap;
@@ -30,7 +29,7 @@ import static com.google.common.collect.Maps.newHashMap;
 /**
  * @author Illia Shepilov
  */
-public class FileDescriptorCache {
+class FileDescriptorCache {
 
     private final Map<String, FileDescriptorProto> typeFiles = newHashMap();
 
@@ -38,15 +37,11 @@ public class FileDescriptorCache {
         typeFiles.put(msg, descriptor);
     }
 
-    public String getJavaPackageFor(String msg) {
+    String getJavaPackageFor(String msg) {
         final String javaPackage = typeFiles.get(msg)
                                             .getOptions()
                                             .getJavaPackage();
         return javaPackage;
-    }
-
-    public Map<String, FileDescriptorProto> getTypeFiles(){
-        return Collections.unmodifiableMap(typeFiles);
     }
 
     private enum Singleton {
