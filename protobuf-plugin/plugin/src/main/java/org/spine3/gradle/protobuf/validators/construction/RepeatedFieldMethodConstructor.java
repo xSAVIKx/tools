@@ -163,7 +163,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addException(ConstraintViolationThrowable.class)
                                             .addException(ConversionException.class)
                                             .addStatement(CALL_INITIALIZE_IF_NEEDED)
-                                            .addStatement(createGetConvertedPluralValue(),
+                                            .addStatement(createGetConvertedCollectionValue(),
                                                           List.class,
                                                           parameterClassName,
                                                           TypeToken.class,
@@ -277,6 +277,12 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addStatement(javaFieldName + CLEAR_METHOD_CALL)
                                             .addStatement(RETURN_THIS)
                                             .build();
+        return result;
+    }
+
+    private static String createGetConvertedCollectionValue() {
+        final String result = "final $T<$T> convertedValue = " +
+                "getConvertedValue(new $T<$T<$T>>(){}.getType(), value)";
         return result;
     }
 

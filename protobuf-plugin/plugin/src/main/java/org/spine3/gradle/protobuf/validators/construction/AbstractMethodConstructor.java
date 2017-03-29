@@ -70,26 +70,14 @@ abstract class AbstractMethodConstructor {
         return result;
     }
 
-    static String createGetConvertedPluralValue() {
-        final String result = "final $T<$T> convertedValue = " +
-                "getConvertedValue(new $T<$T<$T>>(){}.getType(), value)";
-        return result;
-    }
-
-    static String createGetConvertedSingularValue() {
-        return createGetConvertedSingularValue(VALUE);
-    }
-
     static String createGetConvertedSingularValue(String valueName) {
         final String result = "final $T converted" + getJavaFieldName(valueName, true) +
                 " = getConvertedValue($T.class, " + valueName + ")";
         return result;
     }
 
-    static String createGetConvertedMapValue() {
-        final String result = "final $T<$T, $T> convertedValue = " +
-                "getConvertedValue(new $T<$T<$T, $T>>(){}.getType(), map)";
-        return result;
+    static String createGetConvertedSingularValue() {
+        return createGetConvertedSingularValue(VALUE);
     }
 
     abstract static class MethodConstructorBuilder {

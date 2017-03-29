@@ -69,6 +69,12 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
         this.builderClassName = getBuilderClassName(builder.getJavaPackage(), builder.getJavaClass());
     }
 
+    static String createGetConvertedMapValue() {
+        final String result = "final $T<$T, $T> convertedValue = " +
+                "getConvertedValue(new $T<$T<$T, $T>>(){}.getType(), map)";
+        return result;
+    }
+
     @Override
     Collection<MethodSpec> construct() {
         log().debug("The methods construction for the map field {} is started.", javaFieldName);
