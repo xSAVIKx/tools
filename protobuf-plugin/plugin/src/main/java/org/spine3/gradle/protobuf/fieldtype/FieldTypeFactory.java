@@ -27,10 +27,10 @@ import java.util.AbstractMap;
 import java.util.Map;
 
 import static com.google.protobuf.DescriptorProtos.DescriptorProto;
-import static org.spine3.gradle.protobuf.GenerationUtils.getEntryNameFor;
-import static org.spine3.gradle.protobuf.GenerationUtils.getType;
-import static org.spine3.gradle.protobuf.GenerationUtils.isMap;
-import static org.spine3.gradle.protobuf.GenerationUtils.isRepeated;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.getEntryNameFor;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.getType;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.isMap;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.isRepeated;
 
 /**
  * Factory for creation {@link FieldType} instances.

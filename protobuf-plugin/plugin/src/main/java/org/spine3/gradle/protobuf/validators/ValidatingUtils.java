@@ -22,7 +22,7 @@ package org.spine3.gradle.protobuf.validators;
 
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.squareup.javapoet.ClassName;
-import org.spine3.gradle.protobuf.GenerationUtils;
+import org.spine3.gradle.protobuf.util.GenerationUtils;
 import org.spine3.gradle.protobuf.MessageTypeCache;
 
 import java.util.Collection;

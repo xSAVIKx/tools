@@ -30,7 +30,7 @@ import java.util.Collection;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.getJavaFieldName;
 
 /**
  * @author Illia Shepilov

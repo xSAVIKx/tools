@@ -51,9 +51,9 @@ import static org.spine3.gradle.protobuf.Extension.getMainDescriptorSetPath;
 import static org.spine3.gradle.protobuf.Extension.getTargetGenValidatorsRootDir;
 import static org.spine3.gradle.protobuf.Extension.getTargetTestGenValidatorsRootDir;
 import static org.spine3.gradle.protobuf.Extension.getTestDescriptorSetPath;
-import static org.spine3.gradle.protobuf.GenerationUtils.getMessageName;
-import static org.spine3.gradle.protobuf.GenerationUtils.isMap;
-import static org.spine3.gradle.protobuf.GenerationUtils.isMessage;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.getMessageName;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.isMap;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.isMessage;
 import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors;
 
 /**

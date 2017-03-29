@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.protobuf;
+package org.spine3.gradle.protobuf.util;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.DescriptorProtos;

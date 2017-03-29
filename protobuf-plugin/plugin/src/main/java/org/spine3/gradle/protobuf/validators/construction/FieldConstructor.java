@@ -32,7 +32,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.getJavaFieldName;
 
 /**
  * @author Illia Shepilov

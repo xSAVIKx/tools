@@ -37,9 +37,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.spine3.gradle.protobuf.GenerationUtils.getJavaFieldName;
-import static org.spine3.gradle.protobuf.GenerationUtils.isMap;
-import static org.spine3.gradle.protobuf.GenerationUtils.isRepeated;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.getJavaFieldName;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.isMap;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.isRepeated;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getBuilderClassName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatorGenericClassName;
 import static org.spine3.gradle.protobuf.validators.construction.AbstractMethodConstructor.CALL_INITIALIZE_IF_NEEDED;
