@@ -22,6 +22,7 @@ package org.spine3.gradle.protobuf.failure.fieldtype;
 import com.google.common.base.Optional;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
+import org.spine3.gradle.protobuf.failure.fieldtype.ProtoScalarType.ProtoScalarPrimitive;
 
 /**
  * Represents singular {@linkplain FieldType field type}.
@@ -65,11 +66,11 @@ public class SingularFieldType implements FieldType {
     }
 
     private static TypeName constructTypeNameFor(String name) {
-        final Optional<? extends Class<?>> wrappedProtoPrimitive =
-                ProtoPrimitive.getWrappedProtoPrimitive(name);
+        final Optional<? extends Class<?>> boxedScalarPrimitive =
+                ProtoScalarPrimitive.getBoxedScalarPrimitive(name);
 
-        return wrappedProtoPrimitive.isPresent()
-               ? TypeName.get(wrappedProtoPrimitive.get())
+        return boxedScalarPrimitive.isPresent()
+               ? TypeName.get(boxedScalarPrimitive.get())
                          .unbox()
                : ClassName.bestGuess(name);
     }

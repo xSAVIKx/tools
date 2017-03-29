@@ -26,6 +26,8 @@ import com.squareup.javapoet.TypeName;
 
 import java.util.Collection;
 
+import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoScalarType.ProtoScalarPrimitive;
+
 /**
  * Represents repeated {@linkplain FieldType field type}.
  *
@@ -68,11 +70,11 @@ public class RepeatedFieldType implements FieldType {
     }
 
     private static TypeName constructTypeNameFor(String componentTypeName) {
-        final Optional<? extends Class<?>> wrappedProtoPrimitive =
-                ProtoPrimitive.getWrappedProtoPrimitive(componentTypeName);
+        final Optional<? extends Class<?>> boxedScalarPrimitive =
+                ProtoScalarPrimitive.getBoxedScalarPrimitive(componentTypeName);
 
-        final TypeName componentType = wrappedProtoPrimitive.isPresent()
-                                       ? TypeName.get(wrappedProtoPrimitive.get())
+        final TypeName componentType = boxedScalarPrimitive.isPresent()
+                                       ? TypeName.get(boxedScalarPrimitive.get())
                                        : ClassName.bestGuess(componentTypeName);
         return ParameterizedTypeName.get(ClassName.get(Collection.class), componentType);
     }

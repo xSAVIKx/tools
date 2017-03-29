@@ -19,7 +19,6 @@
  */
 package org.spine3.gradle.protobuf.failure.fieldtype;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
 import com.squareup.javapoet.TypeName;
@@ -28,11 +27,6 @@ import java.util.AbstractMap;
 import java.util.Map;
 
 import static com.google.protobuf.DescriptorProtos.DescriptorProto;
-import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoPrimitive.BOOLEAN;
-import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoPrimitive.DOUBLE;
-import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoPrimitive.FLOAT;
-import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoPrimitive.INT;
-import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoPrimitive.LONG;
 
 /**
  * Factory for creation {@link FieldType} instances.
@@ -44,34 +38,6 @@ public class FieldTypeFactory {
     /** A map from Protobuf type name to Java class FQN. */
     private final Map<String, String> messageTypeMap;
     private final Iterable<DescriptorProto> failureNestedTypes;
-
-    // https://developers.google.com/protocol-buffers/docs/proto3#scalar
-    @SuppressWarnings({"DuplicateStringLiteralInspection", "ConstantConditions"})
-    private static final Map<String, String> PROTO_FIELD_TYPES = ImmutableMap.<String, String>builder()
-            .put(Type.TYPE_DOUBLE.name(), DOUBLE.getPrimitiveName())
-            .put(Type.TYPE_FLOAT.name(), FLOAT.getPrimitiveName())
-            .put(Type.TYPE_INT64.name(), LONG.getPrimitiveName())
-            .put(Type.TYPE_UINT64.name(), LONG.getPrimitiveName())
-            .put(Type.TYPE_INT32.name(), INT.getPrimitiveName())
-            .put(Type.TYPE_FIXED64.name(), LONG.getPrimitiveName())
-            .put(Type.TYPE_FIXED32.name(), INT.getPrimitiveName())
-            .put(Type.TYPE_BOOL.name(), BOOLEAN.getPrimitiveName())
-            .put(Type.TYPE_STRING.name(), "String")
-            .put(Type.TYPE_BYTES.name(), "com.google.protobuf.ByteString")
-            .put(Type.TYPE_UINT32.name(), INT.getPrimitiveName())
-            .put(Type.TYPE_SFIXED32.name(), INT.getPrimitiveName())
-            .put(Type.TYPE_SFIXED64.name(), LONG.getPrimitiveName())
-            .put(Type.TYPE_SINT32.name(), INT.getPrimitiveName())
-            .put(Type.TYPE_SINT64.name(), INT.getPrimitiveName())
-
-            /*
-             * Groups are NOT supported, so do not create an associated Java type for it.
-             * The return value for the {@link FieldDescriptorProto.Type.TYPE_GROUP} key
-             * is intended to be {@code null}.
-             **/
-            //.put(FieldDescriptorProto.Type.TYPE_GROUP.name(), "not supported")
-
-            .build();
 
     private static final String MAP_EXPECTED_ERROR_MESSAGE = "Map expected.";
 
@@ -114,8 +80,7 @@ public class FieldTypeFactory {
             }
             return messageTypeMap.get(typeName);
         } else {
-            return PROTO_FIELD_TYPES.get(field.getType()
-                                              .name());
+            return ProtoScalarType.getJavaTypeName(field.getType());
         }
     }
 
