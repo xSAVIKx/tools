@@ -109,19 +109,37 @@ public class ValidatorsGenPlugin extends SpinePlugin {
     }
 
     private Set<ValidatorMetadata> process(String path) {
+        log().debug("Obtaining the metadata for all validators");
         final List<FileDescriptorProto> fileDescriptors = getCommandProtoFileDescriptors(path);
         final Set<ValidatorMetadata> metadataSet = obtainFileMetadataValidators(fileDescriptors);
         final Set<ValidatorMetadata> result = obtainAllMetadataValidators(metadataSet);
+        log().debug("The metadata is obtained, will be constructed {} validator(s)", result.size());
         return result;
     }
 
     private Set<ValidatorMetadata> obtainFileMetadataValidators(Iterable<FileDescriptorProto> fileDescriptors) {
+        log().debug("Obtaining the metadata for the command validators");
         final Set<ValidatorMetadata> result = newHashSet();
         for (FileDescriptorProto file : fileDescriptors) {
             final List<DescriptorProto> fieldDescriptors = file.getMessageTypeList();
             final Set<ValidatorMetadata> metadataSet = constructMessageFieldMetadata(fieldDescriptors);
             result.addAll(metadataSet);
         }
+        log().debug("The metadata is obtained.");
+        return result;
+    }
+
+    private Set<ValidatorMetadata> obtainAllMetadataValidators(Iterable<ValidatorMetadata> metadataSet) {
+        log().debug("Obtaining the metadata for the validators, which will be constructed for the command fields");
+        final Set<ValidatorMetadata> result = newHashSet();
+        for (ValidatorMetadata metadata : metadataSet) {
+            final DescriptorProto msgDescriptor = metadata.getMsgDescriptor();
+            final List<DescriptorProto> descriptors = getFiledDescriptors(msgDescriptor);
+            result.add(metadata);
+            final Set<ValidatorMetadata> fieldMetadataSet = constructMessageFieldMetadata(descriptors);
+            result.addAll(fieldMetadataSet);
+        }
+        log().debug("The metadata for the field validators is obtained.");
         return result;
     }
 
@@ -141,17 +159,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return result;
     }
 
-    private Set<ValidatorMetadata> obtainAllMetadataValidators(Iterable<ValidatorMetadata> metadataSet) {
-        final Set<ValidatorMetadata> result = newHashSet();
-        for (ValidatorMetadata metadata : metadataSet) {
-            final DescriptorProto msgDescriptor = metadata.getMsgDescriptor();
-            final List<DescriptorProto> descriptors = getFiledDescriptors(msgDescriptor);
-            result.add(metadata);
-            final Set<ValidatorMetadata> fieldMetadataSet = constructMessageFieldMetadata(descriptors);
-            result.addAll(fieldMetadataSet);
-        }
-        return result;
-    }
+
 
     private List<DescriptorProto> getFiledDescriptors(DescriptorProto msgDescriptor) {
         final List<FieldDescriptorProto> fieldDescriptors = msgDescriptor.getFieldList();
@@ -188,8 +196,8 @@ public class ValidatorsGenPlugin extends SpinePlugin {
     }
 
     private List<FileDescriptorProto> getCommandProtoFileDescriptors(String descFilePath) {
+        log().debug("Obtaining the file descriptors by {} path", descFilePath);
         final List<FileDescriptorProto> result = new LinkedList<>();
-        log().debug(String.format("Obtaining file descriptors by %s path", descFilePath));
         final Collection<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath);
         for (FileDescriptorProto file : allDescriptors) {
             final boolean isCommandFile = file.getName()
@@ -198,12 +206,11 @@ public class ValidatorsGenPlugin extends SpinePlugin {
             cacheFileDescriptors(file);
             messageTypeCache.cacheTypes(file);
             if (isCommandFile) {
-                log().info("Found commands file: {}", file.getName());
+                log().info("Found command file: {}", file.getName());
                 result.add(file);
             }
         }
         log().debug("Found commands in files: {}", result);
-
         return result;
     }
 

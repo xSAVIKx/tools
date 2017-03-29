@@ -26,6 +26,8 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spine3.base.ConversionException;
 import org.spine3.gradle.protobuf.fieldtype.MapFieldType;
 import org.spine3.validate.ConstraintViolationThrowable;
@@ -55,13 +57,12 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
     private final String methodPartName;
     private final ClassName builderClassName;
     private final ClassName genericClassName;
-    private final FieldDescriptorProto fieldDescriptor;
     private final MapFieldType fieldType;
 
     private MapFieldMethodConstructor(MapFieldMethodsConstructorBuilder builder) {
         this.fieldType = (MapFieldType) builder.getFieldType();
         this.fieldIndex = builder.getFieldIndex();
-        this.fieldDescriptor = builder.getFieldDescriptor();
+        FieldDescriptorProto fieldDescriptor = builder.getFieldDescriptor();
         this.genericClassName = builder.getGenericClassName();
         this.methodPartName = getJavaFieldName(fieldDescriptor.getName(), true);
         this.javaFieldName = getJavaFieldName(fieldDescriptor.getName(), false);
@@ -70,25 +71,31 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
 
     @Override
     Collection<MethodSpec> construct() {
+        log().debug("The methods construction for the map field {} is started.", javaFieldName);
         final List<MethodSpec> methods = newArrayList();
         methods.addAll(createMapMethods());
         methods.addAll(createRawMapMethods());
+        log().debug("The methods construction for the map field {} is finished.", javaFieldName);
         return methods;
     }
 
     private List<MethodSpec> createRawMapMethods() {
+        log().debug("The raw methods construction for the map field is started.");
         final List<MethodSpec> methods = newArrayList();
         methods.add(createPutRawMethod());
         methods.add(createPutAllRawMethod());
+        log().debug("The raw methods construction for the map field is finished.");
         return methods;
     }
 
     private List<MethodSpec> createMapMethods() {
+        log().debug("The methods construction for the map field  is started.");
         final List<MethodSpec> methods = newArrayList();
         methods.add(createPutMethod());
         methods.add(createClearMethod());
         methods.add(createPutAllMethod());
         methods.add(createRemoveMethod());
+        log().debug("The methods construction for the map field is finished.");
         return methods;
     }
 
@@ -103,7 +110,7 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addException(ConstraintViolationThrowable.class)
                                             .addParameter(keyTypeName, KEY)
                                             .addParameter(valueTypeName, VALUE)
-                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                             .addStatement("final $T<$T, $T> mapToValidate = $T.singletonMap(" + KEY + ", " + VALUE + ")",
                                                           Map.class, keyTypeName,
@@ -127,7 +134,7 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addException(ConversionException.class)
                                             .addParameter(String.class, KEY)
                                             .addParameter(String.class, VALUE)
-                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(createGetConvertedSingularValue(KEY),
                                                           keyTypeName, keyTypeName)
                                             .addStatement(createGetConvertedSingularValue(VALUE),
@@ -151,7 +158,7 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
                                             .returns(builderClassName)
                                             .addParameter(fieldType.getTypeName(), MAP_PARAM_NAME)
                                             .addException(ConstraintViolationThrowable.class)
-                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                             .addStatement(createValidateStatement(MAP_PARAM_NAME),
                                                           javaFieldName)
@@ -171,7 +178,7 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addParameter(String.class, MAP_PARAM_NAME)
                                             .addException(ConstraintViolationThrowable.class)
                                             .addException(ConversionException.class)
-                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                             .addStatement(createGetConvertedMapValue(), Map.class,
                                                           keyTypeName, valueTypeName,
@@ -189,7 +196,7 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addModifiers(Modifier.PUBLIC)
                                             .returns(builderClassName)
                                             .addParameter(keyTypeName, KEY)
-                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(javaFieldName + ".remove(" + KEY + ")")
                                             .addStatement(RETURN_THIS)
                                             .build();
@@ -200,7 +207,7 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
         final MethodSpec result = MethodSpec.methodBuilder(CLEAR_PREFIX)
                                             .addModifiers(Modifier.PUBLIC)
                                             .returns(builderClassName)
-                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(javaFieldName + CLEAR_METHOD_CALL)
                                             .addStatement(RETURN_THIS)
                                             .build();
@@ -218,4 +225,15 @@ public class MapFieldMethodConstructor extends AbstractMethodConstructor {
             return new MapFieldMethodConstructor(this);
         }
     }
+
+     private enum LogSingleton {
+             INSTANCE;
+
+             @SuppressWarnings("NonSerializableFieldInSerializableClass")
+             private final Logger value = LoggerFactory.getLogger(MapFieldMethodConstructor.class);
+         }
+
+         private static Logger log() {
+             return LogSingleton.INSTANCE.value;
+         }
 }

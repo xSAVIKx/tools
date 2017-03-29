@@ -26,6 +26,8 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spine3.base.ConversionException;
 import org.spine3.gradle.protobuf.fieldtype.FieldType;
 import org.spine3.validate.ConstraintViolationThrowable;
@@ -69,19 +71,23 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
 
     @Override
     Collection<MethodSpec> construct() {
+        log().debug("The methods construction for the {} repeated field is started.", javaFieldName);
         final List<MethodSpec> methods = newArrayList();
         methods.addAll(createRepeatedMethods());
         methods.addAll(createRepeatedRawMethods());
+        log().debug("The methods construction for the {} repeated field is finished.", javaFieldName);
         return methods;
     }
 
     private Collection<MethodSpec> createRepeatedRawMethods() {
+        log().debug("The raw methods construction for the repeated field is is started.");
         final List<MethodSpec> methods = newArrayList();
 
         methods.add(createRawAddByIndexMethod());
         methods.add(createRawAddObjectMethod());
         methods.add(createRawAddAllMethod());
 
+        log().debug("The raw methods construction for the repeated field is is finished.");
         return methods;
     }
 
@@ -108,7 +114,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addParameter(String.class, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
                                             .addException(ConversionException.class)
-                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(createGetConvertedSingularValue(),
                                                           parameterClassName,
                                                           parameterClassName)
@@ -132,7 +138,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addParameter(String.class, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
                                             .addException(ConversionException.class)
-                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(createGetConvertedSingularValue(),
                                                           parameterClassName,
                                                           parameterClassName)
@@ -156,7 +162,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addParameter(String.class, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
                                             .addException(ConversionException.class)
-                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(createGetConvertedPluralValue(),
                                                           List.class,
                                                           parameterClassName,
@@ -186,7 +192,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addParameter(parameter, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
                                             .addException(ConversionException.class)
-                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                             .addStatement(createValidateStatement(fieldDescriptorName),
                                                           fieldDescriptorName)
@@ -206,7 +212,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addModifiers(Modifier.PUBLIC)
                                             .addParameter(parameterClassName, VALUE)
                                             .addException(ConstraintViolationThrowable.class)
-                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                             .addStatement(createValidateStatement(javaFieldName),
                                                           javaFieldName)
@@ -230,7 +236,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                             .addStatement(createValidateStatement(javaFieldName),
                                                           javaFieldName)
-                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(RETURN_THIS)
                                             .build();
         return result;
@@ -242,7 +248,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addModifiers(Modifier.PUBLIC)
                                             .returns(builderClassName)
                                             .addParameter(parameterClassName, VALUE)
-                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(javaFieldName + ".remove(value)")
                                             .addStatement(RETURN_THIS)
                                             .build();
@@ -256,7 +262,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addModifiers(Modifier.PUBLIC)
                                             .returns(builderClassName)
                                             .addParameter(int.class, INDEX)
-                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(javaFieldName + ".remove(index)")
                                             .addStatement(RETURN_THIS)
                                             .build();
@@ -267,7 +273,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
         final MethodSpec result = MethodSpec.methodBuilder(CLEAR_PREFIX)
                                             .addModifiers(Modifier.PUBLIC)
                                             .returns(builderClassName)
-                                            .addStatement(CREATE_IF_NEEDED)
+                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
                                             .addStatement(javaFieldName + CLEAR_METHOD_CALL)
                                             .addStatement(RETURN_THIS)
                                             .build();
@@ -285,5 +291,16 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
             checkFields();
             return new RepeatedFieldMethodConstructor(this);
         }
+    }
+
+    private enum LogSingleton {
+        INSTANCE;
+
+        @SuppressWarnings("NonSerializableFieldInSerializableClass")
+        private final Logger value = LoggerFactory.getLogger(RepeatedFieldMethodConstructor.class);
+    }
+
+    private static Logger log() {
+        return LogSingleton.INSTANCE.value;
     }
 }
