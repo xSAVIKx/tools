@@ -61,7 +61,8 @@ class ValidatorWriter {
         this.javaClass = validatorMetadata.getJavaClass();
         this.javaPackage = validatorMetadata.getJavaPackage();
         this.targetDir = targetDir;
-        this.methodConstructorManager = new MethodConstructorManager(validatorMetadata, messageTypeCache);
+        this.methodConstructorManager = new MethodConstructorManager(validatorMetadata,
+                                                                     messageTypeCache);
 
         final DescriptorProto descriptor = validatorMetadata.getMsgDescriptor();
         this.builderGenericClassName = getValidatorGenericClassName(javaPackage,
@@ -71,7 +72,7 @@ class ValidatorWriter {
     }
 
     void write() {
-        log().debug(String.format("Writing the %s under %s", javaClass, javaPackage));
+        log().debug(String.format("Writing the %s class under the %s package", javaClass, javaPackage));
         final File rootDirectory = new File(targetDir);
 
         final TypeSpec.Builder classBuilder = TypeSpec.classBuilder(javaClass);
@@ -81,8 +82,8 @@ class ValidatorWriter {
 
         final TypeSpec javaClass = classBuilder.build();
 
-        log().debug(String.format("Writing %s class to the %s directory", javaClass, rootDirectory));
         writeClass(rootDirectory, javaClass);
+        log().debug("Class was written.");
     }
 
     private static TypeSpec.Builder addFields(TypeSpec.Builder classBuilder,
