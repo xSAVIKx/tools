@@ -109,20 +109,21 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
         final ParameterSpec parameter = createParameterSpec(fieldDescriptor, true);
 
-        final MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
-                                                .addModifiers(Modifier.PUBLIC)
-                                                .returns(builderClassName)
-                                                .addParameter(parameter)
-                                                .addException(ConstraintViolationThrowable.class)
-                                                .addException(ConversionException.class)
-                                                .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                                .addStatement("final $T convertedValue = getConvertedValue($T.class, " + fieldName + ')',
-                                                              fieldClassName, fieldClassName)
-                                                .addStatement(createValidateConvertedValueStatement(),
-                                                              fieldDescriptor.getName())
-                                                .addStatement(THIS_POINTER + fieldName + " = convertedValue")
-                                                .addStatement(RETURN_THIS)
-                                                .build();
+        final MethodSpec methodSpec =
+                MethodSpec.methodBuilder(methodName)
+                          .addModifiers(Modifier.PUBLIC)
+                          .returns(builderClassName)
+                          .addParameter(parameter)
+                          .addException(ConstraintViolationThrowable.class)
+                          .addException(ConversionException.class)
+                          .addStatement(descriptorCodeLine, FieldDescriptor.class)
+                          .addStatement("final $T convertedValue = getConvertedValue($T.class, " + fieldName + ')',
+                                        fieldClassName, fieldClassName)
+                          .addStatement(createValidateConvertedValueStatement(),
+                                        fieldDescriptor.getName())
+                          .addStatement(THIS_POINTER + fieldName + " = convertedValue")
+                          .addStatement(RETURN_THIS)
+                          .build();
         log().debug("The raw setters construction is finished.");
         return methodSpec;
     }

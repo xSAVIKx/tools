@@ -108,48 +108,49 @@ class MapFieldMethodConstructor extends AbstractMethodConstructor {
     private MethodSpec createPutMethod() {
         final String methodName = getJavaFieldName("put" + methodPartName, false);
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
-        final MethodSpec result = MethodSpec.methodBuilder(methodName)
-                                            .returns(builderClassName)
-                                            .addModifiers(Modifier.PUBLIC)
-                                            .addException(ConstraintViolationThrowable.class)
-                                            .addParameter(keyTypeName, KEY)
-                                            .addParameter(valueTypeName, VALUE)
-                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
-                                            .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                            .addStatement("final $T<$T, $T> mapToValidate = $T.singletonMap(" + KEY + ", " + VALUE + ")",
-                                                          Map.class, keyTypeName,
-                                                          valueTypeName, Collections.class)
-                                            .addStatement(createValidateStatement(MAP_TO_VALIDATE_PARAM_NAME), javaFieldName)
-                                            .addStatement(javaFieldName + ".put(key, value)")
-                                            .addStatement(RETURN_THIS)
-                                            .build();
+        final MethodSpec result =
+                MethodSpec.methodBuilder(methodName)
+                          .returns(builderClassName)
+                          .addModifiers(Modifier.PUBLIC)
+                          .addException(ConstraintViolationThrowable.class)
+                          .addParameter(keyTypeName, KEY)
+                          .addParameter(valueTypeName, VALUE)
+                          .addStatement(CALL_INITIALIZE_IF_NEEDED)
+                          .addStatement(descriptorCodeLine, FieldDescriptor.class)
+                          .addStatement("final $T<$T, $T> mapToValidate = $T.singletonMap(" + KEY + ", " + VALUE + ")",
+                                        Map.class, keyTypeName, valueTypeName, Collections.class)
+                          .addStatement(createValidateStatement(MAP_TO_VALIDATE_PARAM_NAME),
+                                        javaFieldName)
+                          .addStatement(javaFieldName + ".put(key, value)")
+                          .addStatement(RETURN_THIS)
+                          .build();
         return result;
     }
 
     private MethodSpec createPutRawMethod() {
         final String methodName = getJavaFieldName("putRaw" + methodPartName, false);
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
-        final MethodSpec result = MethodSpec.methodBuilder(methodName)
-                                            .returns(builderClassName)
-                                            .addModifiers(Modifier.PUBLIC)
-                                            .addException(ConstraintViolationThrowable.class)
-                                            .addException(ConversionException.class)
-                                            .addParameter(String.class, KEY)
-                                            .addParameter(String.class, VALUE)
-                                            .addStatement(CALL_INITIALIZE_IF_NEEDED)
-                                            .addStatement(createGetConvertedSingularValue(KEY),
-                                                          keyTypeName, keyTypeName)
-                                            .addStatement(createGetConvertedSingularValue(VALUE),
-                                                          valueTypeName, valueTypeName)
-                                            .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                            .addStatement("final $T<$T, $T> mapToValidate = $T.singletonMap(convertedKey, convertedValue)",
-                                                          Map.class, keyTypeName,
-                                                          valueTypeName, Collections.class)
-                                            .addStatement(createValidateStatement(MAP_TO_VALIDATE_PARAM_NAME),
-                                                          javaFieldName)
-                                            .addStatement(javaFieldName + ".put(convertedKey, convertedValue)")
-                                            .addStatement(RETURN_THIS)
-                                            .build();
+        final MethodSpec result =
+                MethodSpec.methodBuilder(methodName)
+                          .returns(builderClassName)
+                          .addModifiers(Modifier.PUBLIC)
+                          .addException(ConstraintViolationThrowable.class)
+                          .addException(ConversionException.class)
+                          .addParameter(String.class, KEY)
+                          .addParameter(String.class, VALUE)
+                          .addStatement(CALL_INITIALIZE_IF_NEEDED)
+                          .addStatement(createGetConvertedSingularValue(KEY),
+                                        keyTypeName, keyTypeName)
+                          .addStatement(createGetConvertedSingularValue(VALUE),
+                                        valueTypeName, valueTypeName)
+                          .addStatement(descriptorCodeLine, FieldDescriptor.class)
+                          .addStatement("final $T<$T, $T> mapToValidate = $T.singletonMap(convertedKey, convertedValue)",
+                                        Map.class, keyTypeName, valueTypeName, Collections.class)
+                          .addStatement(createValidateStatement(MAP_TO_VALIDATE_PARAM_NAME),
+                                        javaFieldName)
+                          .addStatement(javaFieldName + ".put(convertedKey, convertedValue)")
+                          .addStatement(RETURN_THIS)
+                          .build();
         return result;
     }
 

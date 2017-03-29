@@ -65,19 +65,22 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
         this.fieldIndex = builder.getFieldIndex();
         this.fieldDescriptor = builder.getFieldDescriptor();
         this.builderGenericClassName = builder.getGenericClassName();
-        this.methodPartName = getJavaFieldName(fieldDescriptor.getName(), true);
         this.javaFieldName = getJavaFieldName(fieldDescriptor.getName(), false);
+        this.methodPartName = getJavaFieldName(fieldDescriptor.getName(), true);
         this.builderClassName = getClassName(builder.getJavaPackage(), builder.getJavaClass());
-        this.listElementClassName = getParameterClassName(fieldDescriptor, builder.getMessageTypeCache());
+        this.listElementClassName = getParameterClassName(fieldDescriptor,
+                                                          builder.getMessageTypeCache());
     }
 
     @Override
     Collection<MethodSpec> construct() {
-        log().debug("The methods construction for the {} repeated field is started.", javaFieldName);
+        log().debug("The methods construction for the {} repeated field is started.",
+                    javaFieldName);
         final List<MethodSpec> methods = newArrayList();
         methods.addAll(createRepeatedMethods());
         methods.addAll(createRepeatedRawMethods());
-        log().debug("The methods construction for the {} repeated field is finished.", javaFieldName);
+        log().debug("The methods construction for the {} repeated field is finished.",
+                    javaFieldName);
         return methods;
     }
 
@@ -108,8 +111,8 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
 
     private MethodSpec createRawAddObjectMethod() {
         final String methodName = getJavaFieldName(ADD_RAW_PREFIX + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
-
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex,
+                                                                   builderGenericClassName);
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClassName)
                                             .addModifiers(Modifier.PUBLIC)
@@ -131,8 +134,8 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
 
     private MethodSpec createRawAddByIndexMethod() {
         final String methodName = getJavaFieldName(ADD_RAW_PREFIX + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
-
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex,
+                                                                   builderGenericClassName);
         final MethodSpec result =
                 MethodSpec.methodBuilder(methodName)
                           .returns(builderClassName)
@@ -157,8 +160,8 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
     private MethodSpec createRawAddAllMethod() {
         final String rawMethodName = fieldType.getSetterPrefix() + RAW_SUFFIX + methodPartName;
         final String methodName = getJavaFieldName(rawMethodName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
-
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex,
+                                                                   builderGenericClassName);
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClassName)
                                             .addModifiers(Modifier.PUBLIC)
@@ -184,11 +187,12 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
     private MethodSpec createAddAllMethod() {
         final String rawMethodName = fieldType.getSetterPrefix() + methodPartName;
         final String methodName = getJavaFieldName(rawMethodName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex,
+                                                                   builderGenericClassName);
         final ClassName rawType = ClassName.get(List.class);
         final ParameterizedTypeName parameter = ParameterizedTypeName.get(rawType,
                                                                           listElementClassName);
-        final String fieldDescriptorName = fieldDescriptor.getName();
+        final String fieldName = fieldDescriptor.getName();
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClassName)
                                             .addModifiers(Modifier.PUBLIC)
@@ -196,9 +200,10 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addException(ConstraintViolationThrowable.class)
                                             .addException(ConversionException.class)
                                             .addStatement(CALL_INITIALIZE_IF_NEEDED)
-                                            .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                                            .addStatement(createValidateStatement(fieldDescriptorName),
-                                                          fieldDescriptorName)
+                                            .addStatement(descriptorCodeLine,
+                                                          FieldDescriptor.class)
+                                            .addStatement(createValidateStatement(fieldName),
+                                                          fieldName)
                                             .addStatement(javaFieldName + ".addAll(value)")
                                             .addStatement(RETURN_THIS)
                                             .build();
@@ -208,8 +213,8 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
     private MethodSpec createAddObjectMethod() {
         final String rawMethodName = ADD_PREFIX + methodPartName;
         final String methodName = getJavaFieldName(rawMethodName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
-
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex,
+                                                                   builderGenericClassName);
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClassName)
                                             .addModifiers(Modifier.PUBLIC)
@@ -227,8 +232,8 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
 
     private MethodSpec createAddByIndexMethod() {
         final String methodName = getJavaFieldName(ADD_PREFIX + methodPartName, false);
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
-
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex,
+                                                                   builderGenericClassName);
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .returns(builderClassName)
                                             .addModifiers(Modifier.PUBLIC)
@@ -260,7 +265,6 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
 
     private MethodSpec createRemoveByIndexMethod() {
         final String methodName = getJavaFieldName(REMOVE_PREFIX + methodPartName, false);
-
         final MethodSpec result = MethodSpec.methodBuilder(methodName)
                                             .addModifiers(Modifier.PUBLIC)
                                             .returns(builderClassName)
