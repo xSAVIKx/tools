@@ -49,7 +49,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.spine3:spine-server-core:0.8.222-SNAPSHOT"
+    compile "org.spine3:spine-server-core:0.8.29-SNAPSHOT"
 }
 
 protobuf {
