@@ -30,6 +30,7 @@ import static com.google.protobuf.DescriptorProtos.DescriptorProto;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.getEntryNameFor;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.isMap;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.isRepeated;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.toCorrectFieldTypeName;
 
 /**
  * Factory for creation {@link FieldType} instances.
@@ -40,19 +41,19 @@ public class FieldTypeFactory {
 
     /** A map from Protobuf type name to Java class FQN. */
     private final Map<String, String> messageTypeMap;
-    private final Iterable<DescriptorProto> failureNestedTypes;
+    private final Iterable<DescriptorProto> messageNestedTypes;
 
     private static final String MAP_EXPECTED_ERROR_MESSAGE = "Map expected.";
 
     /**
      * Creates new instance.
      *
-     * @param failureDescriptor the failure descriptor to extract nested types
+     * @param messageDescriptor the message descriptor to extract nested types
      * @param messageTypeMap    pre-scanned map with proto types and their appropriate Java classes
      */
-    public FieldTypeFactory(DescriptorProto failureDescriptor, Map<String, String> messageTypeMap) {
+    public FieldTypeFactory(DescriptorProto messageDescriptor, Map<String, String> messageTypeMap) {
         this.messageTypeMap = messageTypeMap;
-        this.failureNestedTypes = failureDescriptor.getNestedTypeList();
+        this.messageNestedTypes = messageDescriptor.getNestedTypeList();
     }
 
     /**
@@ -66,7 +67,6 @@ public class FieldTypeFactory {
             return new MapFieldType(getEntryTypeNames(field));
         } else {
             final String fieldTypeName = getFieldTypeName(field);
-
             return isRepeated(field)
                    ? new RepeatedFieldType(fieldTypeName)
                    : new SingularFieldType(fieldTypeName);
@@ -76,12 +76,9 @@ public class FieldTypeFactory {
     private String getFieldTypeName(FieldDescriptorProto field) {
         if (field.getType() == Type.TYPE_MESSAGE
                 || field.getType() == Type.TYPE_ENUM) {
-            String typeName = field.getTypeName();
-            // it has a redundant dot in the beginning
-            if (typeName.charAt(0) == '.') {
-                typeName = typeName.substring(1);
-            }
-            return messageTypeMap.get(typeName);
+            final String typeName = toCorrectFieldTypeName(field.getTypeName());
+            final String result = messageTypeMap.get(typeName);
+            return result;
         } else {
             return ProtoScalarType.getJavaTypeName(field.getType());
         }
@@ -124,7 +121,7 @@ public class FieldTypeFactory {
         }
 
         final String entryName = getEntryNameFor(mapField);
-        for (DescriptorProto nestedType : failureNestedTypes) {
+        for (DescriptorProto nestedType : messageNestedTypes) {
             if (nestedType.getName()
                           .equals(entryName)) {
                 return nestedType;
