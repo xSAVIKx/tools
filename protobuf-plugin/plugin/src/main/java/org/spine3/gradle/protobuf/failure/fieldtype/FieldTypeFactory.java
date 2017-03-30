@@ -17,7 +17,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.gradle.protobuf.fieldtype;
+package org.spine3.gradle.protobuf.failure.fieldtype;
 
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
@@ -28,7 +28,6 @@ import java.util.Map;
 
 import static com.google.protobuf.DescriptorProtos.DescriptorProto;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.getEntryNameFor;
-import static org.spine3.gradle.protobuf.util.GenerationUtils.getType;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.isMap;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.isRepeated;
 
@@ -39,21 +38,21 @@ import static org.spine3.gradle.protobuf.util.GenerationUtils.isRepeated;
  */
 public class FieldTypeFactory {
 
-    private static final String MAP_EXPECTED_ERROR_MESSAGE = "Map expected.";
-
     /** A map from Protobuf type name to Java class FQN. */
     private final Map<String, String> messageTypeMap;
     private final Iterable<DescriptorProto> failureNestedTypes;
 
+    private static final String MAP_EXPECTED_ERROR_MESSAGE = "Map expected.";
+
     /**
      * Creates new instance.
      *
-     * @param descriptorProto the failure descriptor to extract nested types
+     * @param failureDescriptor the failure descriptor to extract nested types
      * @param messageTypeMap    pre-scanned map with proto types and their appropriate Java classes
      */
-    public FieldTypeFactory(DescriptorProto descriptorProto, Map<String, String> messageTypeMap) {
+    public FieldTypeFactory(DescriptorProto failureDescriptor, Map<String, String> messageTypeMap) {
         this.messageTypeMap = messageTypeMap;
-        this.failureNestedTypes = descriptorProto.getNestedTypeList();
+        this.failureNestedTypes = failureDescriptor.getNestedTypeList();
     }
 
     /**
@@ -79,13 +78,12 @@ public class FieldTypeFactory {
                 || field.getType() == Type.TYPE_ENUM) {
             String typeName = field.getTypeName();
             // it has a redundant dot in the beginning
-            if (typeName.startsWith(".")) {
+            if (typeName.charAt(0) == '.') {
                 typeName = typeName.substring(1);
             }
             return messageTypeMap.get(typeName);
         } else {
-            return getType(field.getType()
-                                .name());
+            return ProtoScalarType.getJavaTypeName(field.getType());
         }
     }
 

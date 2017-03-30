@@ -20,7 +20,6 @@
 
 package org.spine3.sample;
 
-import org.spine3.samples.c.commands.UpdateTaskDescriptionValidator;
 
 /**
  * Uses generated validators to make sure validators generation passed before compilation.
@@ -31,6 +30,6 @@ import org.spine3.samples.c.commands.UpdateTaskDescriptionValidator;
 public class ValidatorImporter {
 
     public void testImport() {
-        Class<UpdateTaskDescriptionValidator> validatorClass = UpdateTaskDescriptionValidator.class;
+//        Class<UpdateTaskDescriptionValidator> validatorClass = UpdateTaskDescriptionValidator.class;
     }
 }

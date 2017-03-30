@@ -17,9 +17,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.gradle.protobuf.failures;
+package org.spine3.gradle.protobuf.failure;
 
-import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.GeneratedMessageV3;
 import com.squareup.javapoet.AnnotationSpec;
@@ -33,8 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.base.CommandContext;
 import org.spine3.base.FailureThrowable;
-import org.spine3.gradle.protobuf.fieldtype.FieldType;
-import org.spine3.gradle.protobuf.fieldtype.FieldTypeFactory;
+import org.spine3.gradle.protobuf.failure.fieldtype.FieldType;
+import org.spine3.gradle.protobuf.failure.fieldtype.FieldTypeFactory;
 
 import javax.annotation.Generated;
 import java.io.File;
@@ -48,8 +47,8 @@ import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
-import static org.spine3.gradle.protobuf.failures.FailureWriter.FailureThrowableCtorParams.COMMAND_CONTEXT;
-import static org.spine3.gradle.protobuf.failures.FailureWriter.FailureThrowableCtorParams.COMMAND_MESSAGE;
+import static org.spine3.gradle.protobuf.failure.FailureWriter.FailureThrowableCtorParams.COMMAND_CONTEXT;
+import static org.spine3.gradle.protobuf.failure.FailureWriter.FailureThrowableCtorParams.COMMAND_MESSAGE;
 
 /**
  * Class, which writes Failure java code, based on it's descriptor.
@@ -64,34 +63,26 @@ public class FailureWriter {
 
     private static final String COMMA_SEPARATOR = ", ";
 
-    private final DescriptorProto failureDescriptor;
+    private final FailureMetadata failureMetadata;
     private final File outputDirectory;
-    private final String javaPackage;
-
-    private final String outerClassName;
-    private final String className;
 
     private final FieldTypeFactory fieldTypeFactory;
+    private final FailureJavadocGenerator javadocGenerator;
 
     /**
      * Creates a new instance.
      *
-     * @param failureDescriptor {@link DescriptorProto} of failure's proto message
-     * @param outputDirectory   a {@linkplain File directory} to write a Failure
-     * @param javaPackage       Failure's java package
-     * @param messageTypeMap    pre-scanned map with proto types and their appropriate Java classes
+     * @param failureMetadata a failure metadata
+     * @param outputDirectory a {@linkplain File directory} to write a Failure
+     * @param messageTypeMap  pre-scanned map with proto types and their appropriate Java classes
      */
-    public FailureWriter(DescriptorProto failureDescriptor,
+    public FailureWriter(FailureMetadata failureMetadata,
                          File outputDirectory,
-                         String javaPackage,
-                         String javaOuterClassName,
                          Map<String, String> messageTypeMap) {
-        this.failureDescriptor = failureDescriptor;
+        this.failureMetadata = failureMetadata;
         this.outputDirectory = outputDirectory;
-        this.javaPackage = javaPackage;
-        this.outerClassName = javaOuterClassName;
-        this.className = failureDescriptor.getName();
-        this.fieldTypeFactory = new FieldTypeFactory(failureDescriptor, messageTypeMap);
+        this.fieldTypeFactory = new FieldTypeFactory(failureMetadata.getDescriptor(), messageTypeMap);
+        this.javadocGenerator = new FailureJavadocGenerator(failureMetadata);
     }
 
     /**
@@ -102,8 +93,9 @@ public class FailureWriter {
             log().debug("Creating the output directory {}", outputDirectory.getPath());
             Files.createDirectories(outputDirectory.toPath());
 
-            log().debug("Constructing {}", className);
-            final TypeSpec failure = TypeSpec.classBuilder(className)
+            log().debug("Constructing {}", failureMetadata.getClassName());
+            final TypeSpec failure = TypeSpec.classBuilder(failureMetadata.getClassName())
+                                             .addJavadoc(javadocGenerator.generateClassJavadoc())
                                              .addAnnotation(constructGeneratedAnnotation())
                                              .addModifiers(PUBLIC)
                                              .superclass(FailureThrowable.class)
@@ -111,19 +103,21 @@ public class FailureWriter {
                                              .addMethod(constructConstructor())
                                              .addMethod(constructGetFailureMessage())
                                              .build();
-            final JavaFile javaFile = JavaFile.builder(javaPackage, failure)
+            final JavaFile javaFile = JavaFile.builder(failureMetadata.getJavaPackage(), failure)
                                               .build();
-            log().debug("Writing {}", className);
+            log().debug("Writing {}", failureMetadata.getClassName());
             javaFile.writeTo(outputDirectory);
-            log().debug("Failure {} written successfully", className);
+            log().debug("Failure {} written successfully", failureMetadata.getClassName());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     private MethodSpec constructConstructor() {
-        log().debug("Constructing the constructor of type '{}'", failureDescriptor.getName());
+        log().debug("Constructing the constructor of type '{}'", failureMetadata.getDescriptor()
+                                                                                .getName());
         final MethodSpec.Builder builder = constructorBuilder()
+                .addJavadoc(javadocGenerator.generateConstructorJavadoc())
                 .addModifiers(PUBLIC)
                 .addParameter(GeneratedMessageV3.class, COMMAND_MESSAGE.getName())
                 .addParameter(CommandContext.class, COMMAND_CONTEXT.getName());
@@ -142,7 +136,8 @@ public class FailureWriter {
         final StringBuilder superStatement = new StringBuilder(
                 "super(" + COMMAND_MESSAGE.getName() + COMMA_SEPARATOR
                         + COMMAND_CONTEXT.getName() + COMMA_SEPARATOR
-                        + outerClassName + '.' + className + ".newBuilder()");
+                        + failureMetadata.getOuterClassName() + '.' + failureMetadata.getClassName()
+                        + ".newBuilder()");
 
         for (Map.Entry<String, FieldType> field : readFieldValues().entrySet()) {
             final String upperCaseName = getJavaFieldCapitalizedName(field.getKey());
@@ -162,7 +157,8 @@ public class FailureWriter {
     private MethodSpec constructGetFailureMessage() {
         log().debug("Constructing getFailureMessage()");
 
-        final TypeName returnTypeName = ClassName.get(outerClassName, className);
+        final TypeName returnTypeName = ClassName.get(failureMetadata.getOuterClassName(),
+                                                      failureMetadata.getClassName());
         return MethodSpec.methodBuilder("getFailureMessage")
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC)
@@ -220,10 +216,12 @@ public class FailureWriter {
      * @return name-to-{@link FieldType} map
      */
     private Map<String, FieldType> readFieldValues() {
-        log().debug("Reading all the field values from the descriptor: {}", failureDescriptor);
+        log().debug("Reading all the field values from the descriptor: {}",
+                    failureMetadata.getDescriptor());
 
         final Map<String, FieldType> result = new LinkedHashMap<>();
-        for (FieldDescriptorProto field : failureDescriptor.getFieldList()) {
+        for (FieldDescriptorProto field : failureMetadata.getDescriptor()
+                                                         .getFieldList()) {
             result.put(field.getName(), fieldTypeFactory.create(field));
         }
         log().debug("Read fields: {}", result);

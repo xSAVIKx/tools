@@ -30,7 +30,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spine3.gradle.protobuf.MessageTypeCache;
+import org.spine3.gradle.protobuf.failure.MessageTypeCache;
 import org.spine3.gradle.protobuf.validators.construction.FieldConstructor;
 import org.spine3.gradle.protobuf.validators.construction.MethodConstructorManager;
 import org.spine3.server.validate.AbstractValidatingBuilder;

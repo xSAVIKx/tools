@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.protobuf.fieldtype;
+package org.spine3.gradle.protobuf.failure.fieldtype;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -27,7 +27,7 @@ import com.squareup.javapoet.TypeName;
 import java.util.Map;
 
 /**
- * Represents map {@linkplain FieldType field type}.
+ * Represents map {@linkplain org.spine3.gradle.protobuf.failure.fieldtype.FieldType field type}.
  */
 public class MapFieldType implements FieldType {
 
@@ -71,7 +71,7 @@ public class MapFieldType implements FieldType {
      * Returns "putAll" setter prefix,
      * used to initialize a map field using a protobuf message builder.
      *
-     * <p>Call should be like `builder.putAllFieldName({@link java.util.Map})`.
+     * <p>Call should be like `builder.putAllFieldName({@link Map})`.
      *
      * @return {@inheritDoc}
      */

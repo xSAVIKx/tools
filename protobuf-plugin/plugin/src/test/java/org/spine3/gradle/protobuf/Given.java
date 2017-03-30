@@ -43,6 +43,7 @@ class Given {
 
     static final String SPINE_PROTOBUF_PLUGIN_ID = "org.spine3.tools.protobuf-plugin";
 
+    // prevent instantiation of this utility class
     private Given() {
     }
 

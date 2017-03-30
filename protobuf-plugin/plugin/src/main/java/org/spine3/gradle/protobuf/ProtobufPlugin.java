@@ -24,7 +24,7 @@ import org.gradle.api.Project;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.gradle.protobuf.cleaning.CleaningPlugin;
-import org.spine3.gradle.protobuf.failures.FailuresGenPlugin;
+import org.spine3.gradle.protobuf.failure.FailuresGenPlugin;
 import org.spine3.gradle.protobuf.lookup.enrichments.EnrichmentLookupPlugin;
 import org.spine3.gradle.protobuf.lookup.proto.ProtoToJavaMapperPlugin;
 import org.spine3.gradle.protobuf.validators.ValidatorsGenPlugin;

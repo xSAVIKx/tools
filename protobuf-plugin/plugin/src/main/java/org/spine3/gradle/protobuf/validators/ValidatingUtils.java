@@ -20,12 +20,15 @@
 
 package org.spine3.gradle.protobuf.validators;
 
+import com.google.common.base.Optional;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.squareup.javapoet.ClassName;
-import org.spine3.gradle.protobuf.MessageTypeCache;
-import org.spine3.gradle.protobuf.util.GenerationUtils;
+import org.spine3.gradle.protobuf.failure.MessageTypeCache;
+import org.spine3.gradle.protobuf.failure.fieldtype.ProtoScalarType;
 
 import java.util.Collection;
+
+import static org.spine3.gradle.protobuf.util.GenerationUtils.getMessageName;
 
 /**
  * Utility class for working with validator generators.
@@ -50,20 +53,19 @@ public class ValidatingUtils {
         if (typeName.isEmpty()) {
             return getJavaTypeForScalarType(fieldDescriptor);
         }
-        typeName = typeName.substring(1);
         final String parameterType = messageTypeCache.getCachedTypes()
-                                                     .get(typeName);
+                                                     .get(getMessageName(typeName));
         return ClassName.bestGuess(parameterType);
     }
 
     private static ClassName getJavaTypeForScalarType(FieldDescriptorProto fieldDescriptor) {
         final String fieldName = fieldDescriptor.getType()
                                                 .name();
-        try {
-            return ClassName.get(Class.forName(GenerationUtils.getType(fieldName)));
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+        final Optional<? extends Class<?>> scalarPrimitive = ProtoScalarType.getBoxedScalarPrimitive(fieldName);
+        if (scalarPrimitive.isPresent()) {
+            return ClassName.get(scalarPrimitive.get());
         }
+        throw new RuntimeException("Class is not found.");
     }
 
     /**

@@ -24,9 +24,9 @@ import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
-import org.spine3.gradle.protobuf.MessageTypeCache;
-import org.spine3.gradle.protobuf.fieldtype.FieldType;
-import org.spine3.gradle.protobuf.fieldtype.FieldTypeFactory;
+import org.spine3.gradle.protobuf.failure.MessageTypeCache;
+import org.spine3.gradle.protobuf.failure.fieldtype.FieldType;
+import org.spine3.gradle.protobuf.failure.fieldtype.FieldTypeFactory;
 import org.spine3.gradle.protobuf.validators.ValidatorMetadata;
 
 import javax.lang.model.element.Modifier;

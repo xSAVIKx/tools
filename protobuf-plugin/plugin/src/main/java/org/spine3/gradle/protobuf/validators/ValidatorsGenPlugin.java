@@ -30,7 +30,7 @@ import org.gradle.api.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.gradle.SpinePlugin;
-import org.spine3.gradle.protobuf.MessageTypeCache;
+import org.spine3.gradle.protobuf.failure.MessageTypeCache;
 
 import java.util.Collection;
 import java.util.LinkedList;

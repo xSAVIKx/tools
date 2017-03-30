@@ -28,7 +28,7 @@ import com.squareup.javapoet.ParameterSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.base.ConversionException;
-import org.spine3.gradle.protobuf.fieldtype.FieldType;
+import org.spine3.gradle.protobuf.failure.fieldtype.FieldType;
 import org.spine3.validate.ConstraintViolationThrowable;
 
 import javax.lang.model.element.Modifier;

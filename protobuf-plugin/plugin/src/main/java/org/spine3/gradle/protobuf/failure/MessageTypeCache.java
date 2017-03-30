@@ -17,7 +17,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.gradle.protobuf;
+package org.spine3.gradle.protobuf.failure;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
@@ -26,7 +26,6 @@ import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spine3.gradle.protobuf.failures.FailuresGenPlugin;
 import org.spine3.gradle.protobuf.util.JavaCode;
 
 import java.util.Map;
