@@ -20,6 +20,7 @@
 
 package org.spine3.gradle.protobuf.validators;
 
+import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 
 import java.util.Map;
@@ -31,21 +32,21 @@ import static com.google.common.collect.Maps.newHashMap;
  */
 class FileDescriptorCache {
 
-    private final Map<String, FileDescriptorProto> typeFiles = newHashMap();
+    private final Map<DescriptorProto, FileDescriptorProto> typeFiles = newHashMap();
 
-    void cache(String msg, FileDescriptorProto descriptor) {
-        typeFiles.put(msg, descriptor);
+    void cache(DescriptorProto msgDescriptor, FileDescriptorProto fileDescriptor) {
+        typeFiles.put(msgDescriptor, fileDescriptor);
     }
 
-    String getJavaPackageFor(String msg) {
-        final String javaPackage = typeFiles.get(msg)
+    String getJavaPackageFor(DescriptorProto msgDescriptor) {
+        final String javaPackage = typeFiles.get(msgDescriptor)
                                             .getOptions()
                                             .getJavaPackage();
         return javaPackage;
     }
 
-    FileDescriptorProto getFileDescriptor(String msg) {
-        final FileDescriptorProto result = typeFiles.get(msg);
+    FileDescriptorProto getFileDescriptor(DescriptorProto msgDescriptor) {
+        final FileDescriptorProto result = typeFiles.get(msgDescriptor);
         return result;
     }
 
