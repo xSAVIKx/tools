@@ -37,7 +37,9 @@ message LabelDetailsChange {
 
     LabelDetails new_details = 2;
 
-    repeated LabelDetails details = 3;
+    int32 version = 3;
+
+    repeated LabelDetails details = 4;
 }
 
 message DescriptionChange {
