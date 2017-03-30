@@ -41,6 +41,7 @@ protobuf {
             task.generateDescriptorSet = true
             task.descriptorSetOptions.path = "${projectDir}/build/descriptors/${task.sourceSet.name}.desc"
             task.descriptorSetOptions.includeImports = true
+            task.descriptorSetOptions.includeSourceInfo = true
         }
     }
 }
