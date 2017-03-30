@@ -17,17 +17,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.gradle.protobuf.failures.fieldtype;
+package org.spine3.gradle.protobuf.failure.fieldtype;
 
+import com.google.common.base.Optional;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
-import org.apache.commons.lang3.ClassUtils;
-import org.spine3.util.Exceptions;
 
 import java.util.Collection;
-
-import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.isProtoPrimitive;
 
 /**
  * Represents repeated {@linkplain FieldType field type}.
@@ -71,20 +68,12 @@ public class RepeatedFieldType implements FieldType {
     }
 
     private static TypeName constructTypeNameFor(String componentTypeName) {
-        final TypeName componentType;
+        final Optional<? extends Class<?>> boxedScalarPrimitive =
+                ProtoScalarType.getBoxedScalarPrimitive(componentTypeName);
 
-        if (isProtoPrimitive(componentTypeName)) {
-            try {
-                final Class<?> primitiveClass = ClassUtils.getClass(componentTypeName);
-                componentType = TypeName.get(primitiveClass)
-                                        .box();
-            } catch (ClassNotFoundException e) {
-                throw Exceptions.wrappedCause(e);
-            }
-        } else {
-            componentType = ClassName.bestGuess(componentTypeName);
-        }
-
+        final TypeName componentType = boxedScalarPrimitive.isPresent()
+                                       ? TypeName.get(boxedScalarPrimitive.get())
+                                       : ClassName.bestGuess(componentTypeName);
         return ParameterizedTypeName.get(ClassName.get(Collection.class), componentType);
     }
 

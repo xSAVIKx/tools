@@ -19,8 +19,9 @@
  */
 
 /**
- * Plugins and utilities for Spine Failure generation.
- *
- * @author Alex Tymchenko
+ * Utilities for working with Javadoc.
  */
-package org.spine3.gradle.protobuf.failures;
+@ParametersAreNonnullByDefault
+package org.spine3.gradle.protobuf.javadoc;
+
+import javax.annotation.ParametersAreNonnullByDefault;

@@ -10,10 +10,14 @@ test {
 }
 
 dependencies {
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
     compile group: 'com.squareup', name: 'javapoet', version: '1.8.0'
     compile group: 'com.google.guava', name: 'guava', version: guavaVersion
     compile group: 'org.spine3', name: 'spine-client-core', version: spineVersion
 
     compile project(path: ":common")
+
+    // "tools.jar" contains Javadoc classes used in the failures Javadoc generation tests.
+    // It is local version bundled within the JDK installation.
+    // "JAVA_HOME" environment variable must be set for correct work.
+    testCompile files("${System.properties['java.home']}/../lib/tools.jar")
 }

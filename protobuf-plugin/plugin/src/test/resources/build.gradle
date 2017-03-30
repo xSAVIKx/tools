@@ -1,3 +1,5 @@
+// Common build file for the tests with same configuration
+
 buildscript {
     repositories {
         mavenLocal()
@@ -9,7 +11,7 @@ buildscript {
     dependencies {
         classpath "com.google.protobuf:protobuf-java:3.2.0"
         classpath "com.google.protobuf:protobuf-gradle-plugin:0.8.0"
-        classpath "org.spine3.tools:protobuf-plugin:0.8.5-SNAPSHOT"
+        classpath "org.spine3.tools:protobuf-plugin:0.8.8-SNAPSHOT"
     }
     configurations.all({
         resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
@@ -42,6 +44,7 @@ protobuf {
             task.generateDescriptorSet = true
             task.descriptorSetOptions.path = "${projectDir}/build/descriptors/${task.sourceSet.name}.desc"
             task.descriptorSetOptions.includeImports = true
+            task.descriptorSetOptions.includeSourceInfo = true
         }
     }
 }

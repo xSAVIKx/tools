@@ -17,28 +17,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.gradle.protobuf.failures.fieldtype;
-
-import com.squareup.javapoet.TypeName;
 
 /**
- * Interface for obtaining type specific information.
+ * Plugins and utilities for Spine Failure generation.
  *
- * @author Dmytro Grankin
+ * @author Alex Tymchenko
  */
-public interface FieldType {
+@ParametersAreNonnullByDefault
+package org.spine3.gradle.protobuf.failure;
 
-    /**
-     * Returns the {@link TypeName} for specific {@link FieldType}.
-     *
-     * @return the type name
-     */
-    TypeName getTypeName();
-
-    /**
-     * Returns the setter prefix for specific {@link FieldType}.
-     *
-     * @return the setter prefix
-     */
-    String getSetterPrefix();
-}
+import javax.annotation.ParametersAreNonnullByDefault;

@@ -17,33 +17,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.gradle.protobuf.failures.fieldtype;
+
+package org.spine3.gradle.protobuf.failure.fieldtype;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
-import org.apache.commons.lang3.ClassUtils;
-import org.spine3.util.Exceptions;
 
-import static org.spine3.gradle.protobuf.failures.fieldtype.ProtoPrimitives.isProtoPrimitive;
+import java.util.Map;
 
 /**
- * Represents singular {@linkplain FieldType field type}.
- *
- * @author Dmytro Grankin
+ * Represents map {@linkplain FieldType field type}.
  */
-public class SingularFieldType implements FieldType {
+public class MapFieldType implements FieldType {
 
-    private static final String SETTER_PREFIX = "set";
+    private static final String SETTER_PREFIX = "putAll";
 
     private final TypeName typeName;
 
     /**
-     * Constructs the {@link SingularFieldType} based on field type name.
+     * Constructs the {@link MapFieldType} based on
+     * the key and the value type names.
      *
-     * @param name the field type name
+     * @param entryTypeNames the entry containing the key and the value type names.
      */
-    SingularFieldType(String name) {
-        this.typeName = constructTypeNameFor(name);
+    MapFieldType(Map.Entry<TypeName, TypeName> entryTypeNames) {
+        this.typeName = ParameterizedTypeName.get(
+                ClassName.get(Map.class),
+                boxIfPrimitive(entryTypeNames.getKey()),
+                boxIfPrimitive(entryTypeNames.getValue())
+        );
     }
 
     /**
@@ -55,10 +58,10 @@ public class SingularFieldType implements FieldType {
     }
 
     /**
-     * Returns "set" setter prefix,
-     * used to initialize a singular field using a protobuf message builder.
+     * Returns "putAll" setter prefix,
+     * used to initialize a map field using a protobuf message builder.
      *
-     * Call should be like `builder.setFieldName(FieldType)`.
+     * <p>Call should be like `builder.putAllFieldName({@link java.util.Map})`.
      *
      * @return {@inheritDoc}
      */
@@ -67,16 +70,12 @@ public class SingularFieldType implements FieldType {
         return SETTER_PREFIX;
     }
 
-    private static TypeName constructTypeNameFor(String name) {
-        if (isProtoPrimitive(name)) {
-            try {
-                return TypeName.get(ClassUtils.getClass(name));
-            } catch (ClassNotFoundException e) {
-                throw Exceptions.wrappedCause(e);
-            }
-        } else {
-            return ClassName.bestGuess(name);
+    private static TypeName boxIfPrimitive(TypeName typeName) {
+        if (typeName.isPrimitive()) {
+            return typeName.box();
         }
+
+        return typeName;
     }
 
     @Override

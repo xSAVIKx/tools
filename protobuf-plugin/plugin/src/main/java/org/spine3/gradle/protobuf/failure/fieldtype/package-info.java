@@ -17,36 +17,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.gradle.protobuf.failures.fieldtype;
 
 /**
- * Enumeration of the java primitives, which
- * can be received from proto message.
+ * Classes for working with different proto field types.
  */
-enum ProtoPrimitives {
-    INT("int"),
-    LONG("long"),
-    FLOAT("float"),
-    DOUBLE("double"),
-    BOOLEAN("boolean");
+@ParametersAreNonnullByDefault
+package org.spine3.gradle.protobuf.failure.fieldtype;
 
-    private final String name;
-
-    ProtoPrimitives(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public static boolean isProtoPrimitive(String name) {
-        for (ProtoPrimitives primitive : ProtoPrimitives.values()) {
-            if (name.equals(primitive.getName())) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-}
+import javax.annotation.ParametersAreNonnullByDefault;

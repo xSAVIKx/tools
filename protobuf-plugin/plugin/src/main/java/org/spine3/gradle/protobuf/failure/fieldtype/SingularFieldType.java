@@ -17,36 +17,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.spine3.gradle.protobuf.failure.fieldtype;
 
-package org.spine3.gradle.protobuf.failures.fieldtype;
-
+import com.google.common.base.Optional;
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 
-import java.util.Map;
-
 /**
- * Represents map {@linkplain FieldType field type}.
+ * Represents singular {@linkplain FieldType field type}.
+ *
+ * @author Dmytro Grankin
  */
-public class MapFieldType implements FieldType {
+public class SingularFieldType implements FieldType {
 
-    private static final String SETTER_PREFIX = "putAll";
+    private static final String SETTER_PREFIX = "set";
 
     private final TypeName typeName;
 
     /**
-     * Constructs the {@link MapFieldType} based on
-     * the key and the value type names.
+     * Constructs the {@link SingularFieldType} based on field type name.
      *
-     * @param entryTypeNames the entry containing the key and the value type names.
+     * @param name the field type name
      */
-    MapFieldType(Map.Entry<TypeName, TypeName> entryTypeNames) {
-        this.typeName = ParameterizedTypeName.get(
-                ClassName.get(Map.class),
-                boxIfPrimitive(entryTypeNames.getKey()),
-                boxIfPrimitive(entryTypeNames.getValue())
-        );
+    SingularFieldType(String name) {
+        this.typeName = constructTypeNameFor(name);
     }
 
     /**
@@ -58,10 +52,10 @@ public class MapFieldType implements FieldType {
     }
 
     /**
-     * Returns "putAll" setter prefix,
-     * used to initialize a map field using a protobuf message builder.
+     * Returns "set" setter prefix,
+     * used to initialize a singular field using a protobuf message builder.
      *
-     * <p>Call should be like `builder.putAllFieldName({@link java.util.Map})`.
+     * Call should be like `builder.setFieldName(FieldType)`.
      *
      * @return {@inheritDoc}
      */
@@ -70,12 +64,14 @@ public class MapFieldType implements FieldType {
         return SETTER_PREFIX;
     }
 
-    private static TypeName boxIfPrimitive(TypeName typeName) {
-        if (typeName.isPrimitive()) {
-            return typeName.box();
-        }
+    private static TypeName constructTypeNameFor(String name) {
+        final Optional<? extends Class<?>> boxedScalarPrimitive =
+                ProtoScalarType.getBoxedScalarPrimitive(name);
 
-        return typeName;
+        return boxedScalarPrimitive.isPresent()
+               ? TypeName.get(boxedScalarPrimitive.get())
+                         .unbox()
+               : ClassName.bestGuess(name);
     }
 
     @Override

@@ -17,7 +17,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.gradle.protobuf.failures;
+package org.spine3.gradle.protobuf.failure;
 
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
@@ -61,8 +61,6 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
  */
 public class FailuresGenPlugin extends SpinePlugin {
 
-    private Project project;
-
     /** A map from Protobuf type name to Java class FQN. */
     private final MessageTypeCache messageTypeCache = new MessageTypeCache();
 
@@ -76,8 +74,6 @@ public class FailuresGenPlugin extends SpinePlugin {
      */
     @Override
     public void apply(final Project project) {
-        this.project = project;
-
         log().debug("Preparing to generate failures");
         final Action<Task> mainScopeAction = new Action<Task>() {
             @Override
@@ -172,8 +168,9 @@ public class FailuresGenPlugin extends SpinePlugin {
             // The name of the generated ThrowableFailure will be the same as for the Protobuf message.
             log().debug("Processing failure '{}'", failure.getName());
 
+            final FailureMetadata metadata = new FailureMetadata(failure, descriptor);
             final File outputDir = new File(failuresRootDir);
-            final FailureWriter writer = new FailureWriter(failure, outputDir, javaPackage, javaOuterClassName, messageTypeMap);
+            final FailureWriter writer = new FailureWriter(metadata, outputDir, messageTypeMap);
             writer.write();
         }
     }
