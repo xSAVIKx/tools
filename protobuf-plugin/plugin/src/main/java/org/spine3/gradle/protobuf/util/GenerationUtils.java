@@ -93,4 +93,16 @@ public class GenerationUtils {
         final String msgName = paths[paths.length - 1];
         return msgName;
     }
+
+    public static String toCorrectFieldTypeName(String typeName) {
+        if (typeName.isEmpty()) {
+            return typeName;
+        }
+
+        // it has a redundant dot in the beginning
+        if (typeName.charAt(0) == '.') {
+            return typeName.substring(1);
+        }
+        return typeName;
+    }
 }
