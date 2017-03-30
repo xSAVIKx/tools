@@ -46,7 +46,8 @@ import static org.spine3.gradle.protobuf.Extension.getTestTargetGenResourcesDir;
 import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors;
 
 /**
- * Finds event enrichment Protobuf definitions and creates a {@code .properties} file, which contains entries like:
+ * Finds event enrichment Protobuf definitions and creates a {@code .properties} file,
+ * which contains entries like:
  *
  * <p>{@code ENRICHMENT_TYPE_NAME=EVENT_TO_ENRICH_TYPE_NAME}
  *
@@ -70,18 +71,21 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
     public void apply(final Project project) {
         final Action<Task> mainScopeAction = mainScopeActionFor(project);
         logDependingTask(log(), FIND_ENRICHMENTS, PROCESS_RESOURCES, COMPILE_JAVA);
-        final GradleTask findEnrichments = newTask(FIND_ENRICHMENTS,
-                                                   mainScopeAction).insertAfterTask(COMPILE_JAVA)
-                                                                   .insertBeforeTask(PROCESS_RESOURCES)
-                                                                   .applyNowTo(project);
+        final GradleTask findEnrichments =
+                newTask(FIND_ENRICHMENTS,
+                        mainScopeAction).insertAfterTask(COMPILE_JAVA)
+                                        .insertBeforeTask(PROCESS_RESOURCES)
+                                        .applyNowTo(project);
         final Action<Task> testScopeAction = testScopeActionFor(project);
         logDependingTask(log(), FIND_TEST_ENRICHMENTS, PROCESS_TEST_RESOURCES, COMPILE_TEST_JAVA);
-        final GradleTask findTestEnrichments = newTask(FIND_TEST_ENRICHMENTS,
-                                                       testScopeAction).insertAfterTask(COMPILE_TEST_JAVA)
-                                                                       .insertBeforeTask(PROCESS_TEST_RESOURCES)
-                                                                       .applyNowTo(project);
+        final GradleTask findTestEnrichments =
+                newTask(FIND_TEST_ENRICHMENTS,
+                        testScopeAction).insertAfterTask(COMPILE_TEST_JAVA)
+                                        .insertBeforeTask(PROCESS_TEST_RESOURCES)
+                                        .applyNowTo(project);
 
-        log().debug("Enrichment lookup phase initialized with tasks: {}, {}", findEnrichments, findTestEnrichments);
+        final String msg = "Enrichment lookup phase initialized with tasks: {}, {}";
+        log().debug(msg, findEnrichments, findTestEnrichments);
     }
 
     private static Action<Task> testScopeActionFor(final Project project) {
@@ -113,7 +117,8 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
         log().debug("Enrichment lookup started");
 
         final Map<String, String> propsMap = newHashMap();
-        final DescriptorSetUtil.IsNotGoogleProto protoFilter = new DescriptorSetUtil.IsNotGoogleProto();
+        final DescriptorSetUtil.IsNotGoogleProto protoFilter =
+                new DescriptorSetUtil.IsNotGoogleProto();
         final Collection<FileDescriptorProto> files = getProtoFileDescriptors(descriptorSetPath,
                                                                               protoFilter);
         for (FileDescriptorProto file : files) {
@@ -125,8 +130,10 @@ public class EnrichmentLookupPlugin extends SpinePlugin {
             return;
         }
 
-        log().debug("Writing the enrichment description to {}/{}", targetGeneratedResourcesDir, PROPS_FILE_NAME);
-        final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir, PROPS_FILE_NAME);
+        log().debug("Writing the enrichment description to {}/{}",
+                    targetGeneratedResourcesDir, PROPS_FILE_NAME);
+        final PropertiesWriter writer =
+                new PropertiesWriter(targetGeneratedResourcesDir, PROPS_FILE_NAME);
         writer.write(propsMap);
 
         log().debug("Enrichment lookup complete");

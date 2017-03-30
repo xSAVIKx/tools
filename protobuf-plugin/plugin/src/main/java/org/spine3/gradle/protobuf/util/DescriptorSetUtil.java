@@ -57,8 +57,10 @@ public class DescriptorSetUtil {
      *                          which contains the info about project `.proto` files
      * @return a list of descriptors
      */
-    public static Collection<FileDescriptorProto> getProtoFileDescriptors(String descriptorSetPath) {
-        return getProtoFileDescriptors(descriptorSetPath, Predicates.<FileDescriptorProto>alwaysTrue());
+    public static Collection<FileDescriptorProto> getProtoFileDescriptors(
+            String descriptorSetPath) {
+        return getProtoFileDescriptors(
+                descriptorSetPath, Predicates.<FileDescriptorProto>alwaysTrue());
     }
 
     /**
@@ -70,14 +72,15 @@ public class DescriptorSetUtil {
      * @param filter            a filter predicate to apply to the files
      * @return a list of descriptors
      */
-    public static Collection<FileDescriptorProto> getProtoFileDescriptors(String descriptorSetPath,
-                                                                          Predicate<FileDescriptorProto> filter) {
+    public static Collection<FileDescriptorProto> getProtoFileDescriptors(
+            String descriptorSetPath, Predicate<FileDescriptorProto> filter) {
         if (!new File(descriptorSetPath).exists()) {
             log().warn(MSG_ENABLE_DESCRIPTOR_SET_GENERATION);
             return emptyList();
         }
         log().debug("Looking up for the proto files matching {} under {}",
-                    filter.getClass().getSimpleName(),
+                    filter.getClass()
+                          .getSimpleName(),
                     descriptorSetPath);
         final Collection<FileDescriptorProto> fileDescriptors = new LinkedList<>();
 
@@ -90,7 +93,8 @@ public class DescriptorSetUtil {
                 }
             }
         } catch (@SuppressWarnings("OverlyBroadCatchBlock") IOException e) {
-            throw new RuntimeException("Cannot get proto file descriptors. Path = " + descriptorSetPath, e);
+            throw new RuntimeException("Cannot get proto file descriptors. Path = " +
+                                               descriptorSetPath, e);
         }
         log().debug("Found {} files:\n{}", fileDescriptors.size(), fileDescriptors);
 
