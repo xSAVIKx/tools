@@ -1,7 +1,7 @@
 final SPINE_VERSION = '0.8.0'
 final PLUGIN_VERSION = '0.8.0'
 
-final PLUGIN_PUBLISH_VERSION = '0.8.4-SNAPSHOT'
+final PLUGIN_PUBLISH_VERSION = '0.8.8-SNAPSHOT'
 
 buildscript {
     ext {
@@ -62,6 +62,7 @@ subprojects {
         //Use jdk14 bindings for test purposes only.
         testCompile group: 'org.slf4j', name: 'slf4j-jdk14', version: slf4JVersion
         testCompile(group: 'junit', name: 'junit', version: jUnitVersion)
+        testCompile group: 'com.google.guava', name: 'guava-testlib', version: guavaVersion
         testCompile gradleTestKit()
     }
 

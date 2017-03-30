@@ -17,7 +17,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.gradle.protobuf.failures;
+package org.spine3.gradle.protobuf.failure;
 
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
@@ -34,10 +34,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import static java.io.File.separatorChar;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
 import static org.spine3.gradle.TaskName.COMPILE_TEST_JAVA;
 import static org.spine3.gradle.TaskName.GENERATE_FAILURES;
@@ -64,9 +61,6 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
  */
 public class FailuresGenPlugin extends SpinePlugin {
 
-    private static final Pattern COMPILE = Pattern.compile(".", Pattern.LITERAL);
-    private Project project;
-
     /** A map from Protobuf type name to Java class FQN. */
     private final MessageTypeCache messageTypeCache = new MessageTypeCache();
 
@@ -75,50 +69,55 @@ public class FailuresGenPlugin extends SpinePlugin {
      *
      * <p>Adds {@code :generateFailures} and {@code :generateTestFailures} tasks.
      *
-     * <p>Tasks depend on corresponding {@code :generateProto} tasks and are executed before corresponding
-     * {@code :compileJava} tasks.
+     * <p>Tasks depend on corresponding {@code :generateProto} tasks and are executed
+     * before corresponding {@code :compileJava} tasks.
      */
     @Override
     public void apply(final Project project) {
-        this.project = project;
-
         log().debug("Preparing to generate failures");
         final Action<Task> mainScopeAction = new Action<Task>() {
             @Override
             public void execute(Task task) {
                 final String path = getMainDescriptorSetPath(project);
                 log().debug("Generating the failures from {}", path);
-                final List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
+                final List<FileDescriptorProto> filesWithFailures =
+                        getFailureProtoFileDescriptors(path);
                 processDescriptors(filesWithFailures, getTargetGenFailuresRootDir(project));
             }
         };
 
         logDependingTask(log(), GENERATE_FAILURES, COMPILE_JAVA, GENERATE_PROTO);
-        final GradleTask generateFailures = newTask(GENERATE_FAILURES, mainScopeAction).insertAfterTask(GENERATE_PROTO)
-                                                                                       .insertBeforeTask(COMPILE_JAVA)
-                                                                                       .applyNowTo(project);
+        final GradleTask generateFailures =
+                newTask(GENERATE_FAILURES, mainScopeAction).insertAfterTask(GENERATE_PROTO)
+                                                           .insertBeforeTask(COMPILE_JAVA)
+                                                           .applyNowTo(project);
         log().debug("Preparing to generate test failures");
         final Action<Task> testScopeAction = new Action<Task>() {
             @Override
             public void execute(Task task) {
                 final String path = getTestDescriptorSetPath(project);
                 log().debug("Generating the test failures from {}", path);
-                final List<FileDescriptorProto> filesWithFailures = getFailureProtoFileDescriptors(path);
+                final List<FileDescriptorProto> filesWithFailures =
+                        getFailureProtoFileDescriptors(path);
                 processDescriptors(filesWithFailures, getTargetTestGenFailuresRootDir(project));
             }
         };
 
         logDependingTask(log(), GENERATE_TEST_FAILURES, COMPILE_TEST_JAVA, GENERATE_TEST_PROTO);
-        final GradleTask generateTestFailures = newTask(GENERATE_TEST_FAILURES,
-                                                        testScopeAction).insertAfterTask(GENERATE_TEST_PROTO)
-                                                                        .insertBeforeTask(COMPILE_TEST_JAVA)
-                                                                        .applyNowTo(project);
-        log().debug("Failure generation phase initialized with tasks: {}, {}", generateFailures, generateTestFailures);
+        final GradleTask generateTestFailures =
+                newTask(GENERATE_TEST_FAILURES,
+                        testScopeAction).insertAfterTask(GENERATE_TEST_PROTO)
+                                        .insertBeforeTask(COMPILE_TEST_JAVA)
+                                        .applyNowTo(project);
+        log().debug("Failure generation phase initialized with tasks: {}, {}",
+                    generateFailures,
+                    generateTestFailures);
     }
 
     private List<FileDescriptorProto> getFailureProtoFileDescriptors(String descFilePath) {
         final List<FileDescriptorProto> result = new LinkedList<>();
-        final Collection<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath);
+        final Collection<FileDescriptorProto> allDescriptors =
+                getProtoFileDescriptors(descFilePath);
         for (FileDescriptorProto file : allDescriptors) {
             if (file.getName()
                     .endsWith("failures.proto")) {
@@ -157,7 +156,8 @@ public class FailuresGenPlugin extends SpinePlugin {
             return true;
         }
 
-        // it's OK, since a duplicated piece is totally unrelated and is located in the test codebase.
+        // it's OK, since a duplicated piece is totally unrelated and
+        // is located in the test codebase.
         @SuppressWarnings("DuplicateStringLiteralInspection")
         final boolean result = javaOuterClassName.endsWith("Failures");
         return result;
@@ -170,19 +170,15 @@ public class FailuresGenPlugin extends SpinePlugin {
         final String javaPackage = descriptor.getOptions()
                                              .getJavaPackage();
         final String javaOuterClassName = JavaCode.getOuterClassName(descriptor);
-        final String packageDir = COMPILE.matcher(javaPackage)
-                                         .replaceAll(Matcher.quoteReplacement("/"));
         log().debug("Found options: javaPackage: {}, javaOuterClassName: {}", javaPackage, javaOuterClassName);
         final List<DescriptorProto> failures = descriptor.getMessageTypeList();
         for (DescriptorProto failure : failures) {
             // The name of the generated ThrowableFailure will be the same as for the Protobuf message.
-            final String failureName = failure.getName();
-            final String failureJavaPath = failuresRootDir + separatorChar
-                    + packageDir + separatorChar + failureName + ".java";
-            log().debug("Processing failure '{}'", failureName);
+            log().debug("Processing failure '{}'", failure.getName());
 
-            final File outputFile = new File(failureJavaPath);
-            final FailureWriter writer = new FailureWriter(failure, outputFile, javaPackage, javaOuterClassName, messageTypeMap);
+            final FailureMetadata metadata = new FailureMetadata(failure, descriptor);
+            final File outputDir = new File(failuresRootDir);
+            final FailureWriter writer = new FailureWriter(metadata, outputDir, messageTypeMap);
             writer.write();
         }
     }
