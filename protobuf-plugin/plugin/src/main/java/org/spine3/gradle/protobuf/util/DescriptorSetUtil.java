@@ -79,7 +79,8 @@ public class DescriptorSetUtil {
             return emptyList();
         }
         final String msg = "Looking up for the proto files matching {} under {}";
-        log().debug(msg, filter.getClass().getSimpleName(), descriptorSetPath);
+        log().debug(msg, filter.getClass()
+                               .getSimpleName(), descriptorSetPath);
         final Collection<FileDescriptorProto> fileDescriptors = new LinkedList<>();
 
         try {
@@ -91,8 +92,8 @@ public class DescriptorSetUtil {
                 }
             }
         } catch (@SuppressWarnings("OverlyBroadCatchBlock") IOException e) {
-            final String errMsg = "Cannot get proto file descriptors. Path = ";
-            throw new RuntimeException(errMsg + descriptorSetPath, e);
+            final String errMsg = "Cannot get proto file descriptors. Path = " + descriptorSetPath;
+            throw new RuntimeException(errMsg, e);
         }
         log().debug("Found {} files:\n{}", fileDescriptors.size(), fileDescriptors);
 
