@@ -33,7 +33,8 @@ import java.util.Map;
 import static com.google.common.collect.Maps.newHashMap;
 
 /**
- * A cache for the Protobuf message types parsed into appropriate Java types during the Spine Failure generation.
+ * A cache for the Protobuf message types parsed into appropriate Java types during
+ * the Spine Failure generation.
  *
  * @author Alexander Yevsyukov
  * @author Alex Tymchenko
@@ -75,7 +76,8 @@ public class MessageTypeCache {
     }
 
     /**
-     * Obtain an immutable copy of the parsed Protobuf type names mapped to FQN of related Java classes.
+     * Obtain an immutable copy of the parsed Protobuf type names mapped to
+     * FQN of related Java classes.
      *
      * @return current cache contents
      */
@@ -104,7 +106,9 @@ public class MessageTypeCache {
         }
     }
 
-    private void cacheEnumType(EnumDescriptorProto descriptor, String protoPrefix, String javaPrefix) {
+    private void cacheEnumType(EnumDescriptorProto descriptor,
+                               String protoPrefix,
+                               String javaPrefix) {
         final String name = descriptor.getName();
         log().debug("Caching enum type {}", name);
         final String key = protoPrefix + name;

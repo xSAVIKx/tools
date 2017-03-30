@@ -60,7 +60,8 @@ import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDesc
 public class ProtoToJavaMapperPlugin extends SpinePlugin {
 
     /**
-     * The name of the file to populate. NOTE: also change its name used in the `core-java` project on changing.
+     * The name of the file to populate. NOTE: also change its name used
+     * in the `core-java` project on changing.
      */
     private static final String PROPERTIES_FILE_NAME = "known_types.properties";
 
@@ -71,18 +72,24 @@ public class ProtoToJavaMapperPlugin extends SpinePlugin {
     public void apply(final Project project) {
         final Action<Task> mainScopeAction = mainScopeActionFor(project);
         logDependingTask(log(), MAP_PROTO_TO_JAVA, PROCESS_RESOURCES, GENERATE_PROTO);
-        final GradleTask mainScopeTask = newTask(MAP_PROTO_TO_JAVA, mainScopeAction).insertAfterTask(GENERATE_PROTO)
-                                                                                    .insertBeforeTask(PROCESS_RESOURCES)
-                                                                                    .applyNowTo(project);
+        final GradleTask mainScopeTask =
+                newTask(MAP_PROTO_TO_JAVA, mainScopeAction).insertAfterTask(GENERATE_PROTO)
+                                                           .insertBeforeTask(PROCESS_RESOURCES)
+                                                           .applyNowTo(project);
 
         final Action<Task> testScopeAction = testScopeActionFor(project);
-        logDependingTask(log(), MAP_TEST_PROTO_TO_JAVA, PROCESS_TEST_RESOURCES, GENERATE_TEST_PROTO);
-        final GradleTask testScopeTask = newTask(MAP_TEST_PROTO_TO_JAVA,
-                                                 testScopeAction).insertAfterTask(GENERATE_TEST_PROTO)
-                                                                 .insertBeforeTask(PROCESS_TEST_RESOURCES)
-                                                                 .applyNowTo(project);
+        logDependingTask(log(),
+                         MAP_TEST_PROTO_TO_JAVA,
+                         PROCESS_TEST_RESOURCES,
+                         GENERATE_TEST_PROTO);
+        final GradleTask testScopeTask =
+                newTask(MAP_TEST_PROTO_TO_JAVA,
+                        testScopeAction).insertAfterTask(GENERATE_TEST_PROTO)
+                                        .insertBeforeTask(PROCESS_TEST_RESOURCES)
+                                        .applyNowTo(project);
 
-        log().debug("Proto-to-Java mapping phase initialized with tasks: {}, {}", mainScopeTask, testScopeTask);
+        log().debug("Proto-to-Java mapping phase initialized with tasks: {}, {}",
+                    mainScopeTask, testScopeTask);
     }
 
     private static Action<Task> testScopeActionFor(final Project project) {
@@ -90,7 +97,8 @@ public class ProtoToJavaMapperPlugin extends SpinePlugin {
         return new Action<Task>() {
             @Override
             public void execute(Task task) {
-                mapProtoToJavaAndWriteProps(getTestTargetGenResourcesDir(project), getTestDescriptorSetPath(project));
+                mapProtoToJavaAndWriteProps(getTestTargetGenResourcesDir(project),
+                                            getTestDescriptorSetPath(project));
             }
         };
     }
@@ -100,13 +108,15 @@ public class ProtoToJavaMapperPlugin extends SpinePlugin {
         return new Action<Task>() {
             @Override
             public void execute(Task task) {
-                mapProtoToJavaAndWriteProps(getMainTargetGenResourcesDir(project), getMainDescriptorSetPath(project));
+                mapProtoToJavaAndWriteProps(getMainTargetGenResourcesDir(project),
+                                            getMainDescriptorSetPath(project));
             }
         };
     }
 
     @SuppressWarnings("MethodParameterNamingConvention")
-    private static void mapProtoToJavaAndWriteProps(String targetGeneratedResourcesDir, String descriptorSetPath) {
+    private static void mapProtoToJavaAndWriteProps(String targetGeneratedResourcesDir,
+                                                    String descriptorSetPath) {
         final Map<String, String> propsMap = newHashMap();
         final Collection<FileDescriptorProto> files =
                 getProtoFileDescriptors(descriptorSetPath, new IsNotGoogleProto());
@@ -124,7 +134,8 @@ public class ProtoToJavaMapperPlugin extends SpinePlugin {
         log().debug("{} types found", files.size());
         log().debug("Saving proto-to-java mapping: {}", files);
 
-        final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir, PROPERTIES_FILE_NAME);
+        final PropertiesWriter writer = new PropertiesWriter(targetGeneratedResourcesDir,
+                                                             PROPERTIES_FILE_NAME);
         writer.write(propsMap);
     }
 
