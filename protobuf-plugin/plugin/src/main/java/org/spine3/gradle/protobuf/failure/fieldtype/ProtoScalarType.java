@@ -38,19 +38,19 @@ import static java.lang.String.format;
 public enum ProtoScalarType {
     DOUBLE(Type.TYPE_DOUBLE, double.class),
     FLOAT(Type.TYPE_FLOAT, float.class),
-    INT64(Type.TYPE_INT64, long.class),
-    UINT64(Type.TYPE_UINT64, long.class),
     INT32(Type.TYPE_INT32, int.class),
-    FIXED64(Type.TYPE_FIXED64, long.class),
-    FIXED32(Type.TYPE_FIXED32, int.class),
-    BOOL(Type.TYPE_BOOL, boolean.class),
-    STRING(Type.TYPE_STRING, String.class),
-    BYTES(Type.TYPE_BYTES, ByteString.class),
+    INT64(Type.TYPE_INT64, long.class),
     UINT32(Type.TYPE_UINT32, int.class),
+    UINT64(Type.TYPE_UINT64, long.class),
+    SINT32(Type.TYPE_SINT32, int.class),
+    SINT64(Type.TYPE_SINT64, int.class),
+    FIXED32(Type.TYPE_FIXED32, int.class),
+    FIXED64(Type.TYPE_FIXED64, long.class),
     SFIXED32(Type.TYPE_SFIXED32, int.class),
     SFIXED64(Type.TYPE_SFIXED64, long.class),
-    SINT32(Type.TYPE_SINT32, int.class),
-    SINT64(Type.TYPE_SINT64, int.class);
+    BOOL(Type.TYPE_BOOL, boolean.class),
+    STRING(Type.TYPE_STRING, String.class),
+    BYTES(Type.TYPE_BYTES, ByteString.class);
 
     private final Type protoScalarType;
     private final Class<?> javaClass;
