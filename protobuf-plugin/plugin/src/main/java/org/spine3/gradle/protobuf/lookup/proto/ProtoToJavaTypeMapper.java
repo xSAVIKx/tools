@@ -193,10 +193,7 @@ public class ProtoToJavaTypeMapper {
     private String getJavaClassName(String typeName, Collection<String> parentTypeNames) {
         final String parentClassesPrefix = getParentTypesPrefix(parentTypeNames,
                                                                 JAVA_INNER_CLASS_SEPARATOR);
-        final String result =
-                javaPackagePrefix +
-                commonOuterClassPrefix +
-                        parentClassesPrefix +
+        final String result = javaPackagePrefix + commonOuterClassPrefix + parentClassesPrefix +
                         typeName;
         return result;
     }

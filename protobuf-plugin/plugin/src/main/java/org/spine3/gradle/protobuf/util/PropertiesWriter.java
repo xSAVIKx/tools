@@ -108,7 +108,8 @@ public class PropertiesWriter {
                 final FileInputStream fis = new FileInputStream(file);
                 props.load(fis);
             } catch (@SuppressWarnings("OverlyBroadCatchBlock") IOException e) {
-                throw new RuntimeException("Error loading the properties from the file: " +
+                final String errMsg = "Error loading the properties from the file: ";
+                throw new RuntimeException(errMsg +
                                                    file.getAbsolutePath(), e);
             }
         } else {
@@ -120,8 +121,8 @@ public class PropertiesWriter {
         try {
             Files.createParentDirs(file);
         } catch (IOException e) {
-            throw new RuntimeException("Cannot create the parent folders at " +
-                                               file.getAbsolutePath(), e);
+            final String errMsg = "Cannot create the parent folders at ";
+            throw new RuntimeException(errMsg + file.getAbsolutePath(), e);
         }
     }
 

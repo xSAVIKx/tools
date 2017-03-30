@@ -367,18 +367,15 @@ class EnrichmentsFinder {
 
     @SuppressWarnings("DuplicateStringLiteralInspection")
     private static IllegalStateException invalidByOptionValue(String msgName) {
-        throw new IllegalStateException("Field of message `" +
-                                                msgName +
-                                                "` has invalid 'by' option value, " +
-                                                "which must be a fully-qualified field reference.");
+        throw new IllegalStateException(
+                "Field of message `" + msgName + "` has invalid 'by' option value, " +
+                        "which must be a fully-qualified field reference.");
     }
 
     @SuppressWarnings("DuplicateStringLiteralInspection")
     private static IllegalStateException invalidByOptionUsage(String msgName) {
         throw new IllegalStateException(
-                "Field of message `" +
-                        msgName +
-                        "` has invalid 'by' option value. " +
+                "Field of message `" + msgName + "` has invalid 'by' option value. " +
                         "Wildcard type is not allowed with multiple arguments. " +
                         "Please, specify the type either with `by` or " +
                         "with `enrichment_for` annotation.");

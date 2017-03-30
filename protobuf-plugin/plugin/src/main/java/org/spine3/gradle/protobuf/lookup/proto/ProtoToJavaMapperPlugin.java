@@ -78,10 +78,7 @@ public class ProtoToJavaMapperPlugin extends SpinePlugin {
                                                            .applyNowTo(project);
 
         final Action<Task> testScopeAction = testScopeActionFor(project);
-        logDependingTask(log(),
-                         MAP_TEST_PROTO_TO_JAVA,
-                         PROCESS_TEST_RESOURCES,
-                         GENERATE_TEST_PROTO);
+        logDependingTask(log(),MAP_TEST_PROTO_TO_JAVA, PROCESS_TEST_RESOURCES, GENERATE_TEST_PROTO);
         final GradleTask testScopeTask =
                 newTask(MAP_TEST_PROTO_TO_JAVA,
                         testScopeAction).insertAfterTask(GENERATE_TEST_PROTO)
