@@ -24,7 +24,7 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Represents repeated {@linkplain FieldType field type}.
@@ -74,7 +74,7 @@ public class RepeatedFieldType implements FieldType {
         final TypeName componentType = boxedScalarPrimitive.isPresent()
                                        ? TypeName.get(boxedScalarPrimitive.get())
                                        : ClassName.bestGuess(componentTypeName);
-        return ParameterizedTypeName.get(ClassName.get(Collection.class), componentType);
+        return ParameterizedTypeName.get(ClassName.get(List.class), componentType);
     }
 
     @Override
