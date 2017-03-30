@@ -28,16 +28,19 @@ import org.spine3.Internal;
 import java.util.Collection;
 
 /**
- * Implementation of the {@linkplain ExcludePrinciple} interface for {@linkplain Internal} annotation.
+ * Implementation of the {@linkplain ExcludePrinciple} interface for
+ * {@linkplain Internal} annotation.
  *
- * <p>Excludes all {@linkplain Internal}-annotated program elements, packages, and their subpackages.
+ * <p>Excludes all {@linkplain Internal}-annotated program elements, packages,
+ * and their subpackages.
  *
  * @author Dmytro Grankin
  */
 class ExcludeInternalPrinciple implements ExcludePrinciple {
 
     private final Collection<PackageDoc> exclusions;
-    private final AnnotationAnalyst<Class<Internal>> internalAnalyst = new AnnotationAnalyst<>(Internal.class);
+    private final AnnotationAnalyst<Class<Internal>> internalAnalyst =
+            new AnnotationAnalyst<>(Internal.class);
 
     ExcludeInternalPrinciple(RootDoc root) {
         exclusions = getExclusions(root);
