@@ -24,11 +24,12 @@ import com.google.common.base.Optional;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.squareup.javapoet.ClassName;
 import org.spine3.gradle.protobuf.failure.MessageTypeCache;
-import org.spine3.gradle.protobuf.failure.fieldtype.ProtoScalarType;
+import org.spine3.gradle.protobuf.util.GenerationUtils;
 
 import java.util.Collection;
 
-import static org.spine3.gradle.protobuf.util.GenerationUtils.getMessageName;
+import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoScalarType.getBoxedScalarPrimitive;
+import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoScalarType.getJavaTypeName;
 
 /**
  * Utility class for working with validator generators.
@@ -53,19 +54,25 @@ public class ValidatingUtils {
         if (typeName.isEmpty()) {
             return getJavaTypeForScalarType(fieldDescriptor);
         }
+        typeName = GenerationUtils.toCorrectFieldTypeName(typeName);
         final String parameterType = messageTypeCache.getCachedTypes()
-                                                     .get(getMessageName(typeName));
+                                                     .get(typeName);
         return ClassName.bestGuess(parameterType);
     }
 
     private static ClassName getJavaTypeForScalarType(FieldDescriptorProto fieldDescriptor) {
-        final String fieldName = fieldDescriptor.getType()
-                                                .name();
-        final Optional<? extends Class<?>> scalarPrimitive = ProtoScalarType.getBoxedScalarPrimitive(fieldName);
-        if (scalarPrimitive.isPresent()) {
-            return ClassName.get(scalarPrimitive.get());
+        final FieldDescriptorProto.Type fieldType = fieldDescriptor.getType();
+        final String scalarType = getJavaTypeName(fieldType);
+        try {
+            final Optional<? extends Class<?>> scalarPrimitive = getBoxedScalarPrimitive(scalarType);
+            if (scalarPrimitive.isPresent()) {
+                return ClassName.get(scalarPrimitive.get());
+            }
+            return ClassName.get(Class.forName(scalarType));
+        } catch (ClassNotFoundException ex) {
+            final String exMessage = String.format("Was not found the class for the type: %s", fieldDescriptor.getType());
+            throw new RuntimeException(exMessage, ex);
         }
-        throw new RuntimeException("Class is not found.");
     }
 
     /**
