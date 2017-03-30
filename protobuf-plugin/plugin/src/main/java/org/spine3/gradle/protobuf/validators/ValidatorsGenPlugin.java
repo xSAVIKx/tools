@@ -23,7 +23,7 @@ package org.spine3.gradle.protobuf.validators;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
-import com.google.protobuf.DescriptorProtos.FileDescriptorProtoOrBuilder;
+
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -33,12 +33,10 @@ import org.spine3.gradle.SpinePlugin;
 import org.spine3.gradle.protobuf.failure.MessageTypeCache;
 
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
@@ -52,9 +50,9 @@ import static org.spine3.gradle.protobuf.Extension.getTargetGenValidatorsRootDir
 import static org.spine3.gradle.protobuf.Extension.getTargetTestGenValidatorsRootDir;
 import static org.spine3.gradle.protobuf.Extension.getTestDescriptorSetPath;
 import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors;
-import static org.spine3.gradle.protobuf.util.GenerationUtils.getMessageName;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.isMap;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.isMessage;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.toCorrectFieldTypeName;
 
 /**
  * Plugin which generates validator builders, based on commands.proto files.
@@ -119,10 +117,16 @@ public class ValidatorsGenPlugin extends SpinePlugin {
 
     private Set<ValidatorMetadata> process(String path) {
         log().debug("Obtaining the metadata for all validators");
-        final List<FileDescriptorProto> fileDescriptors = getCommandProtoFileDescriptors(path);
-        final Set<ValidatorMetadata> metadataSet = obtainFileMetadataValidators(fileDescriptors);
-        final Set<ValidatorMetadata> result = obtainAllMetadataValidators(metadataSet);
-        log().debug("The metadata is obtained, will be constructed {} validator(s)", result.size());
+        final Set<ValidatorMetadata> result = newHashSet();
+        final Set<FileDescriptorProto> fileDescriptors = getCommandProtoFileDescriptors(path);
+        final Set<ValidatorMetadata> commandValidatorMetadata =
+                obtainFileMetadataValidators(fileDescriptors);
+        final Set<ValidatorMetadata> fieldValidatorMetadata =
+                obtainAllMetadataValidators(commandValidatorMetadata);
+        result.addAll(fieldValidatorMetadata);
+        result.addAll(commandValidatorMetadata);
+        log().debug("The metadata is obtained, will be constructed {} validator(s)",
+                    fieldValidatorMetadata.size());
         return result;
     }
 
@@ -130,10 +134,10 @@ public class ValidatorsGenPlugin extends SpinePlugin {
             Iterable<FileDescriptorProto> fileDescriptors) {
         log().debug("Obtaining the metadata for the command validators");
         final Set<ValidatorMetadata> result = newHashSet();
-        for (FileDescriptorProto file : fileDescriptors) {
-            final List<DescriptorProto> fieldDescriptors = file.getMessageTypeList();
+        for (FileDescriptorProto fileDescriptor : fileDescriptors) {
+            final List<DescriptorProto> messageDescriptors = fileDescriptor.getMessageTypeList();
             final Set<ValidatorMetadata> metadataSet =
-                    constructMessageFieldMetadata(fieldDescriptors);
+                    constructMessageFieldMetadata(messageDescriptors);
             result.addAll(metadataSet);
         }
         log().debug("The metadata is obtained.");
@@ -147,8 +151,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         final Set<ValidatorMetadata> result = newHashSet();
         for (ValidatorMetadata metadata : metadataSet) {
             final DescriptorProto msgDescriptor = metadata.getMsgDescriptor();
-            final List<DescriptorProto> descriptors = getFiledDescriptors(msgDescriptor);
-            result.add(metadata);
+            final Set<DescriptorProto> descriptors = getFiledDescriptors(msgDescriptor);
             final Set<ValidatorMetadata> fieldMetadataSet =
                     constructMessageFieldMetadata(descriptors);
             result.addAll(fieldMetadataSet);
@@ -169,15 +172,15 @@ public class ValidatorsGenPlugin extends SpinePlugin {
 
     private ValidatorMetadata createMetadata(DescriptorProto msgDescriptor) {
         final String className = msgDescriptor.getName() + JAVA_CLASS_NAME_SUFFIX;
-        final String javaPackage = descriptorCache.getJavaPackageFor(msgDescriptor.getName());
+        final String javaPackage = descriptorCache.getJavaPackageFor(msgDescriptor);
         final ValidatorMetadata result =
                 new ValidatorMetadata(javaPackage, className, msgDescriptor);
         return result;
     }
 
-    private List<DescriptorProto> getFiledDescriptors(DescriptorProto msgDescriptor) {
-        final List<FieldDescriptorProto> fieldDescriptors = msgDescriptor.getFieldList();
-        final List<DescriptorProto> descriptors = newArrayList();
+    private Set<DescriptorProto> getFiledDescriptors(DescriptorProto msgDescriptor) {
+        final Set<FieldDescriptorProto> fieldDescriptors = getRecursivelyFieldDescriptors(msgDescriptor);
+        final Set<DescriptorProto> descriptors = newHashSet();
         int index = 0;
         for (FieldDescriptorProto fieldDescriptor : fieldDescriptors) {
             if (!isMessage(fieldDescriptor)) {
@@ -199,23 +202,55 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return descriptors;
     }
 
-    private List<DescriptorProto> addDescriptor(List<DescriptorProto> descriptors,
-                                                FieldDescriptorProto fileDescriptor) {
-        final String msgName = getMessageName(fileDescriptor.getTypeName());
-        final DescriptorProto fieldDescriptor = allMessageDescriptors.get(msgName);
-        if (fieldDescriptor != null) {
-            descriptors.add(fieldDescriptor);
+    private Set<FieldDescriptorProto> getRecursivelyFieldDescriptors(DescriptorProto msgDescriptor) {
+        if(msgDescriptor==null){
+            return newHashSet();
+        }
+        final List<FieldDescriptorProto> fieldDescriptors = msgDescriptor.getFieldList();
+        final Set<FieldDescriptorProto> result = newHashSet();
+        result.addAll(fieldDescriptors);
+        int index = 0;
+        for (FieldDescriptorProto fieldDescriptor : fieldDescriptors) {
+            if(!isMessage(fieldDescriptor)){
+                continue;
+            }
+            if(isMap(fieldDescriptor)){
+                final DescriptorProto descriptor = msgDescriptor.getNestedType(index);
+                final FieldDescriptorProto keyDescriptor = descriptor.getField(0);
+                final FieldDescriptorProto valueDescriptor = descriptor.getField(1);
+                final String keyTypeName = toCorrectFieldTypeName(keyDescriptor.getTypeName());
+                result.addAll(getRecursivelyFieldDescriptors(allMessageDescriptors.get(keyTypeName)));
+                final String valueTypeName = toCorrectFieldTypeName(valueDescriptor.getTypeName());
+                result.addAll(getRecursivelyFieldDescriptors(allMessageDescriptors.get(valueTypeName)));
+                ++index;
+                continue;
+            }
+            final String typeName = fieldDescriptor.getTypeName();
+            final String fieldType = toCorrectFieldTypeName(typeName);
+            final DescriptorProto fieldMessageDescriptor = allMessageDescriptors.get(fieldType);
+            result.addAll(getRecursivelyFieldDescriptors(fieldMessageDescriptor));
+        }
+        return result;
+    }
+
+    private Set<DescriptorProto> addDescriptor(Set<DescriptorProto> descriptors,
+                                               FieldDescriptorProto fieldDescriptor) {
+        final String msgName = toCorrectFieldTypeName(fieldDescriptor.getTypeName());
+        final DescriptorProto msgDescriptor = allMessageDescriptors.get(msgName);
+        if (msgDescriptor != null) {
+            descriptors.add(msgDescriptor);
         }
         return descriptors;
     }
 
-    private List<FileDescriptorProto> getCommandProtoFileDescriptors(String descFilePath) {
+    private Set<FileDescriptorProto> getCommandProtoFileDescriptors(String descFilePath) {
         log().debug("Obtaining the file descriptors by {} path", descFilePath);
-        final List<FileDescriptorProto> result = new LinkedList<>();
-        final Collection<FileDescriptorProto> allDescriptors = getProtoFileDescriptors(descFilePath);
+        final Set<FileDescriptorProto> result = newHashSet();
+        final Collection<FileDescriptorProto> allDescriptors =
+                getProtoFileDescriptors(descFilePath);
         for (FileDescriptorProto fileDescriptor : allDescriptors) {
             final boolean isCommandFile = fileDescriptor.getName()
-                                              .endsWith("commands.proto");
+                                                        .endsWith("commands.proto");
             cacheAllMessageDescriptors(fileDescriptor);
             cacheFileDescriptors(fileDescriptor);
             messageTypeCache.cacheTypes(fileDescriptor);
@@ -228,16 +263,23 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         return result;
     }
 
-    private void cacheAllMessageDescriptors(FileDescriptorProtoOrBuilder file) {
-        List<DescriptorProto> descriptors = file.getMessageTypeList();
+    private void cacheAllMessageDescriptors(FileDescriptorProto fileDescriptor) {
+        List<DescriptorProto> descriptors = fileDescriptor.getMessageTypeList();
         for (DescriptorProto msgDescriptor : descriptors) {
-            allMessageDescriptors.put(msgDescriptor.getName(), msgDescriptor);
+            final String messageFullName = getMessageFullName(fileDescriptor.getPackage(),
+                                                              msgDescriptor.getName());
+            allMessageDescriptors.put(messageFullName, msgDescriptor);
         }
+    }
+
+    private static String getMessageFullName(String packageName, String className) {
+        final String result = packageName + '.' + className;
+        return result;
     }
 
     private void cacheFileDescriptors(FileDescriptorProto fileDescriptor) {
         for (DescriptorProto msgDescriptor : fileDescriptor.getMessageTypeList()) {
-            descriptorCache.cache(msgDescriptor.getName(), fileDescriptor);
+            descriptorCache.cache(msgDescriptor, fileDescriptor);
         }
     }
 
