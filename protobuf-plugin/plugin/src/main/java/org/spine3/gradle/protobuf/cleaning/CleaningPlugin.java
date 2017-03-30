@@ -70,7 +70,8 @@ public class CleaningPlugin extends SpinePlugin {
             if (file.exists() && file.isDirectory()) {
                 deleteRecursively(file.toPath());
             } else {
-                log().warn("Trying to delete '{}' which is not a directory", file.getAbsolutePath());
+                final String msg = "Trying to delete '{}' which is not a directory";
+                log().warn(msg, file.getAbsolutePath());
             }
         }
     }
@@ -86,9 +87,11 @@ public class CleaningPlugin extends SpinePlugin {
     }
 
     /**
-     * Custom {@link java.nio.file.FileVisitor} which recursively deletes the contents of the walked folder.
+     * Custom {@link java.nio.file.FileVisitor} which recursively deletes the contents
+     * of the walked folder.
      */
-    @SuppressWarnings("RefusedBequest")     // As we define a completely different behavior for the visitor methods.
+    @SuppressWarnings("RefusedBequest")
+    // As we define a completely different behavior for the visitor methods.
     private static class RecursiveDirectoryCleaner extends SimpleFileVisitor<Path> {
 
         @Override
