@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, TeamDev Ltd. All rights reserved.
+ * Copyright 2017, TeamDev Ltd. All rights reserved.
  *
  * Redistribution and use in source and/or binary forms, with or without
  * modification, must retain the above copyright notice and the following
@@ -17,38 +17,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.spine3.tools.javadoc.fqnchecker;
-
-import com.google.common.base.MoreObjects;
 
 /**
- * @author Alexander Aleksandrov
+ * Utilities for working with Javadoc.
  */
-public class InvalidFqnUsage {
+@ParametersAreNonnullByDefault
+package org.spine3.gradle.protobuf.javadoc;
 
-    private final String actualUsage;
-    private int index = 0;
-
-    public InvalidFqnUsage(String actualUsage) {
-        this.actualUsage = actualUsage;
-    }
-
-    public String getActualUsage() {
-        return actualUsage;
-    }
-
-    public int getIndex() {
-        return index;
-    }
-
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                          .add("actualUsage", actualUsage)
-                          .toString();
-    }
-}
+import javax.annotation.ParametersAreNonnullByDefault;

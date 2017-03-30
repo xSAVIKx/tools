@@ -41,7 +41,8 @@ public abstract class SpinePlugin implements Plugin<Project> {
     /**
      * Create a new instance of {@link GradleTask.Builder}.
      *
-     * <p>NOTE: the Gradle build steps are NOT modified until {@link GradleTask.Builder#applyNowTo(Project)} is invoked.
+     * <p>NOTE: the Gradle build steps are NOT modified until
+     * {@link GradleTask.Builder#applyNowTo(Project)} is invoked.
      *
      * @param name   the name for the new task
      * @param action the action to invoke during the new task processing
@@ -53,7 +54,10 @@ public abstract class SpinePlugin implements Plugin<Project> {
         return result;
     }
 
-    protected static void logDependingTask(Logger log, TaskName taskName, TaskName beforeTask, TaskName afterTask) {
+    protected static void logDependingTask(Logger log,
+                                           TaskName taskName,
+                                           TaskName beforeTask,
+                                           TaskName afterTask) {
         log.debug(
                 "Adding the Gradle task {} to the lifecycle: after {}, before {}",
                 taskName.getValue(),
@@ -72,7 +76,8 @@ public abstract class SpinePlugin implements Plugin<Project> {
     /**
      * Utility wrapper around the Gradle tasks created.
      *
-     * <p>Instantiated via {@link Builder}, forces the new task to be added to the Gradle build lifecycle.
+     * <p>Instantiated via {@link Builder}, forces the new task to be added to
+     * the Gradle build lifecycle.
      */
     protected static final class GradleTask {
 
@@ -98,8 +103,9 @@ public abstract class SpinePlugin implements Plugin<Project> {
          * A builder for {@link GradleTask}.
          *
          * <p>NOTE: unlike most classes following the {@code Builder} pattern,
-         * this one provides {@link #applyNowTo(Project)} method instead of {@code build(..)}. This is done to add
-         * some additional semantics to such an irreversible action like this.
+         * this one provides {@link #applyNowTo(Project)} method instead of
+         * {@code build(..)}. This is done to add some additional semantics to
+         * such an irreversible action like this.
          */
         public static final class Builder {
             private final TaskName name;
@@ -116,11 +122,12 @@ public abstract class SpinePlugin implements Plugin<Project> {
             /**
              * Specify a task which will follow the new one.
              *
-             * <p> Once built, the new instance of {@link GradleTask} will be inserted before the anchor.
+             * <p> Once built, the new instance of {@link GradleTask} will be inserted
+             * before the anchor.
              *
-             * <p> NOTE: invocation of either this method or {@link #insertAfterTask(TaskName)} is mandatory,
-             * as the newly created instance of {@link GradleTask} must be put to a certain place in the Gradle
-             * build lifecycle.
+             * <p> NOTE: invocation of either this method or {@link #insertAfterTask(TaskName)}
+             * is mandatory, as the newly created instance of {@link GradleTask} must be put to
+             * a certain place in the Gradle build lifecycle.
              *
              * @param target the name of the task, serving as "before" anchor
              * @return the current instance of {@link Builder}
@@ -134,11 +141,12 @@ public abstract class SpinePlugin implements Plugin<Project> {
             /**
              * Specify a task which will precede the new one.
              *
-             * <p> Once built, the new instance of {@link GradleTask} will be inserted after the anchor.
+             * <p> Once built, the new instance of {@link GradleTask} will be inserted
+             * after the anchor.
              *
-             * <p> NOTE: invocation of either this method or {@link #insertBeforeTask(TaskName)} is mandatory,
-             * as the newly created instance of {@link GradleTask} must be put to a certain place in the Gradle
-             * build lifecycle.
+             * <p> NOTE: invocation of either this method or {@link #insertBeforeTask(TaskName)}
+             * is mandatory, as the newly created instance of {@link GradleTask} must be put
+             * to a certain place in the Gradle build lifecycle.
              *
              * @param target the name of the task, serving as "after" anchor
              * @return the current instance of {@link Builder}
@@ -150,17 +158,20 @@ public abstract class SpinePlugin implements Plugin<Project> {
             }
 
             /**
-             * Builds an instance of {@link GradleTask} and inserts it to the project build lifecycle
-             * according to the "before" and "after" tasks specified in the builder.
+             * Builds an instance of {@link GradleTask} and inserts it to the project
+             * build lifecycle according to the "before" and "after" tasks specified in the builder.
              *
              * @param project the target Gradle project
              * @return the newly created Gradle task
              */
             public GradleTask applyNowTo(Project project) {
-                checkNotNull(project, "Project is not specified for the new Gradle task: " + name);
+                final String errMsg = "Project is not specified for the new Gradle task: ";
+                checkNotNull(project, errMsg + name);
 
                 if (followingTask == null && previousTask == null) {
-                    throw new IllegalStateException("Either the previous or the following task must be set.");
+                    final String exceptionMsg =
+                            "Either the previous or the following task must be set.";
+                    throw new IllegalStateException(exceptionMsg);
                 }
 
                 final TaskContainer existingTasks = project.getTasks();

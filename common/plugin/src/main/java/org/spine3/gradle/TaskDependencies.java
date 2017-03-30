@@ -49,9 +49,9 @@ public class TaskDependencies {
     }
 
     /**
-     * As long as we are dealing with Gradle Groovy-based API, we have to use `instanceof` to analyze `Object[]`
-     * values returned.
-     **/
+     * As long as we are dealing with Gradle Groovy-based API, we have to use `instanceof`
+     * to analyze `Object[]` values returned.
+     */
     @SuppressWarnings("ChainOfInstanceofChecks")
     private static boolean dependsOn(Task task, String ontoTaskWithName) {
         final Set<Object> dependsOn = task.getDependsOn();
