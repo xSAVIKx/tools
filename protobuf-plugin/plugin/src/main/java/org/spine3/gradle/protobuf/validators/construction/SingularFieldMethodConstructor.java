@@ -76,7 +76,8 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
         if (!fieldClassName.equals(getStringClassName())) {
             methods.add(constructRawSetter());
         }
-        log().debug("The method construction for the {} singular field is finished.", javaFieldName);
+        log().debug("The method construction for the {} singular field is finished.",
+                    javaFieldName);
         return methods;
     }
 
@@ -106,9 +107,11 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
     private MethodSpec constructRawSetter() {
         log().debug("The raw setters construction is started.");
         final String methodName = fieldType.getSetterPrefix() + setterPart + RAW_SUFFIX;
-        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, builderGenericClassName);
+        final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex,
+                                                                   builderGenericClassName);
         final ParameterSpec parameter = createParameterSpec(fieldDescriptor, true);
-
+        final String convertedValue = "final $T convertedValue = " +
+                "getConvertedValue($T.class, " + fieldName + ')';
         final MethodSpec methodSpec =
                 MethodSpec.methodBuilder(methodName)
                           .addModifiers(Modifier.PUBLIC)
@@ -117,9 +120,9 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
                           .addException(ConstraintViolationThrowable.class)
                           .addException(ConversionException.class)
                           .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                          .addStatement("final $T convertedValue = getConvertedValue($T.class, " + fieldName + ')',
+                          .addStatement(convertedValue,
                                         fieldClassName, fieldClassName)
-                          .addStatement(createValidateConvertedValueStatement(),
+                          .addStatement(createValidateConvertedValueStatement("convertedValue"),
                                         fieldDescriptor.getName())
                           .addStatement(THIS_POINTER + fieldName + " = convertedValue")
                           .addStatement(RETURN_THIS)

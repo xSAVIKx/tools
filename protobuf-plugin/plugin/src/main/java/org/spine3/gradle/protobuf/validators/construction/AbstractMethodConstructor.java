@@ -40,7 +40,6 @@ import static org.spine3.gradle.protobuf.util.GenerationUtils.getJavaFieldName;
 abstract class AbstractMethodConstructor {
 
     static final String INDEX = "index";
-    static final String VALUE = "value";
     static final String RAW_SUFFIX = "Raw";
     static final String THIS_POINTER = "this.";
     static final String CLEAR_PREFIX = "clear";
@@ -49,7 +48,7 @@ abstract class AbstractMethodConstructor {
     static final String CLEAR_METHOD_CALL = ".clear()";
     static final String CALL_INITIALIZE_IF_NEEDED = "createIfNeeded()";
     static final String ADD_ALL_CONVERTED_VALUE = ".addAll(convertedValue)";
-    private static final String PART_OF_CALL_VALIDATE_METHOD = "validate(fieldDescriptor, ";
+    private static final String PART_OF_VALIDATE_METHOD_CALL = "validate(fieldDescriptor, ";
 
     /**
      * Constructs the methods for the validators.
@@ -64,28 +63,20 @@ abstract class AbstractMethodConstructor {
         return result;
     }
 
-    static String createValidateConvertedValueStatement() {
-        return createValidateConvertedValueStatement("convertedValue");
-    }
-
     static String createValidateConvertedValueStatement(String valueName) {
-        final String result = PART_OF_CALL_VALIDATE_METHOD + valueName + ", $S)";
+        final String result = PART_OF_VALIDATE_METHOD_CALL + valueName + ", $S)";
         return result;
     }
 
     static String createValidateStatement(String fileValue) {
-        final String result = PART_OF_CALL_VALIDATE_METHOD + fileValue + ", $S)";
+        final String result = PART_OF_VALIDATE_METHOD_CALL + fileValue + ", $S)";
         return result;
     }
 
     static String createGetConvertedSingularValue(String valueName) {
         final String result = "final $T converted" + getJavaFieldName(valueName, true) +
-                " = getConvertedValue($T.class, " + valueName + ")";
+                " = getConvertedValue($T.class, " + valueName + ')';
         return result;
-    }
-
-    static String createGetConvertedSingularValue() {
-        return createGetConvertedSingularValue(VALUE);
     }
 
     /**

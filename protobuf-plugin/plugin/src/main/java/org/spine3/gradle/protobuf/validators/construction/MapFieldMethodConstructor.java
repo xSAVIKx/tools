@@ -49,10 +49,11 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getClassName
  */
 class MapFieldMethodConstructor extends AbstractMethodConstructor {
 
-    private static final String VALUE = "value";
     private static final String KEY = "key";
+    private static final String VALUE = "value";
     private static final String MAP_PARAM_NAME = "map";
     private static final String MAP_TO_VALIDATE_PARAM_NAME = "mapToValidate";
+    private static final String MAP_TO_VALIDATE = "final $T<$T, $T> mapToValidate = ";
 
     private final int fieldIndex;
     private final String javaFieldName;
@@ -108,6 +109,8 @@ class MapFieldMethodConstructor extends AbstractMethodConstructor {
     private MethodSpec createPutMethod() {
         final String methodName = getJavaFieldName("put" + methodPartName, false);
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
+        final String mapToValidate = MAP_TO_VALIDATE +
+                "$T.singletonMap(" + KEY + ", " + VALUE + ')';
         final MethodSpec result =
                 MethodSpec.methodBuilder(methodName)
                           .returns(builderClassName)
@@ -117,11 +120,11 @@ class MapFieldMethodConstructor extends AbstractMethodConstructor {
                           .addParameter(valueTypeName, VALUE)
                           .addStatement(CALL_INITIALIZE_IF_NEEDED)
                           .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                          .addStatement("final $T<$T, $T> mapToValidate = $T.singletonMap(" + KEY + ", " + VALUE + ")",
+                          .addStatement(mapToValidate,
                                         Map.class, keyTypeName, valueTypeName, Collections.class)
                           .addStatement(createValidateStatement(MAP_TO_VALIDATE_PARAM_NAME),
                                         javaFieldName)
-                          .addStatement(javaFieldName + ".put(key, value)")
+                          .addStatement(THIS_POINTER + javaFieldName + ".put(key, value)")
                           .addStatement(RETURN_THIS)
                           .build();
         return result;
@@ -130,6 +133,10 @@ class MapFieldMethodConstructor extends AbstractMethodConstructor {
     private MethodSpec createPutRawMethod() {
         final String methodName = getJavaFieldName("putRaw" + methodPartName, false);
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
+        final String mapToValidate = MAP_TO_VALIDATE +
+                "$T.singletonMap(convertedKey, convertedValue)";
+        final String putToTheMap = THIS_POINTER + javaFieldName +
+                ".put(convertedKey, convertedValue)";
         final MethodSpec result =
                 MethodSpec.methodBuilder(methodName)
                           .returns(builderClassName)
@@ -144,11 +151,11 @@ class MapFieldMethodConstructor extends AbstractMethodConstructor {
                           .addStatement(createGetConvertedSingularValue(VALUE),
                                         valueTypeName, valueTypeName)
                           .addStatement(descriptorCodeLine, FieldDescriptor.class)
-                          .addStatement("final $T<$T, $T> mapToValidate = $T.singletonMap(convertedKey, convertedValue)",
-                                        Map.class, keyTypeName, valueTypeName, Collections.class)
+                          .addStatement(mapToValidate, Map.class, keyTypeName,
+                                        valueTypeName, Collections.class)
                           .addStatement(createValidateStatement(MAP_TO_VALIDATE_PARAM_NAME),
                                         javaFieldName)
-                          .addStatement(javaFieldName + ".put(convertedKey, convertedValue)")
+                          .addStatement(putToTheMap)
                           .addStatement(RETURN_THIS)
                           .build();
         return result;
@@ -156,6 +163,7 @@ class MapFieldMethodConstructor extends AbstractMethodConstructor {
 
     private MethodSpec createPutAllMethod() {
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
+        final String putAllToTheMap = THIS_POINTER + javaFieldName + ".putAll(map)";
         final MethodSpec result = MethodSpec.methodBuilder(fieldType.getSetterPrefix())
                                             .addModifiers(Modifier.PUBLIC)
                                             .returns(builderClassName)
@@ -165,7 +173,7 @@ class MapFieldMethodConstructor extends AbstractMethodConstructor {
                                             .addStatement(descriptorCodeLine, FieldDescriptor.class)
                                             .addStatement(createValidateStatement(MAP_PARAM_NAME),
                                                           javaFieldName)
-                                            .addStatement(javaFieldName + ".putAll(map)")
+                                            .addStatement(putAllToTheMap)
                                             .addStatement(RETURN_THIS)
                                             .build();
         return result;
@@ -173,6 +181,7 @@ class MapFieldMethodConstructor extends AbstractMethodConstructor {
 
     private MethodSpec createPutAllRawMethod() {
         final String descriptorCodeLine = createDescriptorCodeLine(fieldIndex, genericClassName);
+        final String putAllToTheMap = THIS_POINTER + javaFieldName + ".putAll(convertedValue)";
         final MethodSpec result = MethodSpec.methodBuilder(fieldType.getSetterPrefix() + RAW_SUFFIX)
                                             .addModifiers(Modifier.PUBLIC)
                                             .returns(builderClassName)
@@ -185,30 +194,32 @@ class MapFieldMethodConstructor extends AbstractMethodConstructor {
                                                           keyTypeName, valueTypeName,
                                                           TypeToken.class, Map.class,
                                                           keyTypeName, valueTypeName)
-                                            .addStatement(javaFieldName + ".putAll(convertedValue)")
+                                            .addStatement(putAllToTheMap)
                                             .addStatement(RETURN_THIS)
                                             .build();
         return result;
     }
 
     private MethodSpec createRemoveMethod() {
+        final String removeFromMap = THIS_POINTER + javaFieldName + ".remove(" + KEY + ')';
         final MethodSpec result = MethodSpec.methodBuilder(REMOVE_PREFIX)
                                             .addModifiers(Modifier.PUBLIC)
                                             .returns(builderClassName)
                                             .addParameter(keyTypeName, KEY)
                                             .addStatement(CALL_INITIALIZE_IF_NEEDED)
-                                            .addStatement(javaFieldName + ".remove(" + KEY + ")")
+                                            .addStatement(removeFromMap)
                                             .addStatement(RETURN_THIS)
                                             .build();
         return result;
     }
 
     private MethodSpec createClearMethod() {
+        final String clearMap = THIS_POINTER + javaFieldName + CLEAR_METHOD_CALL;
         final MethodSpec result = MethodSpec.methodBuilder(CLEAR_PREFIX)
                                             .addModifiers(Modifier.PUBLIC)
                                             .returns(builderClassName)
                                             .addStatement(CALL_INITIALIZE_IF_NEEDED)
-                                            .addStatement(javaFieldName + CLEAR_METHOD_CALL)
+                                            .addStatement(clearMap)
                                             .addStatement(RETURN_THIS)
                                             .build();
         return result;
