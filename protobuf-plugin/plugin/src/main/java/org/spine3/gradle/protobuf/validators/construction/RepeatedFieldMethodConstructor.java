@@ -48,9 +48,9 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameter
  */
 class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
 
+    private static final String VALUE = "value";
     private static final String ADD_PREFIX = "add";
     private static final String ADD_RAW_PREFIX = "addRaw";
-    private static final String VALUE = "value";
     private static final String CONVERTED_VALUE = "convertedValue";
 
     private final int fieldIndex;
