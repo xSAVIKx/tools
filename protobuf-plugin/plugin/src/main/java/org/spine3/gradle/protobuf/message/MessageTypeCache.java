@@ -68,7 +68,7 @@ public class MessageTypeCache {
         }
 
         cacheMessageTypes(fileDescriptor, protoPackage, javaPackage);
-        cahceEnumTypes(fileDescriptor, protoPackage, javaPackage);
+        cacheEnumTypes(fileDescriptor, protoPackage, javaPackage);
     }
 
     private void cacheMessageTypes(FileDescriptorProto fileDescriptor,
@@ -79,7 +79,7 @@ public class MessageTypeCache {
         }
     }
 
-    private void cahceEnumTypes(FileDescriptorProto fileDescriptor,
+    private void cacheEnumTypes(FileDescriptorProto fileDescriptor,
                                 String protoPackage,
                                 String javaPackage) {
         for (EnumDescriptorProto enumType : fileDescriptor.getEnumTypeList()) {
