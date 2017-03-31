@@ -100,7 +100,6 @@ public class GenerationUtils {
         if (typeName.isEmpty()) {
             return typeName;
         }
-
         // it has a redundant dot in the beginning
         if (typeName.charAt(0) == '.') {
             return typeName.substring(1);
