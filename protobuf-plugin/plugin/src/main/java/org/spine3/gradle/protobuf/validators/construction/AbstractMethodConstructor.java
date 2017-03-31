@@ -48,6 +48,7 @@ abstract class AbstractMethodConstructor {
     static final String CLEAR_METHOD_CALL = ".clear()";
     static final String CALL_INITIALIZE_IF_NEEDED = "createIfNeeded()";
     static final String ADD_ALL_CONVERTED_VALUE = ".addAll(convertedValue)";
+    public static final String SECOND_PARAMETER_OF_THE_VALIDATE_METHOD_CALL = ", $S)";
     private static final String PART_OF_VALIDATE_METHOD_CALL = "validate(fieldDescriptor, ";
 
     /**
@@ -64,12 +65,14 @@ abstract class AbstractMethodConstructor {
     }
 
     static String createValidateConvertedValueStatement(String valueName) {
-        final String result = PART_OF_VALIDATE_METHOD_CALL + valueName + ", $S)";
+        final String result = PART_OF_VALIDATE_METHOD_CALL + valueName +
+                              SECOND_PARAMETER_OF_THE_VALIDATE_METHOD_CALL;
         return result;
     }
 
     static String createValidateStatement(String fileValue) {
-        final String result = PART_OF_VALIDATE_METHOD_CALL + fileValue + ", $S)";
+        final String result = PART_OF_VALIDATE_METHOD_CALL + fileValue +
+                              SECOND_PARAMETER_OF_THE_VALIDATE_METHOD_CALL;
         return result;
     }
 
