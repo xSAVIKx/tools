@@ -35,7 +35,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.getJavaFieldName;
 
 /**
- * A constructor for the java fields in the generated
+ * A constructor for the Java fields in the generated
  * validator builders based on the ProtoBuf declaration.
  *
  * @author Illia Shepilov
