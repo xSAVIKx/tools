@@ -21,7 +21,6 @@ package org.spine3.gradle.protobuf.failure;
 
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.GeneratedMessageV3;
-import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -34,8 +33,8 @@ import org.spine3.base.CommandContext;
 import org.spine3.base.FailureThrowable;
 import org.spine3.gradle.protobuf.failure.fieldtype.FieldType;
 import org.spine3.gradle.protobuf.failure.fieldtype.FieldTypeFactory;
+import org.spine3.gradle.protobuf.util.GenerationUtils;
 
-import javax.annotation.Generated;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -96,7 +95,7 @@ public class FailureWriter {
             log().debug("Constructing {}", failureMetadata.getClassName());
             final TypeSpec failure = TypeSpec.classBuilder(failureMetadata.getClassName())
                                              .addJavadoc(javadocGenerator.generateClassJavadoc())
-                                             .addAnnotation(constructGeneratedAnnotation())
+                                             .addAnnotation(GenerationUtils.constructGeneratedAnnotation())
                                              .addModifiers(PUBLIC)
                                              .superclass(FailureThrowable.class)
                                              .addField(constructSerialVersionUID())
@@ -165,12 +164,6 @@ public class FailureWriter {
                          .returns(returnTypeName)
                          .addStatement("return (" + returnTypeName + ") super.getFailureMessage()")
                          .build();
-    }
-
-    private static AnnotationSpec constructGeneratedAnnotation() {
-        return AnnotationSpec.builder(Generated.class)
-                             .addMember("value", "$S", "by Spine compiler")
-                             .build();
     }
 
     private static FieldSpec constructSerialVersionUID() {

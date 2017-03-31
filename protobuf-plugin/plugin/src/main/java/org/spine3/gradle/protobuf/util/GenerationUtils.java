@@ -22,7 +22,9 @@ package org.spine3.gradle.protobuf.util;
 
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
+import com.squareup.javapoet.AnnotationSpec;
 
+import javax.annotation.Generated;
 import java.util.regex.Pattern;
 
 public class GenerationUtils {
@@ -88,12 +90,6 @@ public class GenerationUtils {
         return fieldDescriptor.getType() == Type.TYPE_MESSAGE;
     }
 
-    public static String getMessageName(String fullName) {
-        final String[] paths = COMPILE.split(fullName);
-        final String msgName = paths[paths.length - 1];
-        return msgName;
-    }
-
     public static String toCorrectFieldTypeName(String typeName) {
         if (typeName.isEmpty()) {
             return typeName;
@@ -104,5 +100,11 @@ public class GenerationUtils {
             return typeName.substring(1);
         }
         return typeName;
+    }
+
+    public static AnnotationSpec constructGeneratedAnnotation() {
+        return AnnotationSpec.builder(Generated.class)
+                             .addMember("value", "$S", "by Spine compiler")
+                             .build();
     }
 }
