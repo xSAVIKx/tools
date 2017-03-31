@@ -79,14 +79,14 @@ public enum TaskName {
     GENERATE_TEST_FAILURES("generateTestFailures"),
 
     /**
-     * The name of the validating builder generation task added to the Gradle lifecycle..
+     * The name of the validating builder generation task added to the Gradle lifecycle.
      *
      * <p>Relates to `main` classes and resource scope.
      */
     GENERATE_VALIDATING_BUILDERS("generateValidatingBuilders"),
 
     /**
-     * The name of the validating builder generation task added to the Gradle lifecycle..
+     * The name of the validating builder generation task added to the Gradle lifecycle.
      *
      * <p>Relates to `test` classes and resource scope.
      */
