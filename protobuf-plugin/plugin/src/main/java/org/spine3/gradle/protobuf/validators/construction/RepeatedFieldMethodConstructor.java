@@ -63,6 +63,7 @@ class RepeatedFieldMethodConstructor extends AbstractMethodConstructor {
     private final FieldDescriptorProto fieldDescriptor;
 
     private RepeatedFieldMethodConstructor(AbstractMethodConstructorBuilder builder) {
+        super();
         this.fieldType = builder.getFieldType();
         this.fieldIndex = builder.getFieldIndex();
         this.fieldDescriptor = builder.getFieldDescriptor();

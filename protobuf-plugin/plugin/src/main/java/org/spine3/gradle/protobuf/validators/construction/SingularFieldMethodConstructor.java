@@ -56,6 +56,7 @@ class SingularFieldMethodConstructor extends AbstractMethodConstructor {
     private final FieldDescriptorProto fieldDescriptor;
 
     private SingularFieldMethodConstructor(AbstractMethodConstructorBuilder builder) {
+        super();
         this.fieldType = builder.getFieldType();
         this.fieldDescriptor = builder.getFieldDescriptor();
         this.fieldIndex = builder.getFieldIndex();

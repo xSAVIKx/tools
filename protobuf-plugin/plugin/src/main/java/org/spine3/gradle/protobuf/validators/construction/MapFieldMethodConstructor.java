@@ -65,6 +65,7 @@ class MapFieldMethodConstructor extends AbstractMethodConstructor {
     private final ClassName builderClassName;
 
     private MapFieldMethodConstructor(MapFieldMethodsConstructorBuilder builder) {
+        super();
         this.fieldType = (MapFieldType) builder.getFieldType();
         this.fieldIndex = builder.getFieldIndex();
         final FieldDescriptorProto fieldDescriptor = builder.getFieldDescriptor();
