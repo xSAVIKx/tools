@@ -46,7 +46,6 @@ public class ValidatorsGenPluginShould {
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
     @Test
-    @Ignore
     public void compile_generated_validators() throws Exception {
         final CountDownLatch countDownLatch = new CountDownLatch(1);
 
@@ -69,7 +68,7 @@ public class ValidatorsGenPluginShould {
                 @Override
                 public void onFailure(GradleConnectionException e) {
                     e.printStackTrace();
-                    fail("Tasks execution should not failed.");
+                    fail("Tasks execution should not fail.");
                 }
             });
         } finally {
