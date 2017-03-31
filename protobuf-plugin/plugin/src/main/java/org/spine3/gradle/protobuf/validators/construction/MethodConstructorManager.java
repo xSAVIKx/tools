@@ -73,7 +73,7 @@ public class MethodConstructorManager {
     /**
      * Creates the Java methods according to the ProtoBuf message declaration.
      *
-     * @return generated methods
+     * @return the generated methods
      */
     public Collection<MethodSpec> createMethods() {
         final List<MethodSpec> methods = newArrayList();
