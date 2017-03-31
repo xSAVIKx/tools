@@ -25,11 +25,8 @@ import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
 import com.squareup.javapoet.AnnotationSpec;
 
 import javax.annotation.Generated;
-import java.util.regex.Pattern;
 
 public class GenerationUtils {
-
-    private static final Pattern COMPILE = Pattern.compile(".", Pattern.LITERAL);
 
     private GenerationUtils() {
         //Prevent instantiation.
