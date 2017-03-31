@@ -100,8 +100,10 @@ public class FieldTypeFactory {
         final int valueFieldIndex = 1;
 
         final DescriptorProto mapEntryDescriptor = getDescriptorForMapField(map);
-        final TypeName keyTypeName = create(mapEntryDescriptor.getField(keyFieldIndex)).getTypeName();
-        final TypeName valueTypeName = create(mapEntryDescriptor.getField(valueFieldIndex)).getTypeName();
+        final TypeName keyTypeName =
+                create(mapEntryDescriptor.getField(keyFieldIndex)).getTypeName();
+        final TypeName valueTypeName =
+                create(mapEntryDescriptor.getField(valueFieldIndex)).getTypeName();
 
         return new AbstractMap.SimpleEntry<>(keyTypeName, valueTypeName);
     }

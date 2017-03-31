@@ -47,7 +47,8 @@ import static org.spine3.gradle.protobuf.util.UnknownOptions.getUnknownOptionVal
 public class ProtoToJavaTypeMapper {
 
     /**
-     * The field number of the file option `type_url_prefix` defined in the `Spine/core-java` project.
+     * The field number of the file option `type_url_prefix` defined
+     * in the `Spine/core-java` project.
      */
     private static final Long OPTION_NUMBER_TYPE_URL_PREFIX = 58204L;
 
@@ -77,7 +78,10 @@ public class ProtoToJavaTypeMapper {
         this.commonOuterClassPrefix = getCommonOuterJavaClassPrefix(file);
     }
 
-    /** Returns a map from Protobuf type url to the corresponding fully-qualified Java class name. */
+    /**
+     * Returns a map from Protobuf type url to the corresponding
+     * fully-qualified Java class name.
+     */
     public Map<String, String> mapTypes() {
         log().debug("Mapping file {}", file.getName());
         final ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
@@ -109,18 +113,23 @@ public class ProtoToJavaTypeMapper {
      * }
      * </pre>
      *
-     * In this case, the descriptor of the {@code Outer} message will contain an inner type {@code MyMap},
-     * which will contain two fields: {@code string} {@code key} and {@code int32} {@code value}.
+     * In this case, the descriptor of the {@code Outer} message will contain an inner type
+     * {@code MyMap}, which will contain two fields: {@code string} {@code key} and
+     * {@code int32} {@code value}.
      *
      * @param message        a message to check
      * @param parentMsgNames names of the parent messages
      * @return true if the message is generated map entry type
      */
-    private static boolean isGeneratedMapEntryMsg(DescriptorProto message, Collection<String> parentMsgNames) {
+    private static boolean isGeneratedMapEntryMsg(DescriptorProto message,
+                                                  Collection<String> parentMsgNames) {
         final List<FieldDescriptorProto> fields = message.getFieldList();
         final boolean endWithEntry = message.getName()
                                             .endsWith("Entry");
-        final boolean hasTwoFieldsKeyAndValue = (fields.size() == 2) && firstIsKey(fields) && secondIsValue(fields);
+        final boolean hasTwoFieldsKeyAndValue =
+                (fields.size() == 2) &&
+                firstIsKey(fields) &&
+                secondIsValue(fields);
         final boolean result = endWithEntry && hasTwoFieldsKeyAndValue && !parentMsgNames.isEmpty();
         return result;
     }
@@ -182,8 +191,10 @@ public class ProtoToJavaTypeMapper {
     }
 
     private String getJavaClassName(String typeName, Collection<String> parentTypeNames) {
-        final String parentClassesPrefix = getParentTypesPrefix(parentTypeNames, JAVA_INNER_CLASS_SEPARATOR);
-        final String result = javaPackagePrefix + commonOuterClassPrefix + parentClassesPrefix + typeName;
+        final String parentClassesPrefix = getParentTypesPrefix(parentTypeNames,
+                                                                JAVA_INNER_CLASS_SEPARATOR);
+        final String result = javaPackagePrefix + commonOuterClassPrefix + parentClassesPrefix +
+                        typeName;
         return result;
     }
 
@@ -228,7 +239,8 @@ public class ProtoToJavaTypeMapper {
         return result;
     }
 
-    private static String getParentTypesPrefix(Collection<String> parentTypeNames, String separator) {
+    private static String getParentTypesPrefix(
+            Collection<String> parentTypeNames, String separator) {
         if (parentTypeNames.isEmpty()) {
             return "";
         }
@@ -242,7 +254,8 @@ public class ProtoToJavaTypeMapper {
      * for example: `my_test.proto` to `MyTest`.
      */
     private static String toClassName(String fullFileName) {
-        final String fileName = fullFileName.substring(fullFileName.lastIndexOf('/') + 1, fullFileName.lastIndexOf(DOT));
+        final String fileName = fullFileName.substring(fullFileName.lastIndexOf('/') + 1,
+                                                       fullFileName.lastIndexOf(DOT));
         StringBuilder builder = new StringBuilder(EXPECTED_MAX_CLASSNAME_LENGTH);
         final String[] parts = fileName.split(PROTO_FILE_NAME_SEPARATOR);
         for (String part : parts) {

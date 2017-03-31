@@ -47,7 +47,8 @@ public class PropertiesWriter {
     /**
      * Creates a new instance.
      *
-     * @param rootDirPath   a path to a directory where the {@code .properties} file is (or will be) located
+     * @param rootDirPath   a path to a directory where the {@code .properties} file is
+     *                      (or will be) located
      * @param propsFileName a name of the {@code .properties} file to write to (can be non-existing)
      */
     public PropertiesWriter(String rootDirPath, String propsFileName) {
@@ -107,7 +108,9 @@ public class PropertiesWriter {
                 final FileInputStream fis = new FileInputStream(file);
                 props.load(fis);
             } catch (@SuppressWarnings("OverlyBroadCatchBlock") IOException e) {
-                throw new RuntimeException("Error loading the properties from the file: " + file.getAbsolutePath(), e);
+                final String errMsg = "Error loading the properties from the file: ";
+                throw new RuntimeException(errMsg +
+                                                   file.getAbsolutePath(), e);
             }
         } else {
             createParentFolders(file);
@@ -118,26 +121,29 @@ public class PropertiesWriter {
         try {
             Files.createParentDirs(file);
         } catch (IOException e) {
-            throw new RuntimeException("Cannot create the parent folders at " + file.getAbsolutePath(), e);
+            final String errMsg = "Cannot create the parent folders at ";
+            throw new RuntimeException(errMsg + file.getAbsolutePath(), e);
         }
     }
 
     /**
      * Customized {@link Properties}, which key set is sorted.
      *
-     * <p>The instance of this class is used to maintain the alphanumerical order in the {@code .properties} files
-     * generated out of the instance contents.
+     * <p>The instance of this class is used to maintain the alphanumerical order
+     * in the {@code .properties} files generated out of the instance contents.
      *
      * <p>Such a trick simplifies the resulting {@code .properties} file navigation
      * and makes any potential debugging easier.
      */
-    @SuppressWarnings("ClassExtendsConcreteCollection")     // It's the best (and still readable) way for customization.
+    @SuppressWarnings("ClassExtendsConcreteCollection")
+    // It's the best (and still readable) way for customization.
     private static final class SortedProperties extends Properties {
 
         // Generated automatically.
         private static final long serialVersionUID = -4508611340425795981L;
 
-        @SuppressWarnings("RefusedBequest")     // as we replace `keys()` with a completely different behavior.
+        @SuppressWarnings("RefusedBequest")
+        // as we replace `keys()` with a completely different behavior.
         @Override
         public synchronized Enumeration<Object> keys() {
             return Collections.enumeration(new TreeSet<>(keySet()));

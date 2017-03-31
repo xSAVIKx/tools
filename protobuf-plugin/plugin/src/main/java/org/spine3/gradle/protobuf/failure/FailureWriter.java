@@ -80,7 +80,8 @@ public class FailureWriter {
                          Map<String, String> messageTypeMap) {
         this.failureMetadata = failureMetadata;
         this.outputDirectory = outputDirectory;
-        this.fieldTypeFactory = new FieldTypeFactory(failureMetadata.getDescriptor(), messageTypeMap);
+        this.fieldTypeFactory = new FieldTypeFactory(failureMetadata.getDescriptor(),
+                                                     messageTypeMap);
         this.javadocGenerator = new FailureJavadocGenerator(failureMetadata);
     }
 
