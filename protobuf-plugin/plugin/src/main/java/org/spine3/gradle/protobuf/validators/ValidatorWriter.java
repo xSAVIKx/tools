@@ -81,7 +81,7 @@ class ValidatorWriter {
 
         final File rootDirectory = new File(targetDir);
         final TypeSpec.Builder classBuilder = TypeSpec.classBuilder(javaClass);
-        addFields(classBuilder, fieldConstructor.getAllFields());
+        addFields(classBuilder, fieldConstructor.construct());
         addMethods(classBuilder, methodConstructorManager.createMethods());
         final TypeSpec javaClass = classBuilder.build();
         writeClass(rootDirectory, javaClass);
