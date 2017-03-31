@@ -23,7 +23,6 @@ package org.spine3.gradle.protobuf.validators;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
-
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -33,6 +32,7 @@ import org.spine3.gradle.SpinePlugin;
 import org.spine3.gradle.protobuf.failure.MessageTypeCache;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,7 +67,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
     private final Map<String, DescriptorProto> allMessageDescriptors = newHashMap();
 
     /** A map from Protobuf type name to Protobuf FileDescriptorProto. */
-    private final FileDescriptorCache descriptorCache = FileDescriptorCache.getInstance();
+    private final Map<DescriptorProto, FileDescriptorProto> descriptorCache = newHashMap();
 
     /** A map from Protobuf type name to Java class FQN. */
     private final MessageTypeCache messageTypeCache = new MessageTypeCache();
@@ -151,9 +151,11 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         final Set<ValidatorMetadata> result = newHashSet();
         for (ValidatorMetadata metadata : metadataSet) {
             final DescriptorProto msgDescriptor = metadata.getMsgDescriptor();
-            final Set<DescriptorProto> descriptors = getFiledDescriptors(msgDescriptor);
+            final Set<DescriptorProto> collectedDescriptors =
+                    sortDescriptors(getDescriptorsRecursively(msgDescriptor));
+
             final Set<ValidatorMetadata> fieldMetadataSet =
-                    constructMessageFieldMetadata(descriptors);
+                    constructMessageFieldMetadata(collectedDescriptors);
             result.addAll(fieldMetadataSet);
         }
         log().debug("The metadata for the field validators is obtained.");
@@ -172,75 +174,71 @@ public class ValidatorsGenPlugin extends SpinePlugin {
 
     private ValidatorMetadata createMetadata(DescriptorProto msgDescriptor) {
         final String className = msgDescriptor.getName() + JAVA_CLASS_NAME_SUFFIX;
-        final String javaPackage = descriptorCache.getJavaPackageFor(msgDescriptor);
+        final String javaPackage = descriptorCache.get(msgDescriptor)
+                                                  .getOptions()
+                                                  .getJavaPackage();
         final ValidatorMetadata result =
                 new ValidatorMetadata(javaPackage, className, msgDescriptor);
         return result;
     }
 
-    private Set<DescriptorProto> getFiledDescriptors(DescriptorProto msgDescriptor) {
-        final Set<FieldDescriptorProto> fieldDescriptors = getRecursivelyFieldDescriptors(msgDescriptor);
-        final Set<DescriptorProto> descriptors = newHashSet();
+    @SuppressWarnings("ConstantConditions")
+    // It is recursive method, parameter is checked at the first line of the method
+    // to avoid the checking parameter for null in all cases where that method is called.
+    private Set<DescriptorProto> getDescriptorsRecursively(DescriptorProto msgDescriptor) {
+        if (msgDescriptor == null) {
+            return Collections.emptySet();
+        }
+        final List<FieldDescriptorProto> fieldDescriptors = msgDescriptor.getFieldList();
+        final Set<DescriptorProto> result = newHashSet();
         int index = 0;
         for (FieldDescriptorProto fieldDescriptor : fieldDescriptors) {
             if (!isMessage(fieldDescriptor)) {
                 continue;
             }
-
             if (isMap(fieldDescriptor)) {
-                final DescriptorProto descriptor = msgDescriptor.getNestedType(index);
-                final FieldDescriptorProto keyDescriptor = descriptor.getField(0);
-                final FieldDescriptorProto valueDescriptor = descriptor.getField(1);
-                addDescriptor(descriptors, keyDescriptor);
-                addDescriptor(descriptors, valueDescriptor);
+                result.addAll(processMapField(msgDescriptor, index));
                 ++index;
                 continue;
             }
 
-            addDescriptor(descriptors, fieldDescriptor);
-        }
-        return descriptors;
-    }
-
-    private Set<FieldDescriptorProto> getRecursivelyFieldDescriptors(DescriptorProto msgDescriptor) {
-        if(msgDescriptor==null){
-            return newHashSet();
-        }
-        final List<FieldDescriptorProto> fieldDescriptors = msgDescriptor.getFieldList();
-        final Set<FieldDescriptorProto> result = newHashSet();
-        result.addAll(fieldDescriptors);
-        int index = 0;
-        for (FieldDescriptorProto fieldDescriptor : fieldDescriptors) {
-            if(!isMessage(fieldDescriptor)){
-                continue;
-            }
-            if(isMap(fieldDescriptor)){
-                final DescriptorProto descriptor = msgDescriptor.getNestedType(index);
-                final FieldDescriptorProto keyDescriptor = descriptor.getField(0);
-                final FieldDescriptorProto valueDescriptor = descriptor.getField(1);
-                final String keyTypeName = toCorrectFieldTypeName(keyDescriptor.getTypeName());
-                result.addAll(getRecursivelyFieldDescriptors(allMessageDescriptors.get(keyTypeName)));
-                final String valueTypeName = toCorrectFieldTypeName(valueDescriptor.getTypeName());
-                result.addAll(getRecursivelyFieldDescriptors(allMessageDescriptors.get(valueTypeName)));
-                ++index;
-                continue;
-            }
-            final String typeName = fieldDescriptor.getTypeName();
-            final String fieldType = toCorrectFieldTypeName(typeName);
-            final DescriptorProto fieldMessageDescriptor = allMessageDescriptors.get(fieldType);
-            result.addAll(getRecursivelyFieldDescriptors(fieldMessageDescriptor));
+            result.addAll(processField(fieldDescriptor));
         }
         return result;
     }
 
-    private Set<DescriptorProto> addDescriptor(Set<DescriptorProto> descriptors,
-                                               FieldDescriptorProto fieldDescriptor) {
-        final String msgName = toCorrectFieldTypeName(fieldDescriptor.getTypeName());
-        final DescriptorProto msgDescriptor = allMessageDescriptors.get(msgName);
-        if (msgDescriptor != null) {
-            descriptors.add(msgDescriptor);
+    private Set<DescriptorProto> processField(FieldDescriptorProto fieldDescriptor) {
+        final Set<DescriptorProto> result = newHashSet();
+        final String typeName = fieldDescriptor.getTypeName();
+        final String fieldType = toCorrectFieldTypeName(typeName);
+        final DescriptorProto fieldMessageDescriptor = allMessageDescriptors.get(fieldType);
+        result.add(fieldMessageDescriptor);
+        result.addAll(getDescriptorsRecursively(fieldMessageDescriptor));
+        return result;
+    }
+
+    private Set<DescriptorProto> processMapField(DescriptorProto msgDescriptor, int index) {
+        final Set<DescriptorProto> result = newHashSet();
+        final DescriptorProto descriptor = msgDescriptor.getNestedType(index);
+        final FieldDescriptorProto keyDescriptor = descriptor.getField(0);
+        final FieldDescriptorProto valueDescriptor = descriptor.getField(1);
+        final String keyTypeName = toCorrectFieldTypeName(keyDescriptor.getTypeName());
+        result.addAll(getDescriptorsRecursively(allMessageDescriptors.get(keyTypeName)));
+        final String valueTypeName = toCorrectFieldTypeName(valueDescriptor.getTypeName());
+        final DescriptorProto valueMsgDescriptor = allMessageDescriptors.get(valueTypeName);
+        result.add(valueMsgDescriptor);
+        result.addAll(getDescriptorsRecursively(valueMsgDescriptor));
+        return result;
+    }
+
+    private static Set<DescriptorProto> sortDescriptors(Set<DescriptorProto> descriptorsToSort) {
+        final Set<DescriptorProto> result = newHashSet();
+        for (DescriptorProto msgDescriptor : descriptorsToSort) {
+            if (msgDescriptor != null) {
+                result.add(msgDescriptor);
+            }
         }
-        return descriptors;
+        return result;
     }
 
     private Set<FileDescriptorProto> getCommandProtoFileDescriptors(String descFilePath) {
@@ -279,7 +277,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
 
     private void cacheFileDescriptors(FileDescriptorProto fileDescriptor) {
         for (DescriptorProto msgDescriptor : fileDescriptor.getMessageTypeList()) {
-            descriptorCache.cache(msgDescriptor, fileDescriptor);
+            descriptorCache.put(msgDescriptor, fileDescriptor);
         }
     }
 
