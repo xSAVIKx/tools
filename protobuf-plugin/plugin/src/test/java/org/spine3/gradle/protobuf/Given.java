@@ -44,7 +44,7 @@ import static org.spine3.gradle.TaskName.PROCESS_RESOURCES;
 import static org.spine3.gradle.TaskName.PROCESS_TEST_RESOURCES;
 
 /**
- * Test projects configurers.
+ * A helper class for the test data generation.
  *
  * @author Dmytro Grankin
  */
