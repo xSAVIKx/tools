@@ -33,7 +33,6 @@ import org.spine3.base.CommandContext;
 import org.spine3.base.FailureThrowable;
 import org.spine3.gradle.protobuf.failure.fieldtype.FieldType;
 import org.spine3.gradle.protobuf.failure.fieldtype.FieldTypeFactory;
-import org.spine3.gradle.protobuf.util.GenerationUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,6 +47,7 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static org.spine3.gradle.protobuf.failure.FailureWriter.FailureThrowableCtorParams.COMMAND_CONTEXT;
 import static org.spine3.gradle.protobuf.failure.FailureWriter.FailureThrowableCtorParams.COMMAND_MESSAGE;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.constructGeneratedAnnotation;
 
 /**
  * Class, which writes Failure java code, based on it's descriptor.
@@ -95,7 +95,7 @@ public class FailureWriter {
             log().debug("Constructing {}", failureMetadata.getClassName());
             final TypeSpec failure = TypeSpec.classBuilder(failureMetadata.getClassName())
                                              .addJavadoc(javadocGenerator.generateClassJavadoc())
-                                             .addAnnotation(GenerationUtils.constructGeneratedAnnotation())
+                                             .addAnnotation(constructGeneratedAnnotation())
                                              .addModifiers(PUBLIC)
                                              .superclass(FailureThrowable.class)
                                              .addField(constructSerialVersionUID())
