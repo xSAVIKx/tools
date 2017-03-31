@@ -239,7 +239,8 @@ public class ProtoToJavaTypeMapper {
         return result;
     }
 
-    private static String getParentTypesPrefix(Collection<String> parentTypeNames, String separator) {
+    private static String getParentTypesPrefix(
+            Collection<String> parentTypeNames, String separator) {
         if (parentTypeNames.isEmpty()) {
             return "";
         }

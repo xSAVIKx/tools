@@ -28,12 +28,15 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Encapsulates a {@linkplain com.google.protobuf.DescriptorProtos.SourceCodeInfo.Location#getPathList()
- * location path}.
+ * Encapsulates a
+ * {@linkplain com.google.protobuf.DescriptorProtos.SourceCodeInfo.Location#getPathList() location
+ * path}.
  *
- * <p>A location path represents {@linkplain com.google.protobuf.DescriptorProtos.SourceCodeInfo.Location#getPathList()
- * list of integers}, that used to identify a {@linkplain com.google.protobuf.DescriptorProtos.SourceCodeInfo.Location
- * location} in a ".proto" file.
+ * <p>A location path represents
+ * {@linkplain com.google.protobuf.DescriptorProtos.SourceCodeInfo.Location#getPathList() list of
+ * integers}, that used to identify a
+ * {@linkplain com.google.protobuf.DescriptorProtos.SourceCodeInfo.Location location} in
+ * a ".proto" file.
  *
  * @author Dmytro Grankin
  */
