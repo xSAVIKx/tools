@@ -31,8 +31,8 @@ import static com.google.common.collect.Maps.newHashMap;
 import static java.util.Collections.emptyMap;
 
 /**
- * A utility class which helps to get "unknown" Protobuf option field numbers (as in option type declaration)
- * and option values.
+ * A utility class which helps to get "unknown" Protobuf option field numbers
+ * (as in option type declaration) and option values.
  *
  * <p>For example, a map with pairs:
  *
@@ -41,7 +41,8 @@ import static java.util.Collections.emptyMap;
  *
  * <p>An option is "unknown" and serialized if there is no dependency on the artifact
  * which contains the needed option definition.
- * For example, we should not depend on "Spine/core-java" project artifacts to avoid circular dependency.
+ * For example, we should not depend on "Spine/core-java" project artifacts to avoid
+ * circular dependency.
  *
  * <p>There can be several option properties, and several same numbers in the options string:
  *
@@ -73,7 +74,8 @@ public class UnknownOptions {
     }
 
     /**
-     * Returns a string value of "unknown" Protobuf option or {@code null} if no option with such field number found.
+     * Returns a string value of "unknown" Protobuf option or {@code null} if no option
+     * with such field number found.
      */
     public static String getUnknownOptionValue(FileDescriptorProto file, Long optionFieldNumber) {
         final Map<Long, String> options = getUnknownOptions(file);
@@ -92,7 +94,8 @@ public class UnknownOptions {
     }
 
     /**
-     * Returns a string value of "unknown" Protobuf option or {@code null} if no option with such field number found.
+     * Returns a string value of "unknown" Protobuf option or {@code null} if no option
+     * with such field number found.
      */
     public static String getUnknownOptionValue(DescriptorProto msg, Long optionFieldNumber) {
         final Map<Long, String> options = getUnknownOptions(msg);
@@ -110,7 +113,10 @@ public class UnknownOptions {
         return result;
     }
 
-    /** Returns {@code true} if the field is marked with an option which has the given field number in its definition. */
+    /**
+     * Returns {@code true} if the field is marked with an option which has the given field number
+     * in its definition.
+     */
     public static boolean hasUnknownOption(FieldDescriptorProto field, Long optionFieldNumber) {
         final String optionsStr = field.getOptions()
                                        .getUnknownFields()
@@ -121,7 +127,8 @@ public class UnknownOptions {
     }
 
     /**
-     * Returns a string value of "unknown" Protobuf option or {@code null} if no option with such field number found.
+     * Returns a string value of "unknown" Protobuf option or {@code null} if no option with
+     * such field number found.
      */
     public static String getUnknownOptionValue(FieldDescriptorProto field, Long optionFieldNumber) {
         final Map<Long, String> options = getUnknownOptions(field);
@@ -152,7 +159,8 @@ public class UnknownOptions {
         if (value.startsWith(QUOTE) && value.endsWith(QUOTE)) {
             value = value.substring(1, value.length() - 1);
         }
-        // Check for duplicates to avoid exceptions on immutable map creation. See the class docs for details.
+        // Check for duplicates to avoid exceptions on immutable map creation.
+        // See the class docs for details.
         if (!map.containsKey(number)) {
             map.put(number, value);
         }

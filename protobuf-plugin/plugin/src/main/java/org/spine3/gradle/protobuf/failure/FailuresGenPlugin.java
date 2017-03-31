@@ -170,10 +170,13 @@ public class FailuresGenPlugin extends SpinePlugin {
         final String javaPackage = descriptor.getOptions()
                                              .getJavaPackage();
         final String javaOuterClassName = JavaCode.getOuterClassName(descriptor);
-        log().debug("Found options: javaPackage: {}, javaOuterClassName: {}", javaPackage, javaOuterClassName);
+        log().debug("Found options: javaPackage: {}, javaOuterClassName: {}",
+                    javaPackage,
+                    javaOuterClassName);
         final List<DescriptorProto> failures = descriptor.getMessageTypeList();
         for (DescriptorProto failure : failures) {
-            // The name of the generated ThrowableFailure will be the same as for the Protobuf message.
+            // The name of the generated ThrowableFailure will be the same
+            // as for the Protobuf message.
             log().debug("Processing failure '{}'", failure.getName());
 
             final FailureMetadata metadata = new FailureMetadata(failure, descriptor);
