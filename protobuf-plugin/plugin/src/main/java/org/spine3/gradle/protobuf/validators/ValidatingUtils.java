@@ -114,7 +114,7 @@ public class ValidatingUtils {
     /**
      * Returns the {@code ClassName} for the {@code String} class.
      *
-     * @return the {@code ClassName} for the {@code String} class
+     * @return the constructed {@code ClassName}
      */
     public static ClassName getStringClassName() {
         return ClassName.get(String.class);
