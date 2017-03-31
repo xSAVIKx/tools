@@ -41,6 +41,7 @@ import java.io.IOException;
 
 import static org.spine3.gradle.protobuf.util.GenerationUtils.constructGeneratedAnnotation;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatorGenericClassName;
+import static org.spine3.util.Exceptions.newIllegalArgumentException;
 
 /**
  * Class which writes generated validators to the Java files.
@@ -115,7 +116,8 @@ class ValidatorWriter {
                     .build()
                     .writeTo(rootFolder);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            final String exMessage = String.format("%s was not written.", rootFolder);
+            throw newIllegalArgumentException(exMessage ,e);
         }
     }
 

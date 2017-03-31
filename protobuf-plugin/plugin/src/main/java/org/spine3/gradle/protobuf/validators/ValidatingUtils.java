@@ -30,6 +30,7 @@ import java.util.Collection;
 
 import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoScalarType.getBoxedScalarPrimitive;
 import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoScalarType.getJavaTypeName;
+import static org.spine3.util.Exceptions.newIllegalArgumentException;
 
 /**
  * Utility class for working with validator generators.
@@ -70,8 +71,9 @@ public class ValidatingUtils {
             }
             return ClassName.get(Class.forName(scalarType));
         } catch (ClassNotFoundException ex) {
-            final String exMessage = String.format("Was not found the class for the type: %s", fieldDescriptor.getType());
-            throw new RuntimeException(exMessage, ex);
+            final String exMessage = String.format("Was not found the class for the type: %s",
+                                                   fieldDescriptor.getType());
+            throw newIllegalArgumentException(exMessage, ex);
         }
     }
 
@@ -106,7 +108,7 @@ public class ValidatingUtils {
                 return ClassName.get(javaPackage, fieldName);
             }
         }
-        throw new RuntimeException("Class is not found.");
+        throw newIllegalArgumentException("Class is not found.");
     }
 
     /**
