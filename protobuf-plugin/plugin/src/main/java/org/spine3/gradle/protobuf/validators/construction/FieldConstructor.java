@@ -53,7 +53,7 @@ public class FieldConstructor {
     /**
      * Constructs the fields according to the {@code DescriptorProto} of the ProtoBuf message.
      *
-     * @return constructed fields
+     * @return the constructed fields
      */
     public Collection<FieldSpec> construct() {
         final List<FieldSpec> fields = newArrayList();

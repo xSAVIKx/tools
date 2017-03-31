@@ -54,7 +54,7 @@ abstract class AbstractMethodConstructor {
     /**
      * Constructs the methods for the validators.
      *
-     * @return constructed methods
+     * @return the constructed methods
      */
     abstract Collection<MethodSpec> construct();
 
