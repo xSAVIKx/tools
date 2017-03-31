@@ -53,8 +53,8 @@ import static org.spine3.gradle.TaskName.PROCESS_TEST_RESOURCES;
 public class Given {
 
     private static final Class<Given> cls = Given.class;
-    static final String SPINE_PROTOBUF_PLUGIN_ID = "org.spine3.tools.protobuf-plugin";
     private static final String BASE_FAILURE_PROTO_LOCATION = "src/main/proto/spine/sample/failures/";
+    static final String SPINE_PROTOBUF_PLUGIN_ID = "org.spine3.tools.protobuf-plugin";
 
     // prevent instantiation of this utility class
     private Given() {
