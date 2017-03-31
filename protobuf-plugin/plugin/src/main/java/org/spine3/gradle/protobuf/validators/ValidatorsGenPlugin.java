@@ -52,7 +52,7 @@ import static org.spine3.gradle.protobuf.Extension.getTestDescriptorSetPath;
 import static org.spine3.gradle.protobuf.util.DescriptorSetUtil.getProtoFileDescriptors;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.isMap;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.isMessage;
-import static org.spine3.gradle.protobuf.util.GenerationUtils.toCorrectFieldTypeName;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.removeLeadingDot;
 
 /**
  * Plugin which generates validator builders, based on commands.proto files.
@@ -210,7 +210,7 @@ public class ValidatorsGenPlugin extends SpinePlugin {
     private Set<DescriptorProto> processField(FieldDescriptorProto fieldDescriptor) {
         final Set<DescriptorProto> result = newHashSet();
         final String typeName = fieldDescriptor.getTypeName();
-        final String fieldType = toCorrectFieldTypeName(typeName);
+        final String fieldType = removeLeadingDot(typeName);
         final DescriptorProto fieldMessageDescriptor = allMessageDescriptors.get(fieldType);
         result.add(fieldMessageDescriptor);
         result.addAll(getDescriptorsRecursively(fieldMessageDescriptor));
@@ -222,9 +222,9 @@ public class ValidatorsGenPlugin extends SpinePlugin {
         final DescriptorProto descriptor = msgDescriptor.getNestedType(index);
         final FieldDescriptorProto keyDescriptor = descriptor.getField(0);
         final FieldDescriptorProto valueDescriptor = descriptor.getField(1);
-        final String keyTypeName = toCorrectFieldTypeName(keyDescriptor.getTypeName());
+        final String keyTypeName = removeLeadingDot(keyDescriptor.getTypeName());
         result.addAll(getDescriptorsRecursively(allMessageDescriptors.get(keyTypeName)));
-        final String valueTypeName = toCorrectFieldTypeName(valueDescriptor.getTypeName());
+        final String valueTypeName = removeLeadingDot(valueDescriptor.getTypeName());
         final DescriptorProto valueMsgDescriptor = allMessageDescriptors.get(valueTypeName);
         result.add(valueMsgDescriptor);
         result.addAll(getDescriptorsRecursively(valueMsgDescriptor));

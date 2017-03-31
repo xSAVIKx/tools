@@ -55,7 +55,7 @@ public class ValidatingUtils {
         if (typeName.isEmpty()) {
             return getJavaTypeForScalarType(fieldDescriptor);
         }
-        typeName = GenerationUtils.toCorrectFieldTypeName(typeName);
+        typeName = GenerationUtils.removeLeadingDot(typeName);
         final String parameterType = messageTypeCache.getCachedTypes()
                                                      .get(typeName);
         return ClassName.bestGuess(parameterType);

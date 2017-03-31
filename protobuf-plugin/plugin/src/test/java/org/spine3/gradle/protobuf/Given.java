@@ -26,7 +26,6 @@ import org.gradle.testfixtures.ProjectBuilder;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.junit.rules.TemporaryFolder;
-import org.spine3.gradle.protobuf.failure.FailureJavadocGenerator;
 
 import java.io.IOException;
 import java.io.InputStream;

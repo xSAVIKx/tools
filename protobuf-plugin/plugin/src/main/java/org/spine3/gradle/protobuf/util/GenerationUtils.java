@@ -93,10 +93,10 @@ public class GenerationUtils {
     /**
      * Removes from the ProtoBuf type name in the {@code String} representation the leading dot.
      *
-     * @param typeName the type name to convert
+     * @param typeName the type name to modify
      * @return the type name without leading dot
      */
-    public static String toCorrectFieldTypeName(String typeName) {
+    public static String removeLeadingDot(String typeName) {
         if (typeName.isEmpty()) {
             return typeName;
         }

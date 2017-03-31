@@ -30,7 +30,7 @@ import static com.google.protobuf.DescriptorProtos.DescriptorProto;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.getEntryNameFor;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.isMap;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.isRepeated;
-import static org.spine3.gradle.protobuf.util.GenerationUtils.toCorrectFieldTypeName;
+import static org.spine3.gradle.protobuf.util.GenerationUtils.removeLeadingDot;
 
 /**
  * Factory for creation {@link FieldType} instances.
@@ -76,7 +76,7 @@ public class FieldTypeFactory {
     private String getFieldTypeName(FieldDescriptorProto field) {
         if (field.getType() == Type.TYPE_MESSAGE
                 || field.getType() == Type.TYPE_ENUM) {
-            final String typeName = toCorrectFieldTypeName(field.getTypeName());
+            final String typeName = removeLeadingDot(field.getTypeName());
             final String result = messageTypeMap.get(typeName);
             return result;
         } else {

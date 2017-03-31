@@ -64,7 +64,7 @@ import static java.lang.String.format;
 public class FailureJavadocGenerator {
 
     @VisibleForTesting
-    public static final String OPENING_PRE = "<pre>";
+    protected static final String OPENING_PRE = "<pre>";
 
     //TODO:2017-03-24:dmytro.grankin: Replace hardcoded line separator by system-independent
     // after https://github.com/square/javapoet/issues/552 fix.
