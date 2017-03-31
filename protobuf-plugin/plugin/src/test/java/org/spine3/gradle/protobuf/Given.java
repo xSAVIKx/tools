@@ -109,9 +109,9 @@ public class Given {
 
         private static final String PROJECT_NAME = "validators-gen-plugin-test/";
         private static final String[] TEST_PROTO_FILES = {
+                "identifiers.proto",
                 "attributes.proto",
                 "changes.proto",
-                "identifiers.proto",
                 "c/commands.proto"
         };
 
