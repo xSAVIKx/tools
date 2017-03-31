@@ -42,7 +42,7 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameter
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getStringClassName;
 
 /**
- * A method constructor for the singular fields.
+ * A method constructor for the singular fields, based on the ProtoBuf message declaration.
  */
 class SingularFieldMethodConstructor extends AbstractMethodConstructor {
 

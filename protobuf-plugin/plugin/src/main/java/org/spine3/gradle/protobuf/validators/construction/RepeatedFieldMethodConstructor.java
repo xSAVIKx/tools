@@ -42,7 +42,7 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getClassName
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getParameterClassName;
 
 /**
- * A method constructor for the repeated fields.
+ * A method constructor for the repeated fields based on the ProtoBuf message declaration.
  *
  * @author Illia Shepilov
  */

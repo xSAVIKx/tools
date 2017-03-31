@@ -71,7 +71,7 @@ public class MethodConstructorManager {
     }
 
     /**
-     * Creates the Java methods for the proto fields.
+     * Creates the Java methods according to the ProtoBuf message declaration.
      *
      * @return generated methods
      */

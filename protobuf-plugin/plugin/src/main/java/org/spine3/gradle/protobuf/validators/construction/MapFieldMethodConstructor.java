@@ -43,7 +43,7 @@ import static org.spine3.gradle.protobuf.util.GenerationUtils.getJavaFieldName;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getClassName;
 
 /**
- * A method constructor for the map fields.
+ * A method constructor for the map fields, based on the ProtoBuf message declaration.
  *
  * @author Illia Shepilov
  */

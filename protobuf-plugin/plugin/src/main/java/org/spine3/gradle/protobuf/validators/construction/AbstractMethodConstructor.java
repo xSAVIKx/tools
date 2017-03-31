@@ -33,7 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.getJavaFieldName;
 
 /**
- * The abstract base for all method constructors.
+ * An abstract base for all method constructors.
  *
  * @author Illia Shepilov
  */

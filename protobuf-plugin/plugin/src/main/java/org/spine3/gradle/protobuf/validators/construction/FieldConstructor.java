@@ -35,6 +35,9 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.spine3.gradle.protobuf.util.GenerationUtils.getJavaFieldName;
 
 /**
+ * A constructor for the java fields in the generated
+ * validator builders based on the ProtoBuf declaration.
+ *
  * @author Illia Shepilov
  */
 public class FieldConstructor {
@@ -47,7 +50,12 @@ public class FieldConstructor {
         this.fieldTypeFactory = new FieldTypeFactory(descriptor, messageTypeCache.getCachedTypes());
     }
 
-    public Collection<FieldSpec> getAllFields() {
+    /**
+     * Constructs the fields according to the {@code DescriptorProto} of the ProtoBuf message.
+     *
+     * @return constructed fields
+     */
+    public Collection<FieldSpec> construct() {
         final List<FieldSpec> fields = newArrayList();
         for (FieldDescriptorProto fieldDescriptor : descriptor.getFieldList()) {
             fields.add(construct(fieldDescriptor));
