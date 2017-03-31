@@ -13,11 +13,7 @@ dependencies {
     compile group: 'com.squareup', name: 'javapoet', version: '1.8.0'
     compile group: 'com.google.guava', name: 'guava', version: guavaVersion
     compile group: 'org.spine3', name: 'spine-client-core', version: spineVersion
-
-    compile gradleApi()
-
-    compile group: 'com.squareup', name: 'javapoet', version: '1.8.0'
-    compile "org.spine3:spine-server-core:$spineVersion"
+    compile group: 'org.spine3', name: 'spine-server-core', version: spineVersion
 
     compile project(path: ":common")
 
