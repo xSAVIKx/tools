@@ -39,6 +39,7 @@ import javax.lang.model.element.Modifier;
 import java.io.File;
 import java.io.IOException;
 
+import static org.spine3.gradle.protobuf.util.GenerationUtils.constructGeneratedAnnotation;
 import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getValidatorGenericClassName;
 
 /**
@@ -83,7 +84,8 @@ class ValidatorWriter {
         final TypeSpec.Builder classBuilder = TypeSpec.classBuilder(javaClass);
         addFields(classBuilder, fieldConstructor.construct());
         addMethods(classBuilder, methodConstructorManager.createMethods());
-        final TypeSpec javaClass = classBuilder.build();
+        final TypeSpec javaClass = classBuilder.addAnnotation(constructGeneratedAnnotation())
+                                               .build();
         writeClass(rootDirectory, javaClass);
 
         log().debug("Class was written.");
