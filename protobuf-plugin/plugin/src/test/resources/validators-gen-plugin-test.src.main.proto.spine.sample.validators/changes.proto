@@ -20,48 +20,36 @@
 
 syntax = "proto3";
 
-package spine.samples;
+package spine.sample.validators;
 
-option java_package = "org.spine3.samples";
-option java_outer_classname = "AttributesProto";
+option java_package = "org.spine3.sample.validators";
+option java_outer_classname = "ChangesProto";
 option java_multiple_files = true;
 option java_generate_equals_and_hash = true;
 
-enum LabelColor {
+import "spine/annotations.proto";
+import "spine/validate.proto";
+import "attributes.proto";
 
-    LC_UNDEFINED = 0;
+message LabelDetailsChange {
 
-    RED = 1;
+    LabelDetails previous_details = 1;
 
-    GREEN = 2;
+    LabelDetails new_details = 2;
 
-    BLUE = 3;
-
-    GRAY = 4;
+    repeated LabelDetails details = 3;
 }
 
-enum TaskPriority {
+message DescriptionChange {
 
-    TP_UNDEFINED = 0;
+    string previous_value = 1;
 
-    HIGH = 1;
-
-    NORMAL = 2;
-
-    LOW = 3;
+    string new_value = 2[(pattern).regex = "a-z{1}"];
 }
 
-enum TaskStatus {
+message LabelDetails {
 
-    TS_UNDEFINED = 0;
+    string title = 1;
 
-    DRAFT = 1;
-
-    FINALIZED = 2;
-
-    OPEN = 3;
-
-    COMPLETED = 4;
-
-    DELETED = 5;
+    LabelColor color = 2;
 }

@@ -27,7 +27,7 @@ import org.gradle.tooling.ResultHandler;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.spine3.gradle.protobuf.failure.Given.ValidatorsGenerationConfigurer;
+import org.spine3.gradle.protobuf.Given.ValidatorsGenerationConfigurer;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;

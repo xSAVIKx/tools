@@ -30,7 +30,7 @@ import org.gradle.tooling.ResultHandler;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.spine3.gradle.protobuf.failure.Given.FailuresGenerationConfigurer;
+import org.spine3.gradle.protobuf.Given.FailuresGenerationConfigurer;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -38,10 +38,10 @@ import java.util.concurrent.TimeUnit;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
-import static org.spine3.gradle.protobuf.failure.Given.FailuresJavadocConfigurer;
-import static org.spine3.gradle.protobuf.failure.Given.FailuresJavadocConfigurer.TEST_SOURCE;
-import static org.spine3.gradle.protobuf.failure.Given.FailuresJavadocConfigurer.getExpectedClassComment;
-import static org.spine3.gradle.protobuf.failure.Given.FailuresJavadocConfigurer.getExpectedCtorComment;
+import static org.spine3.gradle.protobuf.Given.FailuresJavadocConfigurer;
+import static org.spine3.gradle.protobuf.Given.FailuresJavadocConfigurer.TEST_SOURCE;
+import static org.spine3.gradle.protobuf.Given.FailuresJavadocConfigurer.getExpectedClassComment;
+import static org.spine3.gradle.protobuf.Given.FailuresJavadocConfigurer.getExpectedCtorComment;
 
 /**
  * @author Dmytro Grankin

@@ -20,9 +20,9 @@
 
 syntax = "proto3";
 
-package spine.samples;
+package spine.sample.validators;
 
-option java_package = "org.spine3.samples";
+option java_package = "org.spine3.sample.validators";
 option java_outer_classname = "IdentifiersProto";
 option java_multiple_files = true;
 option java_generate_equals_and_hash = true;
