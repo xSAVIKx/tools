@@ -27,6 +27,7 @@ import org.gradle.api.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.gradle.SpinePlugin;
+import org.spine3.gradle.protobuf.message.MessageTypeCache;
 import org.spine3.gradle.protobuf.util.JavaCode;
 
 import java.io.File;

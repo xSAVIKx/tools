@@ -29,7 +29,7 @@ import com.squareup.javapoet.TypeName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.base.ConversionException;
-import org.spine3.gradle.protobuf.failure.fieldtype.MapFieldType;
+import org.spine3.gradle.protobuf.message.fieldtype.MapFieldType;
 import org.spine3.validate.ConstraintViolationThrowable;
 
 import javax.lang.model.element.Modifier;
@@ -47,6 +47,9 @@ import static org.spine3.gradle.protobuf.validators.ValidatingUtils.getClassName
  *
  * @author Illia Shepilov
  */
+@SuppressWarnings("DuplicateStringLiteralInspection")
+// It cannot be used as the constant across the project.
+// Although it has the equivalent literal they have the different meaning.
 class MapFieldMethodConstructor extends AbstractMethodConstructor {
 
     private static final String KEY = "key";

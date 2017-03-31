@@ -22,21 +22,16 @@ package org.spine3.gradle.protobuf;
 
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.ResultHandler;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.spine3.gradle.protobuf.failure.Given.ValidatorsGenerationConfigurer;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-import static java.lang.Thread.sleep;
 import static junit.framework.TestCase.fail;
 import static org.spine3.gradle.TaskName.COMPILE_JAVA;
 
@@ -45,26 +40,16 @@ import static org.spine3.gradle.TaskName.COMPILE_JAVA;
  */
 public class ValidatorsGenPluginShould {
 
+    @SuppressWarnings("PublicField") // Rules should be public
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
-    @Before
-    public void setUp() throws IOException {
-        writeFile("build.gradle");
-        writeProto("attributes.proto");
-        writeProto("changes.proto");
-        writeProto("identifiers.proto");
-        writeProto("c/commands.proto");
-    }
-
-    @SuppressWarnings("BusyWait")
     @Test
-    public void compile_generated_validators() throws InterruptedException {
-        final AtomicBoolean testCompleted = new AtomicBoolean(false);
+    public void compile_generated_validators() throws Exception {
+        final CountDownLatch countDownLatch = new CountDownLatch(1);
 
-        final GradleConnector connector = GradleConnector.newConnector();
-        connector.forProjectDirectory(testProjectDir.getRoot());
-        final ProjectConnection connection = connector.connect();
+        final ProjectConnection connection =
+                new ValidatorsGenerationConfigurer(testProjectDir).configure();
         final BuildLauncher launcher = connection.newBuild();
 
         launcher.forTasks(
@@ -75,39 +60,20 @@ public class ValidatorsGenPluginShould {
                 @Override
                 public void onComplete(Void aVoid) {
                     // Test passed.
-                    testCompleted.set(true);
+                    countDownLatch.countDown();
                 }
 
                 @SuppressWarnings("CallToPrintStackTrace") // Used for easier debugging.
                 @Override
                 public void onFailure(GradleConnectionException e) {
                     e.printStackTrace();
-                    fail("Task should finish successfully.");
+                    fail("Tasks execution should not failed.");
                 }
             });
         } finally {
             connection.close();
         }
 
-        while (!testCompleted.get()) {
-            sleep(100);
-        }
-    }
-
-    private void writeProto(String protoFile) throws IOException {
-        final String baseProtoLocation = "src/main/proto/";
-        writeFile(baseProtoLocation + protoFile);
-    }
-
-    private void writeFile(String file) throws IOException {
-        final String projectName = "validators-gen-plugin-test/";
-        final Path resultingPath = testProjectDir.getRoot()
-                                                 .toPath()
-                                                 .resolve(file);
-        final InputStream fileContent = getClass().getClassLoader()
-                                                  .getResourceAsStream(projectName + file);
-
-        Files.createDirectories(resultingPath.getParent());
-        Files.copy(fileContent, resultingPath);
+        countDownLatch.await(100, TimeUnit.MILLISECONDS);
     }
 }

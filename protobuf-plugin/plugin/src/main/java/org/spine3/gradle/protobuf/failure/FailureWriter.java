@@ -31,8 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spine3.base.CommandContext;
 import org.spine3.base.FailureThrowable;
-import org.spine3.gradle.protobuf.failure.fieldtype.FieldType;
-import org.spine3.gradle.protobuf.failure.fieldtype.FieldTypeFactory;
+import org.spine3.gradle.protobuf.message.fieldtype.FieldType;
+import org.spine3.gradle.protobuf.message.fieldtype.FieldTypeFactory;
 
 import java.io.File;
 import java.io.IOException;

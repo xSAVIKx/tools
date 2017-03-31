@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.protobuf.failure;
+package org.spine3.gradle.protobuf.message;
 
 import java.util.Collections;
 import java.util.LinkedList;

@@ -26,6 +26,9 @@ import com.squareup.javapoet.AnnotationSpec;
 
 import javax.annotation.Generated;
 
+/**
+ * Utility class for working with generation classes.
+ */
 public class GenerationUtils {
 
     private GenerationUtils() {
@@ -56,37 +59,43 @@ public class GenerationUtils {
         return resultName;
     }
 
+    /**
+     * Checks the ProtoBuf field and determines it is repeated field or not.
+     *
+     * @param field the descriptor of the field to check
+     * @return {@code true} if field is repeated, {@code false} otherwise
+     */
     public static boolean isRepeated(FieldDescriptorProto field) {
         return field.getLabel() == FieldDescriptorProto.Label.LABEL_REPEATED;
     }
 
+    /**
+     * Checks the ProtoBuf field and determines it is map field or not.
+     *
+     * @param field the descriptor of the field to check
+     * @return {@code true} if field is map, {@code false} otherwise
+     */
     public static boolean isMap(FieldDescriptorProto field) {
         return field.getTypeName()
                     .endsWith('.' + getEntryNameFor(field));
     }
 
     /**
-     * Constructs the entry name for the map field.
+     * Checks the ProtoBuf field and determines it is message type or not.
      *
-     * <p>For example, proto field with name 'word_dictionary' has 'wordDictionary' json name.
-     * Every map field has corresponding entry type.
-     * For 'word_dictionary' it would be 'WordDictionaryEntry'
-     *
-     * @param mapField the field to construct entry name
-     * @return the name of the map field
+     * @param fieldDescriptor the descriptor of the field to check
+     * @return {@code true} if it is message, {@code false} otherwise
      */
-    public static String getEntryNameFor(FieldDescriptorProto mapField) {
-        final String jsonName = mapField.getJsonName();
-        final char capitalizedFirstSymbol = Character.toUpperCase(jsonName.charAt(0));
-        final String remainingPart = jsonName.substring(1);
-
-        return capitalizedFirstSymbol + remainingPart + "Entry";
-    }
-
     public static boolean isMessage(FieldDescriptorProto fieldDescriptor) {
         return fieldDescriptor.getType() == Type.TYPE_MESSAGE;
     }
 
+    /**
+     * Removes from the ProtoBuf type name in the {@code String} representation the leading dot.
+     *
+     * @param typeName the type name to convert
+     * @return the type name without leading dot
+     */
     public static String toCorrectFieldTypeName(String typeName) {
         if (typeName.isEmpty()) {
             return typeName;
@@ -99,9 +108,38 @@ public class GenerationUtils {
         return typeName;
     }
 
+    /**
+     * Constructs the {@code AnnotationSpec} for the {@code Generated} class.
+     *
+     * @return the constructed {@code AnnotationSpec} instance
+     */
+    @SuppressWarnings("DuplicateStringLiteralInspection")
+    // It cannot be used as the constant across the project.
+    // Although it has the equivalent literal they have the different meaning.
     public static AnnotationSpec constructGeneratedAnnotation() {
         return AnnotationSpec.builder(Generated.class)
                              .addMember("value", "$S", "by Spine compiler")
                              .build();
+    }
+
+    /**
+     * Constructs the entry name for the map field.
+     *
+     * <p>For example, proto field with name 'word_dictionary' has 'wordDictionary' json name.
+     * Every map field has corresponding entry type.
+     * For 'word_dictionary' it would be 'WordDictionaryEntry'
+     *
+     * @param mapField the field to construct entry name
+     * @return the name of the map field
+     */
+    @SuppressWarnings("DuplicateStringLiteralInspection")
+    // It cannot be used as the constant across the project.
+    // Although it has the equivalent literal they have the different meaning.
+    public static String getEntryNameFor(FieldDescriptorProto mapField) {
+        final String jsonName = mapField.getJsonName();
+        final char capitalizedFirstSymbol = Character.toUpperCase(jsonName.charAt(0));
+        final String remainingPart = jsonName.substring(1);
+
+        return capitalizedFirstSymbol + remainingPart + "Entry";
     }
 }

@@ -23,13 +23,13 @@ package org.spine3.gradle.protobuf.validators;
 import com.google.common.base.Optional;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.squareup.javapoet.ClassName;
-import org.spine3.gradle.protobuf.failure.MessageTypeCache;
+import org.spine3.gradle.protobuf.message.MessageTypeCache;
 import org.spine3.gradle.protobuf.util.GenerationUtils;
 
 import java.util.Collection;
 
-import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoScalarType.getBoxedScalarPrimitive;
-import static org.spine3.gradle.protobuf.failure.fieldtype.ProtoScalarType.getJavaTypeName;
+import static org.spine3.gradle.protobuf.message.fieldtype.ProtoScalarType.getBoxedScalarPrimitive;
+import static org.spine3.gradle.protobuf.message.fieldtype.ProtoScalarType.getJavaTypeName;
 import static org.spine3.util.Exceptions.newIllegalArgumentException;
 
 /**

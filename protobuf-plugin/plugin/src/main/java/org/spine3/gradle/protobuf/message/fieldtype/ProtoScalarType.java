@@ -18,7 +18,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.spine3.gradle.protobuf.failure.fieldtype;
+package org.spine3.gradle.protobuf.message.fieldtype;
 
 import com.google.common.base.Optional;
 import com.google.protobuf.ByteString;
