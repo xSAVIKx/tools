@@ -67,10 +67,21 @@ public class MessageTypeCache {
             javaPackage = javaPackage + singleFileSuffix + '.';
         }
 
+        cacheMessageTypes(fileDescriptor, protoPackage, javaPackage);
+        cahceEnumTypes(fileDescriptor, protoPackage, javaPackage);
+    }
+
+    private void cacheMessageTypes(FileDescriptorProto fileDescriptor,
+                                   String protoPackage,
+                                   String javaPackage) {
         for (DescriptorProto msg : fileDescriptor.getMessageTypeList()) {
             cacheMessageType(msg, protoPackage, javaPackage);
         }
+    }
 
+    private void cahceEnumTypes(FileDescriptorProto fileDescriptor,
+                                String protoPackage,
+                                String javaPackage) {
         for (EnumDescriptorProto enumType : fileDescriptor.getEnumTypeList()) {
             cacheEnumType(enumType, protoPackage, javaPackage);
         }
