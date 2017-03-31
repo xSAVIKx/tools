@@ -24,6 +24,7 @@ import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.ResultHandler;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -45,6 +46,7 @@ public class ValidatorsGenPluginShould {
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
     @Test
+    @Ignore
     public void compile_generated_validators() throws Exception {
         final CountDownLatch countDownLatch = new CountDownLatch(1);
 
